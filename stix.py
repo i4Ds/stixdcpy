@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+""" STIX data query APIs
+"""
+
 import io
 import requests
 import numpy as np
