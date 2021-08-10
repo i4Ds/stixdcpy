@@ -1,3 +1,7 @@
-# Python APIs to request data from STIX data center
+# Python APIs to interactive with STIX data center
 
-See examples in https://github.com/i4Ds/STIX_Python_APIs/blob/master/API_test.ipynb  on how to use them
+Example 
+
+from sdc import QuickLook
+lc=QuickLook.LightCurves('2021-05-07T00:00:00', '2021-05-08T00:00:00', ltc=True)
+lc.peek()
