@@ -1,4 +1,4 @@
-## Python APIs to interactive with STIX data center
+## Python APIs to interact with STIX data center
 
 Example 
 ```python
