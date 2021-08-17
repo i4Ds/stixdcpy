@@ -1,5 +1,5 @@
 ## Python APIs to interact with STIX data center
-
+sdcpy is still under development. More APIs will be included.
 Example 
 ```python
 from sdc import QuickLook
