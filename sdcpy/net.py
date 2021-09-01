@@ -1,7 +1,7 @@
 
 HOST='https://pub023.cs.technik.fhnw.ch'
 
-URLS{
+URLS={
         'LC':f'{HOST}/request/ql/lightcurves',
         'ELUT':f'{HOST}/request/eluts',
     }
