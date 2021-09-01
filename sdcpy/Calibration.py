@@ -36,13 +36,18 @@ class EnergyLUT(Calibration):
     def info(self):
         try:
             pprint(self.data['info'])
-            pprint('Pixel 0 true energy bin  edges: ')
-            pprint(self.get_pixel_true_ebins(0))
-            pprint('...')
+            #pprint('Pixel 0 true energy bin  edges: ')
+            #pprint(self.get_pixel_true_ebins(0))
+            #pprint('...')
 
         except Exception as e:
             print(e)
 
+    def __getattr__(self, name):
+        if name == 'data':
+            return self.data['data']
+    def get_data(self):
+        return self.data['data']
 
     def get_calibration_data(self):
         try:

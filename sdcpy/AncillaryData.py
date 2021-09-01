@@ -7,16 +7,26 @@
 '''
 import requests
 from matplotlib import pyplot as plt
+from matplotlib import patches
 import datetime
 from sdcpy import net
 
 class Ephemeris(object):
-    def __init__(self, utc=None):
+    def __init__(self, start_utc=None, end_utc=None, steps=1):
         self.data=None
-        if utc:
-            self.fetch(utc)
-    def fetch(self, utc):
-        self.data=net.fetch_empheris(utc)
+        if start_utc:
+            self.fetch(start_utc, end_utc,steps)
+    def fetch(self, start_utc, end_utc=None, steps=1):
+        if end_utc is None:
+            end_utc=start_utc
+        self.start_utc, self.end_utc=start_utc, end_utc
+        self.data=net.fetch_empheris(start_utc, end_utc, steps)
+    def __getattr__(self, name):
+        if name == 'data':
+            return self.data
+    def get_data(self):
+        return self.data
+
     def peek(self, ax=None):
         if not self.data:
             print(f'Data not loaded. ')
@@ -41,5 +51,5 @@ class Ephemeris(object):
         ax.set_ylim(-2,2)
         ax.set_aspect('equal')
         ax.grid()
-        plt.title(f'SOLO Location at {utc}')
+        plt.title(f'SOLO Location at {self.start_utc}')
         return ax

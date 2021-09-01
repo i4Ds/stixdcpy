@@ -21,6 +21,11 @@ class LightCurves(QuickLook):
 
     def fetch(self, begin_utc, end_utc, ltc=False):
         self.data=net.fetch_light_curves(begin_utc, end_utc,ltc)
+    def __getattr__(self, name):
+        if name == 'data':
+            return self.data
+    def get_data(self):
+        return self.data
     def peek(self, ax=None, legend_loc='upper right'):
         if not ax:
             _, ax=plt.subplots()
