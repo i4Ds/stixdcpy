@@ -1,23 +1,21 @@
+#!/usr/bin/python
+'''
+    This script provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
+    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
+    Date: Sep. 1, 2021
+
+'''
 import requests
 from matplotlib import pyplot as plt
 import datetime
+from sdcpy import net
 
-HOST='https://pub023.cs.technik.fhnw.ch'
 class QuickLook(object):
     def __init__(self):
         pass
 class LightCurves(QuickLook):
     def __init__(self, begin_utc, end_utc, ltc=False):
-        url = f'{HOST}/request/ql/lightcurves'
-        form = {
-         'begin': begin_utc,
-         'ltc':ltc,
-         'end':end_utc
-        }
-        response = requests.post(url, data = form)
-        self.data=response.json()
-        if 'error' in self.data:
-            raise FileNotFoundError
+        self.data=net.fetch_light_curves(begin_utc, end_utc,ltc)
     def peek(self, ax=None, legend_loc='upper right'):
         if not ax:
             _, ax=plt.subplots()
