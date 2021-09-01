@@ -17,7 +17,10 @@ class Calibration(object):
     def __init__(self):
         pass
 class EnergyLUT(Calibration):
-    def __init__(self, utc):
+    def __init__(self, utc=None):
+        if utc:
+            self.fetch(utc)
+    def fetch(self,utc):
         self.data=net.fetch_onboard_and_true_eluts(utc)
         '''
         data structure

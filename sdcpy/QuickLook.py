@@ -14,7 +14,12 @@ class QuickLook(object):
     def __init__(self):
         pass
 class LightCurves(QuickLook):
-    def __init__(self, begin_utc, end_utc, ltc=False):
+    def __init__(self, begin_utc=None, end_utc=None, ltc=False):
+        self.data = None
+        if begin_utc is not None and end_utc is not None:
+            self.fetch(begin_utc, end_utc, ltc=False)
+
+    def fetch(self, begin_utc, end_utc, ltc=False):
         self.data=net.fetch_light_curves(begin_utc, end_utc,ltc)
     def peek(self, ax=None, legend_loc='upper right'):
         if not ax:
