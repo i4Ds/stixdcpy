@@ -1,9 +1,10 @@
-
+import requests
 HOST='https://pub023.cs.technik.fhnw.ch'
+HOST='http://localhost:5000'
 
 URLS={
-        'LC':f'{HOST}/request/ql/lightcurves',
-        'ELUT':f'{HOST}/request/eluts',
+        'LC':f'{HOST}/api/request/ql/lightcurves',
+        'ELUT':f'{HOST}/api/request/eluts',
     }
 
 def fetch_light_curves(begin_utc, end_utc, ltc):

@@ -7,9 +7,9 @@
 '''
 
 import datetime
-import requests
 from pprint import pprint
 from matplotlib import pyplot as plt
+import numpy as np
 
 from sdcpy import net
 
@@ -53,17 +53,19 @@ class EnergyLUT(Calibration):
             return self.data['data']['onboard']
         except Exception as e:
             print(e)
-    def get_true_ebin_edges(self):
+    def get_true_energy_bin_edges(self):
         try:
-            return self.data['data']['onboard']
+            return np.array(self.data['data']['true_energy_bin_edges'])
         except Exception as e:
             print(e)
             return None
 
     def get_pixel_true_ebins(self, pixel):
         try:
-            ebins=self.data['true_energy_bin_edges'][:,pixel] #retrieve the column  
-            return np.array([ (ebins[i], ebins[i+1]) for i in range(32)])
+
+            true_ebins=np.array(self.data['data']['true_energy_bin_edges'])
+            pixel_ebins=true_ebins[:,pixel] #retrieve the column  
+            return np.array([[pixel_ebins[i], pixel_ebins[i+1]] for i in range(32)])
         except Exception as e:
             print(e)
             return None
