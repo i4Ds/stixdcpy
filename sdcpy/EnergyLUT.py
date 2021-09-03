@@ -12,16 +12,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from sdcpy import net
+from sdcpy import io as sio
+from sdcpy.net import JSONRequest as jreq
 
-class Calibration(object):
+class EnergyLUT(sio.IO):
     def __init__(self):
-        pass
-class EnergyLUT(Calibration):
-    def __init__(self, utc=None):
-        if utc:
-            self.fetch(utc)
-    def fetch(self,utc):
-        self.data=net.fetch_onboard_and_true_eluts(utc)
+        self.data=None
+    @classmethod
+    def request(cls,utc):
+        ob = cls.__new__(cls)
+        ob.data=jreq.fetch_onboard_and_true_eluts(utc)
         '''
         data structure
         {'data':{
@@ -33,6 +33,16 @@ class EnergyLUT(Calibration):
                 'info': self.info(),
                 }
                 '''
+        return ob
+    @classmethod
+    def from_file(cls, filename):
+        ob = cls.__new__(cls)
+        print('Not implemented yet')
+        data=None
+        ob.data=data
+        return ob
+
+
     def info(self):
         try:
             pprint(self.data['info'])

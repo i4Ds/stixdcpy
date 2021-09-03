@@ -1,6 +1,6 @@
 #!/usr/bin/python
 '''
-    This script provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
+    This module provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
 
@@ -8,19 +8,31 @@
 import requests
 from matplotlib import pyplot as plt
 import datetime
-from sdcpy import net
+from sdcpy.net import JSONRequest as jreq
+from sdcpy import io as sio
 
-class QuickLook(object):
+class QuickLook(sio.IO):
     def __init__(self):
         pass
 class LightCurves(QuickLook):
-    def __init__(self, begin_utc=None, end_utc=None, ltc=False):
-        self.data = None
-        if begin_utc is not None and end_utc is not None:
-            self.fetch(begin_utc, end_utc, ltc=False)
+    def __init__(self):
+        self.data=None
+    @classmethod
+    def request(cls, begin_utc:str, end_utc:str, ltc=False):
+        ob = cls.__new__(cls)
+        data=jreq.fetch_light_curves(begin_utc, end_utc,ltc)
+        ob.data=data
+        return ob
 
-    def fetch(self, begin_utc, end_utc, ltc=False):
-        self.data=net.fetch_light_curves(begin_utc, end_utc,ltc)
+    @classmethod
+    def from_file(cls, filename):
+        ob = cls.__new__(cls)
+        print('Not implemented yet')
+        data=None
+        ob.data=data
+        return ob
+    
+
     def __getattr__(self, name):
         if name == 'data':
             return self.data
