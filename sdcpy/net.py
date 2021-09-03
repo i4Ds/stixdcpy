@@ -21,6 +21,18 @@ FITS_TYPES = {
     'l0', 'l1', 'l2', 'l3', 'spec', 'qlspec', 'asp', 'aspect', 'lc', 'bkg',
     'var', 'ffl', 'cal', 'hkmin', 'hkmax'
 }
+'''
+#class FitsProductQueryResult(object):
+    def __init__(self,resp):
+        self.result=resp
+    def __repr__(self):
+        return str(self.result)
+    def __getitem__(self):
+        return self.
+        '''
+
+
+
 
 class FITSRequest(object):
     '''Request FITS format data from STIX data center '''
@@ -62,7 +74,15 @@ class FITSRequest(object):
         return name
 
     @staticmethod
-    def fetch(start_utc, stop_utc, fits_type='lc', progress_bar=True):
+    def query(start_utc, stop_utc, product_type='lc'):
+        if product_type not in FITS_TYPES: 
+            raise TypeError(f'Invalid product type! product_type can be one of {str(FITS_TYPES)}') 
+        url=f'/query/fits/{start_utc}/{stop_utc}/{product_type}'
+        r = requests.get(url)
+        return r.json()
+
+    @staticmethod
+    def fetch(query_results):
         temp_file=FITSRequest.get_fits(start_utc, stop_utc, fits_type, progress_bar)
         try:
             return fits.open(temp_file)
@@ -70,9 +90,8 @@ class FITSRequest(object):
             print('Invalid request or no data was found')
             return None
 
-
     @staticmethod
-    def get_fits(start_utc, stop_utc, fits_type='lc', progress_bar=True, filename=None):
+    def get_fits(fits_id,  progress_bar=True, filename=None):
         """Query data from pub023 and download FITS file from the server.
         A fits file will be received for the packets which satistify the query condition.
         If no data is found on pub023, a json object will be received
@@ -88,15 +107,7 @@ class FITSRequest(object):
         Returns:
             astropy fits object if the request is successful;  None if it is failed or no result returns
         """    
-        if isinstance(start_utc, datetime):
-            start_utc=start_utc.strftime("%m-%d-%YT%H:%M:%S")
-        if isinstance(stop_utc, datetime):
-            stop_utc=stop_utc.strftime("%m-%d-%YT%H:%M:%S")
-
-        pattern = 'http://pub023.cs.technik.fhnw.ch/create/fits/{start_utc}/{stop_utc}/{fits_type}'
-        url = pattern.format(start_utc=start_utc,
-                             stop_utc=stop_utc,
-                             fits_type=fits_type)
+        url = f'{HOST}/download/fits/{file_id}'
         temp_file = FITSRequest.wget(url, 'Downloading data', progress_bar, filename)
         return temp_file
 
@@ -106,7 +117,6 @@ class JSONRequest(object):
     @staticmethod
     def post(url, form):
         response = requests.post(url, data = form)
-
         data=response.json()
         if 'error' in data:
             print(data['error'])
