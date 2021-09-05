@@ -1,3 +1,12 @@
+#!/usr/bin/python
+'''
+    This module provides APIs to retrieve data from STIX data center 
+    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
+    Date: Sep. 1, 2021
+
+'''
+
+
 import io
 import json
 import requests
@@ -21,15 +30,15 @@ FITS_TYPES = {
     'l0', 'l1', 'l2', 'l3', 'spec', 'qlspec', 'asp', 'aspect', 'lc', 'bkg',
     'var', 'ffl', 'cal', 'hkmin', 'hkmax'
 }
-'''
-#class FitsProductQueryResult(object):
+class FitsProductQueryResult(object):
     def __init__(self,resp):
         self.result=resp
     def __repr__(self):
         return str(self.result)
-    def __getitem__(self):
-        return self.
-        '''
+    def __getitem__(self, index):
+        return self.result[index]
+    def get_fits_ids(self):
+        return [row['fits_id'] for row in self.result]
 
 
 
@@ -78,17 +87,45 @@ class FITSRequest(object):
         if product_type not in FITS_TYPES: 
             raise TypeError(f'Invalid product type! product_type can be one of {str(FITS_TYPES)}') 
         url=f'/query/fits/{start_utc}/{stop_utc}/{product_type}'
-        r = requests.get(url)
-        return r.json()
+        r = requests.get(url).json()
+        if isinstance(r,list):
+            return FitsProductQueryResult(r)
+        return []
+    
+    @staticmethod
+    def fetch_bulk_science_by_request_id(request_id):
+        url=f'{HOST}/download/fits/bsd/{request_id}'
+        temp=FITSRequest.wget(url, f'Downloading BSD #{request_id}')
+        return fits.open(temp)
 
     @staticmethod
     def fetch(query_results):
-        temp_file=FITSRequest.get_fits(start_utc, stop_utc, fits_type, progress_bar)
+        fits_ids=[]
+        if isinstance(query_results, FitsProductQueryResult):
+            fits_ids=query_results.get_fits_ids()
+        elif isinstance(query_results,int):
+            fits_ids=[query_results]
+        elif isinstance(query_results, list):
+            try:
+                fits_ids=[row['fits_id'] for row in query_results]
+            except:
+                pass
+            if not fits_id:
+                try:
+                    fits_ids=[row for row in query_results if isinstance(row, int)]
+                except:
+                    pass
+        if not fits_id:
+            raise TypeError('Invalid argument type')
+        
+        fits_handlers=[]
         try:
-            return fits.open(temp_file)
-        except:
-            print('Invalid request or no data was found')
-            return None
+            for file_id in fits_ids:
+                temp_file=FITSRequest.get_fits(file_id)
+                fits_handlers.append(fits.open(temp_file))
+        except Exception as e:
+            raise e
+        return fits_handlers
 
     @staticmethod
     def get_fits(fits_id,  progress_bar=True, filename=None):
@@ -111,6 +148,13 @@ class FITSRequest(object):
         temp_file = FITSRequest.wget(url, 'Downloading data', progress_bar, filename)
         return temp_file
 
+    @staticmethod
+    def fetch_continuous_data(start_utc, end_utc, data_type):
+        if data_type not in ['hkmax','lc','var','qlspec','bkg']:
+            raise TypeError(f'Data type {data_type} not supported!')
+        url=f'{HOST}/create/fits/{start_utc}/{end_utc}/{data_type}'
+        temp_file = FITSRequest.wget(url, 'Downloading data', True, None)
+        return fits.open(temp_file)
 
 class JSONRequest(object):
     '''Request json format data from STIX data center '''
