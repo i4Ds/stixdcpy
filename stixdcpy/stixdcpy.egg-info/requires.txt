@@ -1,0 +1,7 @@
+numpy
+requests
+python-dateutil
+astropy
+sunpy
+matplotlib
+tqdm
