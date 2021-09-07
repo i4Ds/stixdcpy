@@ -23,6 +23,7 @@ URLS_POST={
         'ELUT':f'{HOST}/api/request/eluts',
         'EMPHERIS':f'{HOST}/api/request/ephemeris',
         'SCIENCE':f'{HOST}/api/request/science-data/id',
+        'transmission':f'{HOST}/api/request/transmission'
     }
 
 
@@ -30,6 +31,21 @@ FITS_TYPES = {
     'l0', 'l1', 'l2', 'l3', 'spec', 'qlspec', 'asp', 'aspect', 'lc', 'bkg',
     'var', 'ffl', 'cal', 'hkmin', 'hkmax'
 }
+
+def download_if_not_exists(filename, url):
+    """
+    Download a URL to a file if the file
+    does not exist already.
+    Returns
+    -------
+    True if the file was downloaded,
+    False if it already existed
+    """
+    if not os.path.exists(filename):
+        download_file(filename, url)
+        return True
+    return False
+
 class FitsProductQueryResult(object):
     def __init__(self,resp):
         self.result=resp
