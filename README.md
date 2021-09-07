@@ -1,5 +1,6 @@
-## Python APIs to interact with STIX data center
-sdcpy is still under development. More APIs will be included.
+sdcpy provides you APIs to access various data on STIX data center and basic tools to analyzer the data.  
+sdcpy is still under development. 
+
 
 
 Example 
