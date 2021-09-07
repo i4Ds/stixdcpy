@@ -10,6 +10,6 @@ Then run the following lines in your terminal
 cd sdcpy
 pip install .
 ```
+### How to use  sdcpy 
 
-
-Some examples are available at examples/ 
+Examples are available at examples/ 
