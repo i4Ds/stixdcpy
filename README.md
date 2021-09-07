@@ -5,5 +5,11 @@ To install stixdcpy from github, you need to clone that repository.
 ```sh 
 git clone https://github.com/drhlxiao/stixdcpy.git
 ```
+Then run the following lines in your terminal
+```sh
+cd sdcpy
+pip install .
+```
+### How to use  sdcpy 
 
-Some examples are available at examples/ 
+Examples are available at examples/ 
