@@ -5,6 +5,5 @@ stixdcpy is still under development.
 pip3 install stixdcpy
 
 ```
-### How to use  sdcpy 
-
-Examples are available at examples/ 
+### How to use  stixdcpy
+Examples are available here https://github.com/drhlxiao/stixdcpy/blob/master/examples/stixdcpy%20tutorial.ipynb
