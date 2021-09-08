@@ -47,14 +47,27 @@ class FitsProductQueryResult(object):
         return str(self.result)
     def __getitem__(self, index):
         return self.result[index]
+    def __getattr__(self, name):
+        if name in ['num','len']:
+            return len(self.result)
+    def __len__(self):
+        return len(self.result)
     def get_fits_ids(self):
         return [row['fits_id'] for row in self.result]
+    def fetch(self):
+        if self.result:
+            return FitsProduct.fetch(self.result)
+        else:
+            print('WARNING: Nothing to be downloaded from stix data center!')
 
 
-class FITSRequest(object):
+
+
+
+class FitsProduct(object):
     '''Request FITS format data from STIX data center '''
     @staticmethod
-    def wget(url: str, desc: str, progress_bar=True,filename=None):
+    def wget(url: str, desc: str, progress_bar=True):
         """Download a file from the link and save the file to a temporary file.
            Downloading progress will be shown in a progress bar
 
@@ -67,33 +80,36 @@ class FITSRequest(object):
         """    
         stream=progress_bar
         resp = requests.get(url, stream=stream)
-        if filename is None:
-            fname=resp.headers.get("Content-Disposition").split("filename=")[1]
-            folder=DOWNLOAD_PATH
-            if not fname:
-                md5hex=hashlib.md5(url.encode('utf-8')).hexdigest()
-                fname=f'{md5hex}.fits'
-            filename=PurePath(folder,fname)
-        if Path(filename).is_file():
-            print(f'Found the data in local storage. Filename: {filename} ...')
-            return filename
+        content_type=resp.headers.get('content-type')
+        if content_type != 'binary/x-fits':
+            print('ERROR:',resp.content)
+            return None
 
+        folder=DOWNLOAD_PATH
+        try:
+            fname=resp.headers.get("Content-Disposition").split("filename=")[1]
+        except AttributeError:
+            md5hex=hashlib.md5(url.encode('utf-8')).hexdigest()
+            fname=f'{md5hex}.fits'
+        filename=PurePath(folder,fname)
+        fpath=Path(filename)
+        if fpath.is_file():
+            print(f'Found the data in local storage. Filename: {filename} ...')
+            return str(fpath)
         f=open(filename,'wb')
-        if not progress_bar:
-            f.write(resp.content)
-        else:
-            chunk_size = 1024
-            total = int(resp.headers.get('content-length', 0))
-            with tqdm(
+        chunk_size = 1024
+        total = int(resp.headers.get('content-length', 0))
+        with tqdm(
                 desc=desc,
                 total=total,
                 unit='iB',
                 unit_scale=True,
                 unit_divisor=chunk_size,
             ) as bar:
-                for data in resp.iter_content(chunk_size=chunk_size):
-                    size = f.write(data)
-                    bar.update(size)
+            for data in resp.iter_content(chunk_size=chunk_size):
+
+                size = f.write(data)
+                bar.update(size)
         name = f.name
         f.close()
         return name
@@ -102,16 +118,19 @@ class FITSRequest(object):
     def query(start_utc, stop_utc, product_type='lc'):
         if product_type not in FITS_TYPES: 
             raise TypeError(f'Invalid product type! product_type can be one of {str(FITS_TYPES)}') 
-        url=f'/query/fits/{start_utc}/{stop_utc}/{product_type}'
+        url=f'{HOST}/query/fits/{start_utc}/{stop_utc}/{product_type}'
         r = requests.get(url).json()
+        res=[]
         if isinstance(r,list):
-            return FitsProductQueryResult(r)
-        return []
+            res=r
+        elif 'error' in r:
+            print(r['error'])
+        return FitsProductQueryResult(res)
     
     @staticmethod
     def fetch_bulk_science_by_request_id(request_id):
         url=f'{HOST}/download/fits/bsd/{request_id}'
-        fname=FITSRequest.wget(url, f'Downloading BSD #{request_id}')
+        fname=FitsProduct.wget(url, f'Downloading BSD #{request_id}')
         return fname
 
     @staticmethod
@@ -124,27 +143,27 @@ class FITSRequest(object):
         elif isinstance(query_results, list):
             try:
                 fits_ids=[row['fits_id'] for row in query_results]
-            except:
+            except Exception as e:
                 pass
-            if not fits_id:
+            if not fits_ids:
                 try:
                     fits_ids=[row for row in query_results if isinstance(row, int)]
                 except:
                     pass
-        if not fits_id:
+        if not fits_ids:
             raise TypeError('Invalid argument type')
         
         fits_filenames=[]
         try:
             for file_id in fits_ids:
-                fname=FITSRequest.get_fits(file_id)
+                fname=FitsProduct.get_fits(file_id)
                 fits_filenames.append(fname)
         except Exception as e:
             raise e
         return fits_filenames
 
     @staticmethod
-    def get_fits(fits_id,  progress_bar=True, filename=None):
+    def get_fits(fits_id,  progress_bar=True):
         """Query data from pub023 and download FITS file from the server.
         A fits file will be received for the packets which satistify the query condition.
         If no data is found on pub023, a json object will be received
@@ -160,8 +179,8 @@ class FITSRequest(object):
         Returns:
             astropy fits object if the request is successful;  None if it is failed or no result returns
         """    
-        url = f'{HOST}/download/fits/{file_id}'
-        fname = FITSRequest.wget(url, 'Downloading data', progress_bar, filename)
+        url = f'{HOST}/download/fits/{fits_id}'
+        fname = FitsProduct.wget(url, 'Downloading data', progress_bar)
         return fname
 
     @staticmethod
@@ -169,7 +188,7 @@ class FITSRequest(object):
         if data_type not in ['hkmax','lc','var','qlspec','bkg']:
             raise TypeError(f'Data type {data_type} not supported!')
         url=f'{HOST}/create/fits/{start_utc}/{end_utc}/{data_type}'
-        fname = FITSRequest.wget(url, 'Downloading data', True, None)
+        fname = FitsProduct.wget(url, 'Downloading data', True)
         return fname
 
 class JSONRequest(object):

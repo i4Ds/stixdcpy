@@ -6,39 +6,48 @@
 
 '''
 import requests
-from matplotlib import pyplot as plt
 import datetime
+from matplotlib import pyplot as plt
+from astropy.io import fits
 from stixdcpy.net import JSONRequest as jreq
+from stixdcpy.net import FitsProduct as freq
 from stixdcpy import io as sio
 
 class QuickLook(sio.IO):
     def __init__(self):
         pass
+    #def save_fits(self,fname):
+    #    self.data.writeto(fname)
+
 class LightCurves(QuickLook):
-    def __init__(self):
-        self.data=None
-    @classmethod
-    def request(cls, begin_utc:str, end_utc:str, ltc=False):
-        ob = cls.__new__(cls)
-        data=jreq.fetch_light_curves(begin_utc, end_utc,ltc)
-        ob.data=data
-        return ob
+    def __init__(self, data):
+        self.data=data
 
     @classmethod
-    def from_file(cls, filename):
-        ob = cls.__new__(cls)
-        print('Not implemented yet')
-        data=None
-        ob.data=data
-        return ob
-    
+    def fetch(cls, start_utc:str, end_utc:str, ltc=False):
+        data=jreq.fetch_light_curves(start_utc, end_utc, ltc) 
+        return cls(data)
+
+    #@classmethod
+    #def from_file(cls, filename):
+    #    return cls(filename)
 
     def __getattr__(self, name):
         if name == 'data':
             return self.data
+        #elif name == 'filename':
+        #    return self.fname
+
     def get_data(self):
         return self.data
+
     def peek(self, ax=None, legend_loc='upper right'):
+        '''
+        Plot light curves
+        Parameters:
+            ltc: light time correction flag. The default value is False. Do light time correction if ltc=True
+        '''
+
         if not ax:
             _, ax=plt.subplots()
         dt=[datetime.datetime.utcfromtimestamp(t) for t in self.data['unix_time']]

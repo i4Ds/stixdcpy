@@ -17,7 +17,7 @@ class Ephemeris(sio.IO):
     def __init__(self):
         self.data= None
     @classmethod
-    def request(cls, start_utc:str, end_utc=None, steps=1):
+    def fetch(cls, start_utc:str, end_utc=None, steps=1):
         ob = cls.__new__(cls)
         if end_utc is None:
             end_utc=start_utc

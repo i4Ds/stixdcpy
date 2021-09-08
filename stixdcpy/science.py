@@ -15,7 +15,7 @@ from matplotlib import patches
 from stixdcpy import net
 from stixdcpy import time as st
 from stixdcpy import io as sio
-from stixdcpy.net import FITSRequest as freq
+from stixdcpy.net import FitsProduct as freq
 
 class ScienceData(sio.IO):
     '''
@@ -90,7 +90,7 @@ class ScienceData(sio.IO):
     def get_data(self):
         return self.data
 
-class SciL1(ScienceData):
+class L1Product(ScienceData):
     '''
     Tools to analyzer L1 science data
     '''
@@ -165,7 +165,7 @@ class SciL1(ScienceData):
         return ob
 
 
-class SciSpectrogram(ScienceData):
+class SpectrogramProduct(ScienceData):
     '''
     def __init__(self, entry_id=None):
         super().__init__(entry_id)
