@@ -18,28 +18,79 @@ from stixdcpy import io as sio
 from stixdcpy.net import FITSRequest as freq
 
 class ScienceData(sio.IO):
-    def __init__(self, request_id, data):
+    '''
+      Retrieve science data from stix data center or load fits file from local storage  
+
+    '''
+    def __init__(self, request_id,fname, data):
         self.data= data
+        self.fname=fname
         self.request_id=request_id
-        self.preprocessing()
-    def preprocessing(self):
+        self.read_data()
+    
+    def read_data(self):
+        '''
+        Read data object and extract basic information from science fits file
+        Code to be executed after a science data file is being loaded.
+        
+        '''
         pass
     @classmethod
     def fetch(cls, request_id):
+        '''
+        Fetch science data file from stix data center
+        Parameters
+        ------
+        request_id : bulk science data request unique ID; Unique IDs can be found on the science data web page  at stix data center
+
+
+        Returns
+        ------
+        FITS file object
+
+        '''
         request_id=request_id
-        data=freq.fetch_bulk_science_by_request_id(request_id)
-        return cls(request_id, data)
+        data,fname=freq.fetch_bulk_science_by_request_id(request_id)
+        return cls(request_id, fname, data)
     @classmethod
     def from_fits(cls,filename):
         request_id=0
         data=fits.open(filename)
+        #request_id is temperary set to 0
         return cls(request_id, data)
+
+    def save(cls, filename=None):
+        '''
+           Save data to a fits file
+           Parameters: 
+           filename : fits filename
+           Returns
+           filename if success or error message
+
+
+        '''
+        if not isinstance(self.data, astropy.io.fits.hdu.hdulist.HDUList):
+            print('ERROR: The data object is a not a fits hdu object!')
+            return
+        try:
+            if filename is None:
+                fname=self.data['PRIMARY'].header['FILENAME']
+                filename=os.parth.join(DATA_DIR, fname)
+            self.data.writeto(filename)
+            return filename
+        except Exception as e:
+            print(e)
+
+
 
     def __getattr__(self, name):
         if name == 'data':
             return self.data
         elif name == 'type':
             return self.data.get('data_type','INVALID_TYPE')
+        elif name == 'filename':
+            return self.fname
+
     def get_data(self):
         return self.data
 
@@ -61,7 +112,7 @@ class SciL1(ScienceData):
     #    super().__init__(self)
 
 
-    def preprocessing(self):
+    def read_data(self):
         self.counts_data=self.data['DATA'].data
         self.spectrogram=np.sum(self.counts_data['counts'][:,:,:,:],axis=(1,2))
         self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.data['ENERGIES'].data['e_low'] , self.data[3].data['e_high'])]
@@ -148,7 +199,7 @@ class SciSpectrogram(ScienceData):
     #    super().__init__(self)
 
 
-    def preprocessing(self):
+    def read_data(self):
         self.counts_data=self.data['DATA'].data
         self.spectrogram=self.counts_data['counts']
         self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.data['ENERGIES'].data['e_low'] , self.data[3].data['e_high'])]

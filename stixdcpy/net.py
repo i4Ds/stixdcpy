@@ -5,16 +5,20 @@
     Date: Sep. 1, 2021
 
 '''
-
-
 import io
+import os
 import json
+import hashlib
 import requests
 import numpy as np
 from datetime import datetime
 from astropy.io import fits
 from tqdm import tqdm
-from tempfile import NamedTemporaryFile
+import tempfile
+
+DATA_DIR = None
+#default directory to save files received from stix data center
+#set to None to use the system temporary folder 
 
 HOST='https://pub023.cs.technik.fhnw.ch'
 #HOST='http://localhost:5000'
@@ -31,6 +35,8 @@ FITS_TYPES = {
     'l0', 'l1', 'l2', 'l3', 'spec', 'qlspec', 'asp', 'aspect', 'lc', 'bkg',
     'var', 'ffl', 'cal', 'hkmin', 'hkmax'
 }
+
+
 
 def download_if_not_exists(filename, url):
     """
@@ -57,8 +63,6 @@ class FitsProductQueryResult(object):
         return [row['fits_id'] for row in self.result]
 
 
-
-
 class FITSRequest(object):
     '''Request FITS format data from STIX data center '''
     @staticmethod
@@ -73,12 +77,20 @@ class FITSRequest(object):
         Returns:
             temporary filename 
         """    
-        if filename is None:
-            f = NamedTemporaryFile(delete=False, suffix=".fits")
-        else:
-            f=open(filename)
         stream=progress_bar
         resp = requests.get(url, stream=stream)
+        if filename is None:
+            fname=resp.headers.get("Content-Disposition").split("filename=")[1]
+            folder=tempfile.gettempdir() if DATA_DIR is None else DATA_DIR
+            if not fname:
+                md5hex=hashlib.md5(url.encode('utf-8')).hexdigest()
+                fname=f'{md5hex}.fits'
+            filename=os.path.join(folder,fname)
+        if os.path.exists(filename):
+            print(f'Found the data in local storage. Filename: {filename} ...')
+            return filename
+
+        f=open(filename,'wb')
         if not progress_bar:
             f.write(resp.content)
         else:
@@ -111,8 +123,8 @@ class FITSRequest(object):
     @staticmethod
     def fetch_bulk_science_by_request_id(request_id):
         url=f'{HOST}/download/fits/bsd/{request_id}'
-        temp=FITSRequest.wget(url, f'Downloading BSD #{request_id}')
-        return fits.open(temp)
+        fname=FITSRequest.wget(url, f'Downloading BSD #{request_id}')
+        return fits.open(fname),fname
 
     @staticmethod
     def fetch(query_results):
@@ -137,8 +149,8 @@ class FITSRequest(object):
         fits_handlers=[]
         try:
             for file_id in fits_ids:
-                temp_file=FITSRequest.get_fits(file_id)
-                fits_handlers.append(fits.open(temp_file))
+                fname=FITSRequest.get_fits(file_id)
+                fits_handlers.append(fits.open(fname))
         except Exception as e:
             raise e
         return fits_handlers
@@ -161,16 +173,16 @@ class FITSRequest(object):
             astropy fits object if the request is successful;  None if it is failed or no result returns
         """    
         url = f'{HOST}/download/fits/{file_id}'
-        temp_file = FITSRequest.wget(url, 'Downloading data', progress_bar, filename)
-        return temp_file
+        fname = FITSRequest.wget(url, 'Downloading data', progress_bar, filename)
+        return fname
 
     @staticmethod
     def fetch_continuous_data(start_utc, end_utc, data_type):
         if data_type not in ['hkmax','lc','var','qlspec','bkg']:
             raise TypeError(f'Data type {data_type} not supported!')
         url=f'{HOST}/create/fits/{start_utc}/{end_utc}/{data_type}'
-        temp_file = FITSRequest.wget(url, 'Downloading data', True, None)
-        return fits.open(temp_file)
+        fname = FITSRequest.wget(url, 'Downloading data', True, None)
+        return fits.open(fname)
 
 class JSONRequest(object):
     '''Request json format data from STIX data center '''
