@@ -14,11 +14,11 @@ import numpy as np
 from datetime import datetime
 from astropy.io import fits
 from tqdm import tqdm
-import tempfile
+from pathlib import Path, PurePath
 
-DATA_DIR = None
-#default directory to save files received from stix data center
-#set to None to use the system temporary folder 
+
+DOWNLOAD_PATH= Path.cwd() / 'downloads'
+DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
 
 HOST='https://pub023.cs.technik.fhnw.ch'
 #HOST='http://localhost:5000'
@@ -38,19 +38,7 @@ FITS_TYPES = {
 
 
 
-def download_if_not_exists(filename, url):
-    """
-    Download a URL to a file if the file
-    does not exist already.
-    Returns
-    -------
-    True if the file was downloaded,
-    False if it already existed
-    """
-    if not os.path.exists(filename):
-        download_file(filename, url)
-        return True
-    return False
+
 
 class FitsProductQueryResult(object):
     def __init__(self,resp):
@@ -81,12 +69,12 @@ class FITSRequest(object):
         resp = requests.get(url, stream=stream)
         if filename is None:
             fname=resp.headers.get("Content-Disposition").split("filename=")[1]
-            folder=tempfile.gettempdir() if DATA_DIR is None else DATA_DIR
+            folder=DOWNLOAD_PATH
             if not fname:
                 md5hex=hashlib.md5(url.encode('utf-8')).hexdigest()
                 fname=f'{md5hex}.fits'
-            filename=os.path.join(folder,fname)
-        if os.path.exists(filename):
+            filename=PurePath(folder,fname)
+        if Path(filename).is_file():
             print(f'Found the data in local storage. Filename: {filename} ...')
             return filename
 
@@ -124,7 +112,7 @@ class FITSRequest(object):
     def fetch_bulk_science_by_request_id(request_id):
         url=f'{HOST}/download/fits/bsd/{request_id}'
         fname=FITSRequest.wget(url, f'Downloading BSD #{request_id}')
-        return fits.open(fname),fname
+        return fname
 
     @staticmethod
     def fetch(query_results):
@@ -146,14 +134,14 @@ class FITSRequest(object):
         if not fits_id:
             raise TypeError('Invalid argument type')
         
-        fits_handlers=[]
+        fits_filenames=[]
         try:
             for file_id in fits_ids:
                 fname=FITSRequest.get_fits(file_id)
-                fits_handlers.append(fits.open(fname))
+                fits_filenames.append(fname)
         except Exception as e:
             raise e
-        return fits_handlers
+        return fits_filenames
 
     @staticmethod
     def get_fits(fits_id,  progress_bar=True, filename=None):
@@ -182,7 +170,7 @@ class FITSRequest(object):
             raise TypeError(f'Data type {data_type} not supported!')
         url=f'{HOST}/create/fits/{start_utc}/{end_utc}/{data_type}'
         fname = FITSRequest.wget(url, 'Downloading data', True, None)
-        return fits.open(fname)
+        return fname
 
 class JSONRequest(object):
     '''Request json format data from STIX data center '''

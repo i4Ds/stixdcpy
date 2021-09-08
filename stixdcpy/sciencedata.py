@@ -22,10 +22,10 @@ class ScienceData(sio.IO):
       Retrieve science data from stix data center or load fits file from local storage  
 
     '''
-    def __init__(self, request_id,fname, data):
-        self.data= data
+    def __init__(self, request_id, fname):
         self.fname=fname
         self.request_id=request_id
+        self.data= fits.open(fname)
         self.read_data()
     
     def read_data(self):
@@ -50,24 +50,20 @@ class ScienceData(sio.IO):
 
         '''
         request_id=request_id
-        data,fname=freq.fetch_bulk_science_by_request_id(request_id)
-        return cls(request_id, fname, data)
+        fname=freq.fetch_bulk_science_by_request_id(request_id)
+        return cls(request_id, fname)
     @classmethod
     def from_fits(cls,filename):
         request_id=0
-        data=fits.open(filename)
-        #request_id is temperary set to 0
-        return cls(request_id, data)
+        return cls(request_id, filename)
 
-    def save(cls, filename=None):
+    def save(self, filename=None):
         '''
            Save data to a fits file
            Parameters: 
            filename : fits filename
            Returns
            filename if success or error message
-
-
         '''
         if not isinstance(self.data, astropy.io.fits.hdu.hdulist.HDUList):
             print('ERROR: The data object is a not a fits hdu object!')
@@ -96,20 +92,8 @@ class ScienceData(sio.IO):
 
 class SciL1(ScienceData):
     '''
-    def __init__(self, entry_id=None):
-        super().__init__(entry_id)
-        if self.data.get('data_type',None)!='L1':
-            raise TypeError('The requested data is not L1')
-    def info(self):
-        return {
-                'OBS_BEGIN': st.unix2utc(self.data['start_unix']),
-                'OBS_END': st.unix2utc(self.data['end_unix']),
-                'ID':self.entry_id,
-                'URL':f'{net.HOST}/view/list/bsd/id/{entry_id}',
-                }
-                '''
-    #def __init__(self):
-    #    super().__init__(self)
+    Tools to analyzer L1 science data
+    '''
 
 
     def read_data(self):

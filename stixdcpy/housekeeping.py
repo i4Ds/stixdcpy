@@ -8,26 +8,22 @@
 import requests
 from matplotlib import pyplot as plt
 import datetime
+from astropy.io import fits
 from stixdcpy.net import FITSRequest as freq
 from stixdcpy import io as sio
 
 class Housekeeping(sio.IO):
-    def __init__(self):
-        self.data = None
+    def __init__(self, filename):
+        self.data = fits.open(filename)
 
     @classmethod
     def request(cls, start_utc:str, end_utc:str):
-        ob = cls.__new__(cls)
-        ob.data=freq.fetch_continuous_data(start_utc, end_utc, 'hkmax') 
-        return ob
+        filename=freq.fetch_continuous_data(start_utc, end_utc, 'hkmax') 
+        return cls(filename)
 
     @classmethod
-    def from_file(cls, filename):
-        ob = cls.__new__(cls)
-        print('Not implemented yet')
-        data=None
-        ob.data=data
-        return ob
+    def from_fits(cls, filename):
+        return cls(filename)
 
 
     def __getattr__(self, name):
