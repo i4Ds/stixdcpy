@@ -14,24 +14,30 @@ from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
 
 class Ephemeris(sio.IO):
-    def __init__(self):
-        self.data= None
+    def __init__(self, start_utc, end_utc, data):
+        self.start_utc=start_utc
+        self.end_utc=end_utc
+        self.data= data
     @classmethod
     def fetch(cls, start_utc:str, end_utc=None, steps=1):
-        ob = cls.__new__(cls)
         if end_utc is None:
             end_utc=start_utc
-        ob.start_utc, ob.end_utc=start_utc, end_utc
-        ob.data=jreq.fetch_empheris(start_utc, end_utc, steps)
-        return ob
+        data=jreq.fetch_empheris(start_utc, end_utc, steps)
+        return cls(start_utc, end_utc, data)
 
     @classmethod
-    def from_file(cls, filename):
-        ob = cls.__new__(cls)
-        print('Not implemented yet')
-        data=None
-        ob.data=data
-        return ob
+    def from_npy(cls, filename):
+        with np.load(filename, allow_picke=True) as data:
+            item=data.item()
+            _data= item['data']
+            start, end=item['start'], item['end']
+            cls(start, end, _data)
+    def save_npy(cls, filename):
+        _data={'data':self.data, 'start':self.start_utc, 'end':self.end_utc}
+        np.save(filename,_data)
+
+
+        
 
     def __getattr__(self, name):
         if name == 'data':

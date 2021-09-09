@@ -16,7 +16,6 @@ from stixdcpy import net
 from stixdcpy import time as st
 from stixdcpy import io as sio
 from stixdcpy.net import FitsProduct as freq
-from stixdcpy import transmission as tr
 
 class ScienceData(sio.IO):
     '''

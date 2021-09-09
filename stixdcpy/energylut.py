@@ -35,10 +35,10 @@ class EnergyLUT(sio.IO):
                 '''
         return cls(data)
     @classmethod
-    def from_file(cls, filename):
-        with np.load(filename) as data:
-            self.data = data['elut']
-            cls(self.data)
+    def from_npy(cls, filename):
+        with np.load(filename, allow_picke=True) as data:
+            elut_data= data.item()['elut']
+            cls(elut_data)
 
     def save_npy(self, filename):
         np.save(filename,{'elut':self.data})
@@ -83,15 +83,16 @@ class EnergyLUT(sio.IO):
         try:
 
             true_ebins=np.array(self.data['data']['true_energy_bin_edges'])
-            pixel_ebins=true_ebins[:,pixel] #retrieve the column  
-            return np.array([[pixel_ebins[i], pixel_ebins[i+1]] for i in range(32)])
+            pixel_ebins=true_ebins[:,pixel] #33 x 384 retrieve the column  
+            ebins=np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
+            return ebins
         except Exception as e:
             print(e)
             return None
     
     def get_pixel_ebins_transmissions(self):
         '''
-        Get pixel transmission for a given time
+        Get transmission for pixels at a given time
         Arguments
             None
         Returns:
@@ -100,16 +101,20 @@ class EnergyLUT(sio.IO):
             '''
         tr=Transmission()
         try:
-            true_ebins=np.array(self.data['data']['true_energy_bin_edges'])
+            true_ebins=np.array(self.data['data']['true_energy_bin_edges'])  # an 2d array: 33 x 384 
+
             trans=np.zeros((32,12, 32))
             for i in range(32):
                 for j in range(12):
                     ipix=i*12+j
                     pixel_ebins=true_ebins[:,ipix] #retrieve the column  
                     ebins=np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
+                    ebins[0][0]=np.finfo(float).eps
+                    ebins[31][1]=300
+
                     trans[i][j]=tr.get_detector_transmission(i, ebins, attenuator=False)
-
-
+            trans[:,:,31]=0 # set the transmission for the last energy bin to 0
+            #trans[:,:,0]=0 # set the transmission for the first energy bin to 0
             return trans
         except Exception as e:
             raise

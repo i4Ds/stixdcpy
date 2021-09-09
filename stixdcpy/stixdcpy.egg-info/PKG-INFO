@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: stixdcpy
-Version: 1.0.0
+Version: 1.0.1
 Summary: STIX data center python tools
 Home-page: UNKNOWN
 Author: Hualin Xiao
@@ -11,15 +11,14 @@ Requires-Python: >=3.6
 Description-Content-Type: text/markdown
 License-File: LICENSE.md
 
-stixdcpy provides you APIs to access various data on STIX data center and basic tools to analyzer the data.  
+stixdcpy provides APIs to access the data available on STIX data center. It also provides some basic tools to analyze the data.  
 stixdcpy is still under development. 
 ## Installation
 ```sh 
 pip3 install stixdcpy
 
 ```
-### How to use  sdcpy 
-
-Examples are available at examples/ 
+### How to use  stixdcpy
+Examples are available here https://github.com/drhlxiao/stixdcpy/blob/master/examples/stixdcpy%20tutorial.ipynb
 
 
