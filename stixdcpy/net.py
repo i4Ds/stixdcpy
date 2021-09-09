@@ -11,6 +11,7 @@ import json
 import hashlib
 import requests
 import numpy as np
+import pprint
 from datetime import datetime
 from astropy.io import fits
 from tqdm import tqdm
@@ -43,6 +44,7 @@ FITS_TYPES = {
 class FitsProductQueryResult(object):
     def __init__(self,resp):
         self.result=resp
+        self.downloaded_fits_files=[]
     def __repr__(self):
         return str(self.result)
     def __getitem__(self, index):
@@ -52,11 +54,25 @@ class FitsProductQueryResult(object):
             return len(self.result)
     def __len__(self):
         return len(self.result)
+    def pprint(self):
+        pprint.pprint(self.result)
+    def open_fits(self):
+        self.hdu_objects=[]
+        for fname in self.downloaded_fits_files:
+            self.hdu_objects.append(fits.open(fname))
+        return self.hdu_objects
+    def fits_info(self):
+        for hdu in hdu_objects:
+            print(hdu.info())
+
+
+
     def get_fits_ids(self):
         return [row['fits_id'] for row in self.result]
     def fetch(self):
         if self.result:
-            return FitsProduct.fetch(self.result)
+            self.downloaded_fits_files=FitsProduct.fetch(self.result)
+            return self.downloaded_fits_files
         else:
             print('WARNING: Nothing to be downloaded from stix data center!')
 
@@ -66,6 +82,8 @@ class FitsProductQueryResult(object):
 
 class FitsProduct(object):
     '''Request FITS format data from STIX data center '''
+    def __init__(self):
+        self.fits_file_list=[]
     @staticmethod
     def wget(url: str, desc: str, progress_bar=True):
         """Download a file from the link and save the file to a temporary file.
@@ -160,6 +178,7 @@ class FitsProduct(object):
                 fits_filenames.append(fname)
         except Exception as e:
             raise e
+        #self.fits_file_list=fits_filenames
         return fits_filenames
 
     @staticmethod

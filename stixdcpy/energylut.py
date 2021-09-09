@@ -107,7 +107,8 @@ class EnergyLUT(sio.IO):
                     ipix=i*12+j
                     pixel_ebins=true_ebins[:,ipix] #retrieve the column  
                     ebins=np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
-                    trans[i][j]=tr.get_detector_transmission(i, ebins)
+                    trans[i][j]=tr.get_detector_transmission(i, ebins, attenuator=False)
+
 
             return trans
         except Exception as e:
