@@ -13,15 +13,15 @@ import numpy as np
 
 from stixdcpy import net
 from stixdcpy import io as sio
+from stixdcpy.transmission import Transmission
 from stixdcpy.net import JSONRequest as jreq
 
 class EnergyLUT(sio.IO):
-    def __init__(self):
-        self.data=None
+    def __init__(self, data):
+        self.data=data
     @classmethod
     def request(cls,utc):
-        ob = cls.__new__(cls)
-        ob.data=jreq.fetch_onboard_and_true_eluts(utc)
+        data=jreq.fetch_onboard_and_true_eluts(utc)
         '''
         data structure
         {'data':{
@@ -33,14 +33,15 @@ class EnergyLUT(sio.IO):
                 'info': self.info(),
                 }
                 '''
-        return ob
+        return cls(data)
     @classmethod
     def from_file(cls, filename):
-        ob = cls.__new__(cls)
-        print('Not implemented yet')
-        data=None
-        ob.data=data
-        return ob
+        with np.load(filename) as data:
+            self.data = data['elut']
+            cls(self.data)
+
+    def save_npy(self, filename):
+        np.save(filename,{'elut':self.data})
 
 
     def info(self):
@@ -87,6 +88,34 @@ class EnergyLUT(sio.IO):
         except Exception as e:
             print(e)
             return None
+    
+    def get_pixel_ebins_transmissions(self):
+        '''
+        Get pixel transmission for a given time
+        Arguments
+            None
+        Returns:
+            A numpy array with a shape of 32 x12 x 32.  The three dimensions indicate detector, pixel, and transmission for 32 energy channels.
+            The transmission for the last energy bin set to 0
+            '''
+        tr=Transmission()
+        try:
+            true_ebins=np.array(self.data['data']['true_energy_bin_edges'])
+            trans=np.zeros((32,12, 32))
+            for i in range(32):
+                for j in range(12):
+                    ipix=i*12+j
+                    pixel_ebins=true_ebins[:,ipix] #retrieve the column  
+                    ebins=np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
+                    trans[i][j]=tr.get_detector_transmission(i, ebins)
+
+            return trans
+        except Exception as e:
+            raise
+            return None
+
+
+        
 
 
 

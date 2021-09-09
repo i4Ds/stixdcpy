@@ -37,37 +37,8 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-stixdcpy.ancillarydata">
-<span id="stixdcpy-ancillarydata-module"></span><h2>stixdcpy.ancillarydata module<a class="headerlink" href="#module-stixdcpy.ancillarydata" title="Permalink to this headline">¶</a></h2>
-<p>This module provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
-Author: Hualin Xiao (<a class="reference external" href="mailto:hualin&#46;xiao&#37;&#52;&#48;fhnw&#46;ch">hualin<span>&#46;</span>xiao<span>&#64;</span>fhnw<span>&#46;</span>ch</a>)
-Date: Sep. 1, 2021</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="stixdcpy.ancillarydata.Ephemeris">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.ancillarydata.</span></span><span class="sig-name descname"><span class="pre">Ephemeris</span></span><a class="headerlink" href="#stixdcpy.ancillarydata.Ephemeris" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stixdcpy.io.IO" title="stixdcpy.io.IO"><code class="xref py py-class docutils literal notranslate"><span class="pre">stixdcpy.io.IO</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.ancillarydata.Ephemeris.from_file">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.ancillarydata.Ephemeris.from_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.ancillarydata.Ephemeris.get_data">
-<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.ancillarydata.Ephemeris.get_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.ancillarydata.Ephemeris.peek">
-<span class="sig-name descname"><span class="pre">peek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.ancillarydata.Ephemeris.peek" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.ancillarydata.Ephemeris.request">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.ancillarydata.Ephemeris.request" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<section id="stixdcpy-ancillarydata-module">
+<h2>stixdcpy.ancillarydata module<a class="headerlink" href="#stixdcpy-ancillarydata-module" title="Permalink to this headline">¶</a></h2>
 </section>
 <section id="module-stixdcpy.energylut">
 <span id="stixdcpy-energylut-module"></span><h2>stixdcpy.energylut module<a class="headerlink" href="#module-stixdcpy.energylut" title="Permalink to this headline">¶</a></h2>
@@ -128,11 +99,16 @@ Author: Hualin Xiao (<a class="reference external" href="mailto:hualin&#46;xiao&
 Date: Sep. 1, 2021</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="stixdcpy.housekeeping.Housekeeping">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.housekeeping.</span></span><span class="sig-name descname"><span class="pre">Housekeeping</span></span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.housekeeping.</span></span><span class="sig-name descname"><span class="pre">Housekeeping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#stixdcpy.io.IO" title="stixdcpy.io.IO"><code class="xref py py-class docutils literal notranslate"><span class="pre">stixdcpy.io.IO</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.housekeeping.Housekeeping.from_file">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping.from_file" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.housekeeping.Housekeeping.fetch">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping.fetch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stixdcpy.housekeeping.Housekeeping.from_fits">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping.from_fits" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -143,11 +119,6 @@ Date: Sep. 1, 2021</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="stixdcpy.housekeeping.Housekeeping.peek">
 <span class="sig-name descname"><span class="pre">peek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'upper</span> <span class="pre">right'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping.peek" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.housekeeping.Housekeeping.request">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.housekeeping.Housekeeping.request" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -179,28 +150,28 @@ Date: Sep. 1, 2021</p>
 Author: Hualin Xiao (<a class="reference external" href="mailto:hualin&#46;xiao&#37;&#52;&#48;fhnw&#46;ch">hualin<span>&#46;</span>xiao<span>&#64;</span>fhnw<span>&#46;</span>ch</a>)
 Date: Sep. 1, 2021</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.net.</span></span><span class="sig-name descname"><span class="pre">FITSRequest</span></span><a class="headerlink" href="#stixdcpy.net.FITSRequest" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.net.</span></span><span class="sig-name descname"><span class="pre">FitsProduct</span></span><a class="headerlink" href="#stixdcpy.net.FitsProduct" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Request FITS format data from STIX data center</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest.fetch">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FITSRequest.fetch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct.fetch">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProduct.fetch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest.fetch_bulk_science_by_request_id">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">fetch_bulk_science_by_request_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FITSRequest.fetch_bulk_science_by_request_id" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct.fetch_bulk_science_by_request_id">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">fetch_bulk_science_by_request_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProduct.fetch_bulk_science_by_request_id" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest.fetch_continuous_data">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">fetch_continuous_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FITSRequest.fetch_continuous_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct.fetch_continuous_data">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">fetch_continuous_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProduct.fetch_continuous_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest.get_fits">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fits_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FITSRequest.get_fits" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct.get_fits">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fits_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProduct.get_fits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Query data from pub023 and download FITS file from the server.
 A fits file will be received for the packets which satistify the query condition.
 If no data is found on pub023, a json object will be received</p>
@@ -222,13 +193,13 @@ If no data is found on pub023, a json object will be received</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest.query">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lc'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FITSRequest.query" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct.query">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lc'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProduct.query" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.net.FITSRequest.wget">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">wget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FITSRequest.wget" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProduct.wget">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">wget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProduct.wget" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Download a file from the link and save the file to a temporary file.</dt><dd><p>Downloading progress will be shown in a progress bar</p>
 </dd>
@@ -252,6 +223,11 @@ If no data is found on pub023, a json object will be received</p>
 <dt class="sig sig-object py" id="stixdcpy.net.FitsProductQueryResult">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.net.</span></span><span class="sig-name descname"><span class="pre">FitsProductQueryResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProductQueryResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stixdcpy.net.FitsProductQueryResult.fetch">
+<span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProductQueryResult.fetch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="stixdcpy.net.FitsProductQueryResult.get_fits_ids">
 <span class="sig-name descname"><span class="pre">get_fits_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.FitsProductQueryResult.get_fits_ids" title="Permalink to this definition">¶</a></dt>
@@ -291,19 +267,6 @@ If no data is found on pub023, a json object will be received</p>
 
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="stixdcpy.net.download_if_not_exists">
-<span class="sig-prename descclassname"><span class="pre">stixdcpy.net.</span></span><span class="sig-name descname"><span class="pre">download_if_not_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.net.download_if_not_exists" title="Permalink to this definition">¶</a></dt>
-<dd><p>Download a URL to a file if the file
-does not exist already.
-:returns: * <em>True if the file was downloaded,</em></p>
-<blockquote>
-<div><ul class="simple">
-<li><p><em>False if it already existed</em></p></li>
-</ul>
-</div></blockquote>
-</dd></dl>
-
 </section>
 <section id="module-stixdcpy.quicklook">
 <span id="stixdcpy-quicklook-module"></span><h2>stixdcpy.quicklook module<a class="headerlink" href="#module-stixdcpy.quicklook" title="Permalink to this headline">¶</a></h2>
@@ -312,11 +275,11 @@ Author: Hualin Xiao (<a class="reference external" href="mailto:hualin&#46;xiao&
 Date: Sep. 1, 2021</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="stixdcpy.quicklook.LightCurves">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.quicklook.</span></span><span class="sig-name descname"><span class="pre">LightCurves</span></span><a class="headerlink" href="#stixdcpy.quicklook.LightCurves" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.quicklook.</span></span><span class="sig-name descname"><span class="pre">LightCurves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.quicklook.LightCurves" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#stixdcpy.quicklook.QuickLook" title="stixdcpy.quicklook.QuickLook"><code class="xref py py-class docutils literal notranslate"><span class="pre">stixdcpy.quicklook.QuickLook</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.quicklook.LightCurves.from_file">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.quicklook.LightCurves.from_file" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="stixdcpy.quicklook.LightCurves.fetch">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ltc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.quicklook.LightCurves.fetch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -327,12 +290,9 @@ Date: Sep. 1, 2021</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="stixdcpy.quicklook.LightCurves.peek">
 <span class="sig-name descname"><span class="pre">peek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'upper</span> <span class="pre">right'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.quicklook.LightCurves.peek" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.quicklook.LightCurves.request">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">begin_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ltc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.quicklook.LightCurves.request" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Plot light curves
+:param ltc: light time correction flag. The default value is False. Do light time correction if ltc=True</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -354,76 +314,8 @@ Date: Sep. 1, 2021</p>
 <dd></dd></dl>
 
 </section>
-<section id="module-stixdcpy.sciencedata">
-<span id="stixdcpy-sciencedata-module"></span><h2>stixdcpy.sciencedata module<a class="headerlink" href="#module-stixdcpy.sciencedata" title="Permalink to this headline">¶</a></h2>
-<p>This module provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
-Author: Hualin Xiao (<a class="reference external" href="mailto:hualin&#46;xiao&#37;&#52;&#48;fhnw&#46;ch">hualin<span>&#46;</span>xiao<span>&#64;</span>fhnw<span>&#46;</span>ch</a>)
-Date: Sep. 1, 2021</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.SciL1">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.sciencedata.</span></span><span class="sig-name descname"><span class="pre">SciL1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.SciL1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stixdcpy.sciencedata.ScienceData" title="stixdcpy.sciencedata.ScienceData"><code class="xref py py-class docutils literal notranslate"><span class="pre">stixdcpy.sciencedata.ScienceData</span></code></a></p>
-<dl>
-<dt>def __init__(self, entry_id=None):</dt><dd><p>super().__init__(entry_id)
-if self.data.get(‘data_type’,None)!=’L1’:</p>
-<blockquote>
-<div><p>raise TypeError(‘The requested data is not L1’)</p>
-</div></blockquote>
-</dd>
-<dt>def info(self):</dt><dd><dl class="simple">
-<dt>return {</dt><dd><p>‘OBS_BEGIN’: st.unix2utc(self.data[‘start_unix’]),
-‘OBS_END’: st.unix2utc(self.data[‘end_unix’]),
-‘ID’:self.entry_id,
-‘URL’:f’{net.HOST}/view/list/bsd/id/{entry_id}’,
-}</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.SciL1.from_file">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.SciL1.from_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.SciL1.peek">
-<span class="sig-name descname"><span class="pre">peek</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.SciL1.peek" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inputs:</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.SciL1.preprocessing">
-<span class="sig-name descname"><span class="pre">preprocessing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.SciL1.preprocessing" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.ScienceData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">stixdcpy.sciencedata.</span></span><span class="sig-name descname"><span class="pre">ScienceData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.ScienceData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stixdcpy.io.IO" title="stixdcpy.io.IO"><code class="xref py py-class docutils literal notranslate"><span class="pre">stixdcpy.io.IO</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.ScienceData.fetch">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.ScienceData.fetch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.ScienceData.from_fits">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.ScienceData.from_fits" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.ScienceData.get_data">
-<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.ScienceData.get_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="stixdcpy.sciencedata.ScienceData.preprocessing">
-<span class="sig-name descname"><span class="pre">preprocessing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stixdcpy.sciencedata.ScienceData.preprocessing" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<section id="stixdcpy-sciencedata-module">
+<h2>stixdcpy.sciencedata module<a class="headerlink" href="#stixdcpy-sciencedata-module" title="Permalink to this headline">¶</a></h2>
 </section>
 <section id="module-stixdcpy.time">
 <span id="stixdcpy-time-module"></span><h2>stixdcpy.time module<a class="headerlink" href="#module-stixdcpy.time" title="Permalink to this headline">¶</a></h2>

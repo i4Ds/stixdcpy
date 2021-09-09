@@ -16,6 +16,7 @@ from stixdcpy import net
 from stixdcpy import time as st
 from stixdcpy import io as sio
 from stixdcpy.net import FitsProduct as freq
+from stixdcpy import transmission as tr
 
 class ScienceData(sio.IO):
     '''
@@ -26,6 +27,11 @@ class ScienceData(sio.IO):
         self.fname=fname
         self.request_id=request_id
         self.data= fits.open(fname)
+        if self.request_id is None:
+            try:
+                self.request_id=self.data['CONTROL'].data['request_id']
+            except :
+                pass
         self.read_data()
     
     def read_data(self):
@@ -54,7 +60,7 @@ class ScienceData(sio.IO):
         return cls(request_id, fname)
     @classmethod
     def from_fits(cls,filename):
-        request_id=0
+        request_id= None
         return cls(request_id, filename)
 
     def save(self, filename=None):
@@ -97,14 +103,19 @@ class L1Product(ScienceData):
 
 
     def read_data(self):
-        self.counts_data=self.data['DATA'].data
-        self.spectrogram=np.sum(self.counts_data['counts'][:,:,:,:],axis=(1,2))
+        self.data_frame=self.data['DATA'].data
+        self.spectrogram=np.sum(self.data_frame['counts'][:,:,:,:],axis=(1,2))
         self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.data['ENERGIES'].data['e_low'] , self.data[3].data['e_high'])]
+        self.energy_bin_mask=self.data['CONTROL'].data['energy_bin_mask']
         self.ebins_mid=[(a + b)/2. for a, b in zip(self.data[3].data['e_low'] , self.data[3].data['e_high'])]
         self.ebins_low,self.ebins_high=self.data[3].data['e_low'] , self.data[3].data['e_high']
-        self.spectrum=np.sum(self.counts_data['counts'][:,:,:,:],axis=(0,1,2))
+        self.spectrum=np.sum(self.data_frame['counts'][:,:,:,:],axis=(0,1,2))
         self.T0=self.data[0].header['DATE_BEG']
-
+        self.duration=self.data_frame['time'][-1]-self.data_frame['time'][0]+(self.data_frame['timedel'][0]+self.data_frame['timedel'][-1])/2
+        self.mean_spectra=np.sum(self.data_frame['counts'][:,:,:,:],axis=0)/self.duration
+        #sum over all time bins and then divide them by the duration, counts per second 
+    def background_subtraction(self, l1bkg):
+        pass
 
 
  
@@ -118,7 +129,7 @@ class L1Product(ScienceData):
             return None
 
         fig,ax=plt.subplots(2,2)
-        X,Y=np.meshgrid(self.counts_data['time'], self.data[3].data['channel'])
+        X,Y=np.meshgrid(self.data_frame['time'], self.data[3].data['channel'])
         im=ax[0,0].pcolormesh(X,Y, np.transpose(self.spectrogram)) #pixel summed energy spectrum 
         ax[0,0].set_yticks(self.data[3].data['channel'][::2])
         ax[0,0].set_yticklabels(self.energy_bin_names[::2])
@@ -128,8 +139,8 @@ class L1Product(ScienceData):
         ax[0,0].set_ylabel('Energy range(keV')
         ax[0,0].set_xlabel(f"Seconds since {self.T0}s ")
 
-        count_rate_spectrogram=self.spectrogram[1:, :]/self.counts_data['timedel'][:-1][:,None]
-        ax[0,1].plot(self.counts_data['time'][1:], count_rate_spectrogram)
+        count_rate_spectrogram=self.spectrogram[1:, :]/self.data_frame['timedel'][:-1][:,None]
+        ax[0,1].plot(self.data_frame['time'][1:], count_rate_spectrogram)
         #correct
         ax[0,1].set_ylabel('Counts / sec')
         #plt.legend(self.energy_bin_names, ncol=4)
@@ -140,7 +151,7 @@ class L1Product(ScienceData):
         ax[1,0].set_yscale('log')
         ax[1,0].set_xlabel('Energy (keV)')
         ax[1,0].set_ylabel('Counts')
-        ax[1,1].plot(self.counts_data['time'], self.counts_data['timedel'])
+        ax[1,1].plot(self.data_frame['time'], self.data_frame['timedel'])
         ax[1,1].set_xlabel(f"Seconds since {self.T0}s ")
         ax[1,1].set_ylabel('Integration time (sec)')
         plt.suptitle(f'L1 request #{self.request_id}')
@@ -184,12 +195,12 @@ class SpectrogramProduct(ScienceData):
 
 
     def read_data(self):
-        self.counts_data=self.data['DATA'].data
-        self.spectrogram=self.counts_data['counts']
+        self.data_frame=self.data['DATA'].data
+        self.spectrogram=self.data_frame['counts']
         self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.data['ENERGIES'].data['e_low'] , self.data[3].data['e_high'])]
         self.ebins_mid=[(a + b)/2. for a, b in zip(self.data[3].data['e_low'] , self.data[3].data['e_high'])]
         self.ebins_low,self.ebins_high=self.data[3].data['e_low'] , self.data[3].data['e_high']
-        self.spectrum=np.sum(self.counts_data['counts'], axis=0)
+        self.spectrum=np.sum(self.data_frame['counts'], axis=0)
         self.T0=self.data[0].header['DATE_BEG']
  
     def peek(self):
@@ -202,7 +213,7 @@ class SpectrogramProduct(ScienceData):
             return None
 
         fig,ax=plt.subplots(2,2)
-        X,Y=np.meshgrid(self.counts_data['time'], self.data[3].data['channel'])
+        X,Y=np.meshgrid(self.data_frame['time'], self.data[3].data['channel'])
         plt.suptitle(f'L4 request #{self.request_id}')
         im=ax[0,0].pcolormesh(X,Y, np.transpose(self.spectrogram)) #pixel summed energy spectrum 
         ax[0,0].set_yticks(self.data[3].data['channel'][::2])
@@ -213,8 +224,8 @@ class SpectrogramProduct(ScienceData):
         ax[0,0].set_ylabel('Energy range(keV')
         ax[0,0].set_xlabel(f"Seconds since {self.T0}s ")
 
-        count_rate_spectrogram=self.spectrogram[1:, :]/self.counts_data['timedel'][:-1][:,None]
-        ax[0,1].plot(self.counts_data['time'][1:], count_rate_spectrogram)
+        count_rate_spectrogram=self.spectrogram[1:, :]/self.data_frame['timedel'][:-1][:,None]
+        ax[0,1].plot(self.data_frame['time'][1:], count_rate_spectrogram)
         #correct
         ax[0,1].set_ylabel('Counts / sec')
         #plt.legend(self.energy_bin_names, ncol=4)
@@ -225,7 +236,7 @@ class SpectrogramProduct(ScienceData):
         ax[1,0].set_yscale('log')
         ax[1,0].set_xlabel('Energy (keV)')
         ax[1,0].set_ylabel('Counts')
-        ax[1,1].plot(self.counts_data['time'], self.counts_data['timedel'])
+        ax[1,1].plot(self.data_frame['time'], self.data_frame['timedel'])
         ax[1,1].set_xlabel(f"Seconds since {self.T0}s ")
         ax[1,1].set_ylabel('Integration time (sec)')
 
