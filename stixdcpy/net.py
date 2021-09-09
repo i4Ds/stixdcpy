@@ -62,7 +62,7 @@ class FitsProductQueryResult(object):
             self.hdu_objects.append(fits.open(fname))
         return self.hdu_objects
     def fits_info(self):
-        for hdu in hdu_objects:
+        for hdu in self.hdu_objects:
             print(hdu.info())
 
 
