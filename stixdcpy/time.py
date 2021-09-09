@@ -4,6 +4,7 @@
 from datetime import datetime
 from dateutil import parser as dtparser
 
+
 def format_datetime(dt):
     if isinstance(dt, datetime):
         return dt.isoformat(timespec='milliseconds')
@@ -17,14 +18,17 @@ def format_datetime(dt):
     else:
         return '1970-01-01T00:00:00.000Z'
 
+
 def now():
     return datetime.utcnow()
+
 
 def get_now(dtype='unix'):
     utc_iso = datetime.utcnow().isoformat() + 'Z'
     if dtype == 'unix':
         return dtparser.parse(utc_iso).timestamp()
     return utc_iso
+
 
 def utc2unix(utc):
     if isinstance(utc, str):
@@ -38,6 +42,8 @@ def utc2unix(utc):
         return utc
     else:
         return 0
+
+
 def utc2datetime(utc):
     if not utc.endswith('Z'):
         utc += 'Z'
@@ -45,6 +51,7 @@ def utc2datetime(utc):
         return dtparser.parse(utc)
     except:
         return None
+
 
 def unix2datetime(timestamp):
     dt = None
@@ -77,9 +84,10 @@ def datetime2unix(timestamp):
         return dt.timestamp()
     return 0
 
+
 def unix2utc(ts):
     return datetime.utcfromtimestamp(ts).isoformat(timespec='milliseconds')
 
+
 def unix2datetime(unix_timestamp):
     return datetime.utcfromtimestamp(unix_timestamp)
-

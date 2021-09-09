@@ -1,10 +1,10 @@
 #!/usr/bin/python
-'''
+"""
     This script provides APIs to retrieve energy  calibration data from STIX data center  ,and some tools to display the data
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
 
-'''
+"""
 
 from pprint import pprint
 
@@ -93,14 +93,14 @@ class EnergyLUT(sio.IO):
             return None
 
     def get_pixel_ebins_transmissions(self):
-        '''
+        """
         Get transmission for pixels at a given time
         Arguments
             None
         Returns:
             A numpy array with a shape of 32 x12 x 32.  The three dimensions indicate detector, pixel, and transmission for 32 energy channels.
             The transmission for the last energy bin set to 0
-            '''
+            """
         tr = Transmission()
         try:
             true_ebins = np.array(self.data['data']['true_energy_bin_edges'])  # an 2d array: 33 x 384
@@ -119,5 +119,4 @@ class EnergyLUT(sio.IO):
             # trans[:,:,0]=0 # set the transmission for the first energy bin to 0
             return trans
         except Exception as e:
-            raise
             return None
