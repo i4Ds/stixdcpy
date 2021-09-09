@@ -22,7 +22,7 @@ class Ephemeris(sio.IO):
     def fetch(cls, start_utc:str, end_utc=None, steps=1):
         if end_utc is None:
             end_utc=start_utc
-        data=jreq.fetch_empheris(start_utc, end_utc, steps)
+        data=jreq.request_ephemeris(start_utc, end_utc, steps)
         return cls(start_utc, end_utc, data)
 
     @classmethod

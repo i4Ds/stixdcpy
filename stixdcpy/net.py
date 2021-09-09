@@ -25,7 +25,7 @@ HOST = 'https://pub023.cs.technik.fhnw.ch'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
     'ELUT': f'{HOST}/api/request/eluts',
-    'EMPHERIS': f'{HOST}/api/request/ephemeris',
+    'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'SCIENCE': f'{HOST}/api/request/science-data/id',
     'transmission': f'{HOST}/api/request/transmission'
 }
@@ -62,8 +62,8 @@ class FitsProductQueryResult(object):
 
     def open_fits(self):
         self.hdu_objects = []
-        for fname in self.downloaded_fits_files:
-            self.hdu_objects.append(fits.open(fname))
+        for filename in self.downloaded_fits_files:
+            self.hdu_objects.append(fits.open(filename))
         return self.hdu_objects
 
     def fits_info(self):
@@ -187,18 +187,14 @@ class FitsProduct(object):
 
     @staticmethod
     def get_fits(fits_id, progress_bar=True):
-        """Query data from pub023 and download FITS file from the server.
-        A fits file will be received for the packets which satistify the query condition.
-        If no data is found on pub023, a json object will be received
-        
-
+        """Download FITS data products from STIX data center.
         Args:
             fits_id: FITS file ID
             progress_bar: show the progress bar if it is true
 
 
         Returns:
-            astropy fits object if the request is successful;  None if it is failed or no result returns
+            A FITS hdulist object if success;  None if failed
         """
         url = f'{HOST}/download/fits/{fits_id}'
         fname = FitsProduct.wget(url, 'Downloading data', progress_bar)
@@ -243,8 +239,8 @@ class JSONRequest(object):
         return JSONRequest.post(url, form)
 
     @staticmethod
-    def fetch_empheris(start_utc: str, end_utc: str, steps=1):
-        return JSONRequest.post(URLS_POST['EMPHERIS'], {
+    def request_ephemeris(start_utc: str, end_utc: str, steps=1):
+        return JSONRequest.post(URLS_POST['EPHEMERIS'], {
             'start_utc': start_utc,
             'end_utc': end_utc,
             'steps': steps
