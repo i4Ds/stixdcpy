@@ -5,13 +5,12 @@
     Date: Sep. 1, 2021
 
 """
-import requests
-from matplotlib import pyplot as plt
 from matplotlib import patches
-import datetime
-from stixdcpy import net
+from matplotlib import pyplot as plt
+
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
+
 
 class Ephemeris(sio.IO):
     def __init__(self, start_utc, end_utc, data):

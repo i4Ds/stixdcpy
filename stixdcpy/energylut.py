@@ -116,7 +116,7 @@ class EnergyLUT(sio.IO):
 
                     trans[i][j] = tr.get_detector_transmission(i, ebins, attenuator=False)
             trans[:, :, 31] = 0  # set the transmission for the last energy bin to 0
-            # trans[:,:,0]=0 # set the transmission for the first energy bin to 0
+            trans[:,:,0]=0 # set the transmission for the first energy bin to 0
             return trans
         except Exception as e:
             return None
