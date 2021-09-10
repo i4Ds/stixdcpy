@@ -8,6 +8,7 @@
 from matplotlib import patches
 from matplotlib import pyplot as plt
 
+from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
 
@@ -46,13 +47,13 @@ class Ephemeris(sio.IO):
 
     def peek(self, ax=None):
         if not self.data:
-            print(f'Data not loaded. ')
+            logger.error(f'Data not loaded. ')
             return None
         data=self.data
         if not ax:
             _, ax=plt.subplots()
         if not data or 'error' in data:
-            print(f'Data not available. ')
+            logger.error(f'Data not available. ')
             return None
         sun= patches.Circle((0.0, 0.0), 0.25, alpha=0.8, fc='yellow')
         plt.text(0,0,'Sun')

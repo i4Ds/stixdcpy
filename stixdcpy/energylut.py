@@ -5,11 +5,10 @@
     Date: Sep. 1, 2021
 
 """
-
 from pprint import pprint
 
 import numpy as np
-
+from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
 from stixdcpy.transmission import Transmission
@@ -18,6 +17,7 @@ from stixdcpy.transmission import Transmission
 class EnergyLUT(sio.IO):
     def __init__(self, data):
         self.data = data
+        self.tran = Transmission()
 
     @classmethod
     def request(cls, utc):
@@ -52,7 +52,7 @@ class EnergyLUT(sio.IO):
             # pprint('...')
 
         except KeyError as e:
-            print(e)
+            logger.error(e)
 
     def __getattr__(self, name):
         if name == 'data':
@@ -71,26 +71,15 @@ class EnergyLUT(sio.IO):
     def get_onboard_elut(self):
         try:
             return self.data['data']['onboard']
-        except Exception as e:
-            print(e)
-
-    def get_true_energy_bin_edges(self):
-        try:
-            return np.array(self.data['data']['true_energy_bin_edges'])
-        except Exception as e:
-            print(e)
+        except (KeyError, TypeError):
+            logger.error('Failed to retrieve onboard elut!')
             return None
 
     def get_pixel_true_ebins(self, pixel):
-        try:
-
-            true_ebins = np.array(self.data['data']['true_energy_bin_edges'])
-            pixel_ebins = true_ebins[:, pixel]  # 33 x 384 retrieve the column
-            ebins = np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
-            return ebins
-        except Exception as e:
-            print(e)
-            return None
+        true_ebins = np.array(self.data['data']['true_energy_bin_edges'])
+        pixel_ebins = true_ebins[:, pixel]  # 33 x 384 retrieve the column
+        ebins = np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
+        return ebins
 
     def get_pixel_ebins_transmissions(self):
         """
@@ -101,22 +90,17 @@ class EnergyLUT(sio.IO):
             A numpy array with a shape of 32 x12 x 32.  The three dimensions indicate detector, pixel, and transmission for 32 energy channels.
             The transmission for the last energy bin set to 0
             """
-        tr = Transmission()
-        try:
-            true_ebins = np.array(self.data['data']['true_energy_bin_edges'])  # an 2d array: 33 x 384
+        true_ebins = np.array(self.data['data']['true_energy_bin_edges'])  # an 2d array: 33 x 384
+        trans = np.zeros((32, 12, 32))
+        for i in range(32):
+            for j in range(12):
+                ipix = i * 12 + j
+                pixel_ebins = true_ebins[:, ipix]  # retrieve the column
+                ebins = np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
+                ebins[0][0] = np.finfo(float).eps
+                ebins[31][1] = 300
 
-            trans = np.zeros((32, 12, 32))
-            for i in range(32):
-                for j in range(12):
-                    ipix = i * 12 + j
-                    pixel_ebins = true_ebins[:, ipix]  # retrieve the column
-                    ebins = np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
-                    ebins[0][0] = np.finfo(float).eps
-                    ebins[31][1] = 300
-
-                    trans[i][j] = tr.get_detector_transmission(i, ebins, attenuator=False)
-            trans[:, :, 31] = 0  # set the transmission for the last energy bin to 0
-            trans[:,:,0]=0 # set the transmission for the first energy bin to 0
-            return trans
-        except Exception as e:
-            return None
+                trans[i][j] = self.tran.get_detector_transmission(i, ebins, attenuator=False)
+        trans[:, :, 31] = 0  # set the transmission for the last energy bin to 0
+        trans[:,:,0]=0 # set the transmission for the first energy bin to 0
+        return trans

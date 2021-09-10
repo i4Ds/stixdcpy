@@ -8,7 +8,7 @@ setup(
     author_email='hualin.xiao@fhnw.ch',
     long_description=open('README.md').read(),
     install_requires=['numpy', 'requests', 'python-dateutil',
-                      'astropy', 'sunpy','matplotlib','tqdm'],
+                      'astropy', 'sunpy','matplotlib','tqdm','roentgen'],
     long_description_content_type='text/markdown',
     #packages=find_packages(where='stixdcpy'),
     url='https://github.com/drhlxiao/stixdcpy',

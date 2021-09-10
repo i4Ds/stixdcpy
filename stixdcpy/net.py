@@ -1,26 +1,22 @@
 #!/usr/bin/python
-'''
-    This module provides APIs to retrieve data from STIX data center 
+"""
+    This module provides APIs to retrieve data from STIX data center
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
 
-'''
-import io
-import os
-import json
+"""
 import hashlib
-import requests
-import numpy as np
 import pprint
-from datetime import datetime
+from pathlib import Path, PurePath
+
+import requests
 from astropy.io import fits
 from tqdm import tqdm
-from pathlib import Path, PurePath
 
 DOWNLOAD_PATH = Path.cwd() / 'downloads'
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
-
 HOST = 'https://pub023.cs.technik.fhnw.ch'
+
 # HOST='http://localhost:5000'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',

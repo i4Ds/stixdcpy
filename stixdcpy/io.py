@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import numpy as np
 
+from stixdcpy.logger import logger
+
 '''
     Methods in this module allow to save/load  objects to/from  npy  files
 
@@ -20,9 +22,9 @@ class IO(object):
         pass
 
     def save(self, data, filename):
-        print("this feature has not been implemented!")
+        logger.error("this feature has not been implemented!")
         pass
 
     def load(self, filename):
-        print("this feature has not been implemented!")
+        logger.error("this feature has not been implemented!")
         pass
