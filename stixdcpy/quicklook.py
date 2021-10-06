@@ -48,12 +48,15 @@ class LightCurves(QuickLook):
         Parameters:
             ltc: light time correction flag. The default value is False. Do light time correction if ltc=True
         """
+        if not self.data:
+            ax.text(0.5,0.5, 'LC not available!')
+            return ax
 
         if not ax:
             _, ax = plt.subplots()
         dt = [datetime.datetime.utcfromtimestamp(t) for t in self.data['unix_time']]
         for i in range(5):
-            plt.plot(dt, self.data['light_curves'][str(i)], label=self.data['energy_bins']['names'][i])
+            ax.plot(dt, self.data['light_curves'][str(i)], label=self.data['energy_bins']['names'][i])
         dlt = self.data['DELTA_LIGHT_TIME']
         light_time_corrected = self.data['IS_LIGHT_TIME_CORRECTED']
 
