@@ -1,4 +1,4 @@
-stixdcpy provides APIs to access the data available on STIX data center. It also provides some basic tools to analyze the data.  
+stixdcpy provides APIs to access data products available on STIX data center. It also provides some basic tools to analyze STIX data.  
 stixdcpy is still under development. 
 ## Installation
 ```sh 
