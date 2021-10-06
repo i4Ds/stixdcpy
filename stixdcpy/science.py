@@ -10,7 +10,7 @@ from typing import Union, Any
 import numpy as np
 from astropy.io import fits
 from matplotlib import pyplot as plt
-
+from stixdcpy import time as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio, net
 from stixdcpy.net import FitsProduct as freq
@@ -108,22 +108,28 @@ class L1Product(ScienceData):
         self.time=self.data_frame['time']
         self.spectrogram = np.sum(self.counts, axis=(1, 2))
         self.count_rate_spectrogram = self.spectrogram / self.timedel[:, None]
-        self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.data['ENERGIES'].data['e_low'] , self.data[3].data['e_high'])]
+        self.energies = self.data['ENERGIES'].data
+        #print(self.data['ENERGIES'].header)
+        self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.energies['e_low'] , 
+                                                            self.energies['e_high'])]
         self.energy_bin_mask=self.data["CONTROL"].data["energy_bin_mask"]
+        
+        self.inverse_energy_bin_mask=1-self.energy_bin_mask
         self.max_ebin = np.max(ebin_nz_idx := self.energy_bin_mask.nonzero()) #indices of the non-zero elements
         self.min_ebin = np.min(ebin_nz_idx)
 
-        self.ebins_mid=[(a + b)/2. for a, b in zip(self.data[3].data['e_low'] , self.data[3].data['e_high'])]
-        self.ebins_low,self.ebins_high=self.data[3].data['e_low'] , self.data[3].data['e_high']
+        self.ebins_mid=[(a + b)/2. for a, b in zip(self.energies['e_low'] , self.energies['e_high'])]
+        self.ebins_low,self.ebins_high=self.energies['e_low'] , self.energies['e_high']
         self.spectrum=np.sum(self.counts,axis=(0,1,2))
-        self.T0=self.data[0].header['DATE_BEG']
+        self.T0_utc=self.data['PRIMARY'].header['DATE_BEG']
+        self.T0_unix=sdt.utc2unix(self.T0_utc)
         self.duration=self.time[-1]-self.time[0]+(self.timedel[0]+self.timedel[-1])/2
-        self.mean_spectra=np.sum(self.counts[:,:,:,:],axis=0)/self.duration
-        self.mean_spectra_err=np.sqrt(self.mean_spectra)/np.sqrt(self.duration)
+        self.mean_pixel_rate_spectra=np.sum(self.counts,axis=0)/self.duration
+        self.mean_pixel_rate_spectra_err=np.sqrt(self.mean_pixel_rate_spectra)/np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second 
 
 
-    def peek(self):
+    def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
             Create quick-look plots for the loaded science data
         """
@@ -131,38 +137,44 @@ class L1Product(ScienceData):
             logger.logger(f'Data not loaded. ')
             return None
 
-        fig,ax=plt.subplots(2,2)
+        if not any([ax0, ax1, ax2,ax3]):
+            _,((ax0,ax1),(ax2,ax3))=plt.subplots(2,2)
+
         print(self.min_ebin,self.max_ebin)
         print(self.min_ebin,self.max_ebin)
-        X,Y=np.meshgrid(self.time, np.arange(self.min_ebin, self.max_ebin))
 
-        im=ax[0,0].pcolormesh(X,Y, np.transpose(self.count_rate_spectrogram[:,self.min_ebin:self.max_ebin])) #pixel summed energy spectrum
-        ax[0,0].set_yticks(self.data[3].data['channel'][self.min_ebin:self.max_ebin:2])
-        ax[0,0].set_yticklabels(self.energy_bin_names[self.min_ebin:self.max_ebin:2])
-        cbar = fig.colorbar(im,ax=ax[0,0])
-        cbar.set_label('Counts')
-        ax[0,0].set_title('Count rate spectrogram')
-        ax[0,0].set_ylabel('Energy range(keV')
-        ax[0,0].set_xlabel(f"Seconds since {self.T0}s ")
+        if ax0:
+            X, Y = np.meshgrid(self.time, np.arange(self.min_ebin, self.max_ebin))
+            im=ax0.pcolormesh(X,Y, np.transpose(self.count_rate_spectrogram[:,self.min_ebin:self.max_ebin])) #pixel summed energy spectrum
+            ax0.set_yticks(self.energies['channel'][self.min_ebin:self.max_ebin:2])
+            ax0.set_yticklabels(self.energy_bin_names[self.min_ebin:self.max_ebin:2])
+            fig=plt.gcf()
+            cbar = fig.colorbar(im,ax=ax0)
+            cbar.set_label('Counts')
+            ax0.set_title('Count rate spectrogram')
+            ax0.set_ylabel('Energy range(keV')
+            ax0.set_xlabel(f"Seconds since {self.T0}s ")
+        if ax1:
+            self.count_rate_spectrogram=self.spectrogram/self.timedel[:,None]
+            ax1.plot(self.time, self.count_rate_spectrogram[:,self.min_ebin:self.max_ebin])
+            #correct
+            ax1.set_ylabel('Counts / sec')
+            #plt.legend(self.energy_bin_names, ncol=4)
+            ax1.set_xlabel(f"Seconds since {self.T0}s ")
+        if ax2:
+            ax2.plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
+            #ax.set_xticks(self.data[3].data['channel'])
+            ax2.set_xscale('log')
+            ax2.set_yscale('log')
+            ax2.set_xlabel('Energy (keV)')
+            ax2.set_ylabel('Counts')
+        if ax3:
+            ax3.plot(self.time, self.timedel)
+            ax3.set_xlabel(f"Seconds since {self.T0}s ")
+            ax3.set_ylabel('Integration time (sec)')
+            plt.suptitle(f'L1 request #{self.request_id}')
 
-        self.count_rate_spectrogram=self.spectrogram/self.timedel[:,None]
-        ax[0,1].plot(self.time, self.count_rate_spectrogram[:,self.min_ebin:self.max_ebin])
-        #correct
-        ax[0,1].set_ylabel('Counts / sec')
-        #plt.legend(self.energy_bin_names, ncol=4)
-        ax[0,1].set_xlabel(f"Seconds since {self.T0}s ")
-        ax[1,0].plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
-        #ax.set_xticks(self.data[3].data['channel'])
-        ax[1,0].set_xscale('log')
-        ax[1,0].set_yscale('log')
-        ax[1,0].set_xlabel('Energy (keV)')
-        ax[1,0].set_ylabel('Counts')
-        ax[1,1].plot(self.time, self.timedel)
-        ax[1,1].set_xlabel(f"Seconds since {self.T0}s ")
-        ax[1,1].set_ylabel('Integration time (sec)')
-        plt.suptitle(f'L1 request #{self.request_id}')
-
-        return fig,ax
+        return fig,((ax0,ax1),(ax2,ax3))
 
 class SpectrogramProduct(ScienceData):
     """
@@ -191,37 +203,44 @@ class SpectrogramProduct(ScienceData):
         self.spectrum=np.sum(self.data_frame['counts'], axis=0)
         self.T0=self.data[0].header['DATE_BEG']
  
-    def peek(self):
+    def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
         Create quicklook plots for the loaded science data
         """
         if not self.data:
             print(f'Data not loaded. ')
             return None
+        #((ax0, ax1), (ax2, ax3))=axs
+        if not any([ax0, ax1, ax2,ax3]):
+            _,((ax0,ax1),(ax2,ax3))=plt.subplots(2,2)
 
-        fig,ax=plt.subplots(2,2)
-        X,Y=np.meshgrid(self.data_frame['time'], self.data[3].data['channel'])
+
+        if ax0:
+            X, Y = np.meshgrid(self.data_frame['time'], self.data[3].data['channel'])
+            im=ax0.pcolormesh(X,Y, np.transpose(self.spectrogram)) #pixel summed energy spectrum
+            ax0.set_yticks(self.data[3].data['channel'][::2])
+            ax0.set_yticklabels(self.energy_bin_names[::2])
+            fig=plt.gcf()
+            cbar = fig.colorbar(im,ax=ax0)
+            cbar.set_label('Counts')
+            ax0.set_title('Spectrogram')
+            ax0.set_ylabel('Energy range(keV')
+            ax0.set_xlabel(f"Seconds since {self.T0}s ")
+        if ax1:
+            count_rate_spectrogram=self.spectrogram[1:, :]/self.data_frame['timedel'][:-1][:,None]
+            ax1.plot(self.data_frame['time'][1:], count_rate_spectrogram)
+            ax1.set_ylabel('Counts / sec')
+            ax1.set_xlabel(f"Seconds since {self.T0}s ")
+        if ax2:
+            ax2.plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
+            ax2.set_xscale('log')
+            ax2.set_yscale('log')
+            ax2.set_xlabel('Energy (keV)')
+            ax2.set_ylabel('Counts')
+        if ax3:
+            ax3.plot(self.data_frame['time'], self.data_frame['timedel'])
+            ax3.set_xlabel(f"Seconds since {self.T0}s ")
+            ax3.set_ylabel('Integration time (sec)')
         plt.suptitle(f'L4 request #{self.request_id}')
-        im=ax[0,0].pcolormesh(X,Y, np.transpose(self.spectrogram)) #pixel summed energy spectrum 
-        ax[0,0].set_yticks(self.data[3].data['channel'][::2])
-        ax[0,0].set_yticklabels(self.energy_bin_names[::2])
-        cbar = fig.colorbar(im,ax=ax[0,0])
-        cbar.set_label('Counts')
-        ax[0,0].set_title('Spectrogram')
-        ax[0,0].set_ylabel('Energy range(keV')
-        ax[0,0].set_xlabel(f"Seconds since {self.T0}s ")
-
-        count_rate_spectrogram=self.spectrogram[1:, :]/self.data_frame['timedel'][:-1][:,None]
-        ax[0,1].plot(self.data_frame['time'][1:], count_rate_spectrogram)
-        ax[0,1].set_ylabel('Counts / sec')
-        ax[0,1].set_xlabel(f"Seconds since {self.T0}s ")
-        ax[1,0].plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
-        ax[1,0].set_xscale('log')
-        ax[1,0].set_yscale('log')
-        ax[1,0].set_xlabel('Energy (keV)')
-        ax[1,0].set_ylabel('Counts')
-        ax[1,1].plot(self.data_frame['time'], self.data_frame['timedel'])
-        ax[1,1].set_xlabel(f"Seconds since {self.T0}s ")
-        ax[1,1].set_ylabel('Integration time (sec)')
-        return fig,ax
+        return fig,((ax0,ax1),(ax2,ax3))
 

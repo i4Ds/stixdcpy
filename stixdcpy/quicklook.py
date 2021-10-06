@@ -54,8 +54,8 @@ class LightCurves(QuickLook):
         dt = [datetime.datetime.utcfromtimestamp(t) for t in self.data['unix_time']]
         for i in range(5):
             plt.plot(dt, self.data['light_curves'][str(i)], label=self.data['energy_bins']['names'][i])
-        dlt = self.data['light_time_diff']
-        light_time_corrected = self.data['light_time_corrected']
+        dlt = self.data['DELTA_LIGHT_TIME']
+        light_time_corrected = self.data['IS_LIGHT_TIME_CORRECTED']
 
         xlabel = f'UTC + {dlt:.2f} (4 sec time bins)' if light_time_corrected else 'UTC (4 sec time bins)'
         ax.set_xlabel(xlabel)
