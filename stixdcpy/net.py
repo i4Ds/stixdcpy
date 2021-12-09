@@ -8,6 +8,7 @@
 import hashlib
 import pprint
 from pathlib import Path, PurePath
+from dateutil import parser as dtparser
 
 import requests
 from astropy.io import fits
@@ -16,10 +17,10 @@ from tqdm import tqdm
 DOWNLOAD_PATH = Path.cwd() / 'downloads'
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
 HOST = 'https://pub023.cs.technik.fhnw.ch'
-
 # HOST='http://localhost:5000'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
+    'HK': f'{HOST}/request/packets/hk/tw',
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'SCIENCE': f'{HOST}/api/request/science-data/id',
@@ -226,7 +227,21 @@ class JSONRequest(object):
         }
         url = URLS_POST['LC']
         return JSONRequest.post(url, form)
-
+    @staticmethod
+    def fetch_housekeeping(begin_utc: str, end_utc: str ):
+        if not begin_utc.endswith('Z'):
+            begin_utc+='Z'
+        if not end_utc.endswith('Z'):
+            end_utc+='Z'
+        start_unix=dtparser.parse(begin_utc).timestamp()
+        end_unix=dtparser.parse(end_utc).timestamp()
+        duration=int(end_unix)-int(start_unix)
+        form = {
+            'start_unix': start_unix,
+            'duration': duration,
+        }
+        url = URLS_POST['HK']
+        return JSONRequest.post(url, form)
     def fetch_onboard_and_true_eluts(utc):
         form = {
             'utc': utc

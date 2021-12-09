@@ -1,12 +1,10 @@
 #!/usr/bin/python
 """
-    This module provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
+    This module provides APIs to retrieve Quick-look data from STIX data center , and provides tools to display the data
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
-
 """
-from typing import Union, Any
-
+import datetime
 import numpy as np
 from astropy.io import fits
 from matplotlib import pyplot as plt
@@ -14,7 +12,7 @@ from stixdcpy import time as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio, net
 from stixdcpy.net import FitsProduct as freq
-from pathlib import  PurePath
+from pathlib import PurePath
 
 
 class ScienceData(sio.IO):
@@ -23,23 +21,36 @@ class ScienceData(sio.IO):
 
     """
     def __init__(self, request_id, fname):
-        self.fname=fname
-        self.request_id=request_id
-        self.data= fits.open(fname)
+        self.fname = fname
+        self.request_id = request_id
+        self.hdul = fits.open(fname)
+        self.load()
         if self.request_id is None:
-            try:
-                self.request_id=self.data['CONTROL'].data['request_id']
-            except :
-                pass
-        self.read_data()
-    
-    def read_data(self):
+            self.request_id = self.hdul['CONTROL'].data['request_id']
+        #self.read_data()
+
+    def is_time_bin_shifted(self, unix_time):
+        """
+            Time bins are shifted in the data collected before 2021-12-09 due a bug in the flight software
+
+            Check if time bin is shifted in L1 data
+            Parameters
+                unix_time: float 
+            Returns
+                is_shifted: bool
+                    True if time bin is shifted else False
+        """
+
+        return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
+
+    def load(self):
         '''
-        Read data object and extract basic information from science fits file
+        load data object and extract basic information from science fits file
         Code to be executed after a science data file is being loaded.
         
         '''
         pass
+
     @classmethod
     def fetch(cls, request_id):
         '''
@@ -54,12 +65,13 @@ class ScienceData(sio.IO):
         FITS file object
 
         '''
-        request_id=request_id
-        fname=freq.fetch_bulk_science_by_request_id(request_id)
+        request_id = request_id
+        fname = freq.fetch_bulk_science_by_request_id(request_id)
         return cls(request_id, fname)
+
     @classmethod
-    def from_fits(cls,filename):
-        request_id= None
+    def from_fits(cls, filename):
+        request_id = None
         return cls(request_id, filename)
 
     def save(self, filename=None):
@@ -70,111 +82,173 @@ class ScienceData(sio.IO):
            Returns
            filename if success or error message
         '''
-        if not isinstance(self.data, fits.hdu.hdulist.HDUList):
+        if not isinstance(self.hdul, fits.hdu.hdulist.HDUList):
             logger.error('The data object is a not a fits hdu object!')
             return None
         try:
             if filename is None:
-                basename=self.data['PRIMARY'].header['FILENAME']
-                filename=PurePath(net.DOWNLOAD_PATH, basename)
-            self.data.writeto(filename)
+                basename = self.hdul['PRIMARY'].header['FILENAME']
+                filename = PurePath(net.DOWNLOAD_PATH, basename)
+            self.hdul.writeto(filename)
             return filename
         except Exception as e:
             logger.error(e)
 
-
-
     def __getattr__(self, name):
         if name == 'data':
-            return self.data
+            return self.hdul
         elif name == 'type':
-            return self.data.get('data_type','INVALID_TYPE')
+            return self.hdul.get('data_type', 'INVALID_TYPE')
         elif name == 'filename':
             return self.fname
 
     def get_data(self):
-        return self.data
+        return self.hdul
+
 
 class L1Product(ScienceData):
     """
     Tools to analyze L1 science data
     """
+
     #duration: Union[float, Any]
 
-    def read_data(self):
-        self.data_frame=self.data['DATA'].data
-        self.counts = self.data_frame['counts']
-        self.timedel=self.data_frame['timedel']
-        self.time=self.data_frame['time']
-        self.spectrogram = np.sum(self.counts, axis=(1, 2))
-        self.count_rate_spectrogram = self.spectrogram / self.timedel[:, None]
-        self.energies = self.data['ENERGIES'].data
-        #print(self.data['ENERGIES'].header)
-        self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.energies['e_low'] , 
-                                                            self.energies['e_high'])]
-        self.energy_bin_mask=self.data["CONTROL"].data["energy_bin_mask"]
+    def load(self, tbin_correction='auto'):
+        """
+            Read data  L1 compression level  FITS files
+            Parameters
+                tbin_correction: str or bool
+                    Correct the time bin bug in FSW with versions < v183 if it is not False
+
+        """
+        self.data = self.hdul['DATA'].data
+        self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        self.T0_unix = sdt.utc2unix(self.T0_utc)
+        self.triggers = self.data['triggers']
+        self.rcr = self.data['rcr']
+
+        self.counts = self.data['counts']
+        self.timedel = self.data['timedel']
+        self.time = self.data['time']
         
-        self.inverse_energy_bin_mask=1-self.energy_bin_mask
-        self.max_ebin = np.max(ebin_nz_idx := self.energy_bin_mask.nonzero()) #indices of the non-zero elements
+
+        if tbin_correction != False and self.is_time_bin_shifted(self.T0_unix):
+            self.counts = self.counts[1:, :, :, :]
+            self.timedel = self.timedel[:-1]
+            self.time = self.time[1:]
+            print('Shifted time bins corrected')
+            self.triggers = self.triggers[1:,:]
+            self.rcr= self.rcr[1:]
+        
+        self.trigger_rates=self.triggers/self.timedel[:,None]
+
+        self.datetime = [sdt.unix2datetime(self.T0_unix + x + y*0.5) for  x, y in zip(self.time, self.timedel)]
+        self.spectrogram = np.sum(self.counts, axis=(1, 2))
+        self.count_rate_spectrogram = self.spectrogram / self.timedel[:,np.newaxis]
+
+        self.energies = self.hdul['ENERGIES'].data
+        #print(self.hdul['ENERGIES'].header)
+        self.energy_bin_names = [
+            f'{a} - {b}'
+            for a, b in zip(self.energies['e_low'], self.energies['e_high'])
+        ]
+        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
+
+        self.inverse_energy_bin_mask = 1 - self.energy_bin_mask
+        self.max_ebin = np.max(
+            ebin_nz_idx :=
+            self.energy_bin_mask.nonzero())  #indices of the non-zero elements
         self.min_ebin = np.min(ebin_nz_idx)
 
-        self.ebins_mid=[(a + b)/2. for a, b in zip(self.energies['e_low'] , self.energies['e_high'])]
-        self.ebins_low,self.ebins_high=self.energies['e_low'] , self.energies['e_high']
-        self.spectrum=np.sum(self.counts,axis=(0,1,2))
-        self.T0_utc=self.data['PRIMARY'].header['DATE_BEG']
-        self.T0_unix=sdt.utc2unix(self.T0_utc)
-        self.duration=self.time[-1]-self.time[0]+(self.timedel[0]+self.timedel[-1])/2
-        self.mean_pixel_rate_spectra=np.sum(self.counts,axis=0)/self.duration
-        self.mean_pixel_rate_spectra_err=np.sqrt(self.mean_pixel_rate_spectra)/np.sqrt(self.duration)
-        #sum over all time bins and then divide them by the duration, counts per second 
+        self.ebins_mid = [
+            (a + b) / 2.
+            for a, b in zip(self.energies['e_low'], self.energies['e_high'])
+        ]
+        self.ebins_low, self.ebins_high = self.energies[
+            'e_low'], self.energies['e_high']
+        self.spectrum = np.sum(self.counts, axis=(0, 1, 2))
+        self.duration = self.time[-1] - self.time[0] + (self.timedel[0] +
+                                                        self.timedel[-1]) / 2
+        self.mean_pixel_rate_spectra = np.sum(self.counts,
+                                              axis=0) / self.duration
+        self.mean_pixel_rate_spectra_err = np.sqrt(
+            self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
+        #sum over all time bins and then divide them by the duration, counts per second
 
-
-    def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
+    def peek(self,
+             plots=['spg', 'lc', 'spec', 'tbin'],
+             ax0=None,
+             ax1=None,
+             ax2=None,
+             ax3=None):
         """
             Create quick-look plots for the loaded science data
         """
-        if not self.data:
+        if not self.hdul:
             logger.logger(f'Data not loaded. ')
             return None
+        if isinstance(plots, str) and plots:
+            plots = plots.split(',')
+        if not self.data_loaded:
+            self.load()
+            self.data_loaded = True
 
-        if not any([ax0, ax1, ax2,ax3]):
-            _,((ax0,ax1),(ax2,ax3))=plt.subplots(2,2)
+        #print(self.min_ebin,self.max_ebin)
+        #print(self.min_ebin,self.max_ebin)
 
-        print(self.min_ebin,self.max_ebin)
-        print(self.min_ebin,self.max_ebin)
-
-        if ax0:
-            X, Y = np.meshgrid(self.time, np.arange(self.min_ebin, self.max_ebin))
-            im=ax0.pcolormesh(X,Y, np.transpose(self.count_rate_spectrogram[:,self.min_ebin:self.max_ebin])) #pixel summed energy spectrum
-            ax0.set_yticks(self.energies['channel'][self.min_ebin:self.max_ebin:2])
-            ax0.set_yticklabels(self.energy_bin_names[self.min_ebin:self.max_ebin:2])
-            fig=plt.gcf()
-            cbar = fig.colorbar(im,ax=ax0)
+        if 'spg' in plots:
+            if not ax0:
+                _, ax0 = plt.subplots()
+            X, Y = np.meshgrid(self.time,
+                               np.arange(self.min_ebin, self.max_ebin))
+            im = ax0.pcolormesh(
+                X, Y,
+                np.transpose(
+                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin]
+                ))  #pixel summed energy spectrum
+            ax0.set_yticks(
+                self.energies['channel'][self.min_ebin:self.max_ebin:2])
+            ax0.set_yticklabels(
+                self.energy_bin_names[self.min_ebin:self.max_ebin:2])
+            fig = plt.gcf()
+            cbar = fig.colorbar(im, ax=ax0)
             cbar.set_label('Counts')
             ax0.set_title('Count rate spectrogram')
             ax0.set_ylabel('Energy range(keV')
-            ax0.set_xlabel(f"Seconds since {self.T0}s ")
-        if ax1:
-            self.count_rate_spectrogram=self.spectrogram/self.timedel[:,None]
-            ax1.plot(self.time, self.count_rate_spectrogram[:,self.min_ebin:self.max_ebin])
+            ax0.set_xlabel(f"T0 at {self.T0_utc} ")
+        if 'lc' in plots:
+            if not ax1:
+                _, ax1 = plt.subplots()
+            self.count_rate_spectrogram = self.spectrogram / self.timedel[:,
+                                                                          None]
+            ax1.plot(
+                self.time,
+                self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
             #correct
             ax1.set_ylabel('Counts / sec')
             #plt.legend(self.energy_bin_names, ncol=4)
-            ax1.set_xlabel(f"Seconds since {self.T0}s ")
-        if ax2:
+            ax1.set_yscale('log')
+            ax1.set_xlabel(f"T0 at {self.T0_utc} ")
+        if 'spec' in plots:
+            if not ax2:
+                _, ax2 = plt.subplots()
             ax2.plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
             #ax.set_xticks(self.data[3].data['channel'])
             ax2.set_xscale('log')
             ax2.set_yscale('log')
             ax2.set_xlabel('Energy (keV)')
             ax2.set_ylabel('Counts')
-        if ax3:
+        if 'tbin' in plots:
+            if not ax3:
+                _, ax3 = plt.subplots()
             ax3.plot(self.time, self.timedel)
-            ax3.set_xlabel(f"Seconds since {self.T0}s ")
+            ax3.set_xlabel(f"T0 at {self.T0_utc} ")
             ax3.set_ylabel('Integration time (sec)')
             plt.suptitle(f'L1 request #{self.request_id}')
 
-        return fig,((ax0,ax1),(ax2,ax3))
+        #plt.tight_layout()
+        return ax0, ax1, ax2, ax3
+
 
 class SpectrogramProduct(ScienceData):
     """
@@ -190,45 +264,67 @@ class SpectrogramProduct(ScienceData):
                 'URL':f'{net.HOST}/view/list/bsd/id/{entry_id}',
                 }
                 """
+
     #def __init__(self):
     #    super().__init__(self)
 
+    def load(self, tbin_correction='auto'):
+        self.data = self.hdul['DATA'].data
+        self.counts = self.data['counts']
+        self.time = self.data['time']
+        self.timedel = self.data['timedel']
 
-    def read_data(self):
-        self.data_frame=self.data['DATA'].data
-        self.spectrogram=self.data_frame['counts']
-        self.energy_bin_names=[f'{a} - {b}' for a, b in zip(self.data['ENERGIES'].data['e_low'] , self.data[3].data['e_high'])]
-        self.ebins_mid=[(a + b)/2. for a, b in zip(self.data[3].data['e_low'] , self.data[3].data['e_high'])]
-        self.ebins_low,self.ebins_high=self.data[3].data['e_low'] , self.data[3].data['e_high']
-        self.spectrum=np.sum(self.data_frame['counts'], axis=0)
-        self.T0=self.data[0].header['DATE_BEG']
- 
+        self.T0 = self.hdul[0].header['DATE_BEG']
+        self.T0_unix = sdt.utc2unix(self.T0)
+
+        if tbin_correction != False and self.is_time_bin_shifted(self.T0_unix):
+            self.counts = self.counts[
+                    1:, :]  #1st d: timebin, second: energies
+            self.timedel = self.timedel[:-1]  #remove the first integration time from the time bin array
+            self.time = self.time[1:]
+            self.T0 = self.T0[1:]
+            print('Shifted time bins corrected')
+
+        self.datetime = [sdt.unix2datetime(self.T0_unix + x + y*0.5) for  x, y in zip(self.time, self.timedel)]
+        self.energy_bin_names = [
+            f'{a} - {b}' for a, b in zip(self.hdul['ENERGIES'].data['e_low'],
+                                         self.hdul['ENERGIES'].data['e_high'])
+        ]
+        self.ebins_mid = [(a + b) / 2. for a, b in zip(
+            self.hdul['ENERGIES'].data['e_low'], self.hdul['ENERGIES'].data['e_high'])]
+        self.ebins_low, self.ebins_high = self.hdul['ENERGIES'].data[
+            'e_low'], self.hdul['ENERGIES'].data['e_high']
+        self.spectrum = np.sum(self.counts, axis=0)
+        self.count_rate_spectrogram = self.counts / self.timedel[:, np.newaxis]
+
     def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
         Create quicklook plots for the loaded science data
         """
-        if not self.data:
+        if not self.hdul:
             print(f'Data not loaded. ')
             return None
-        #((ax0, ax1), (ax2, ax3))=axs
-        if not any([ax0, ax1, ax2,ax3]):
-            _,((ax0,ax1),(ax2,ax3))=plt.subplots(2,2)
 
+        #((ax0, ax1), (ax2, ax3))=axs
+        if not any([ax0, ax1, ax2, ax3]):
+            _, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(8, 6))
 
         if ax0:
-            X, Y = np.meshgrid(self.data_frame['time'], self.data[3].data['channel'])
-            im=ax0.pcolormesh(X,Y, np.transpose(self.spectrogram)) #pixel summed energy spectrum
-            ax0.set_yticks(self.data[3].data['channel'][::2])
+            X, Y = np.meshgrid(self.time, self.hdul['ENERGIES'].data['channel'])
+            im = ax0.pcolormesh(X, Y, np.transpose(
+                self.counts))  #pixel summed energy spectrum
+            ax0.set_yticks(self.hdul['ENERGIES'].data['channel'][::2])
             ax0.set_yticklabels(self.energy_bin_names[::2])
-            fig=plt.gcf()
-            cbar = fig.colorbar(im,ax=ax0)
+            fig = plt.gcf()
+            cbar = fig.colorbar(im, ax=ax0)
             cbar.set_label('Counts')
             ax0.set_title('Spectrogram')
             ax0.set_ylabel('Energy range(keV')
             ax0.set_xlabel(f"Seconds since {self.T0}s ")
         if ax1:
-            count_rate_spectrogram=self.spectrogram[1:, :]/self.data_frame['timedel'][:-1][:,None]
-            ax1.plot(self.data_frame['time'][1:], count_rate_spectrogram)
+            #convert to 2d
+            ax1.plot(self.time, self.count_rate_spectrogram)
+            ax1.set_yscale('log')
             ax1.set_ylabel('Counts / sec')
             ax1.set_xlabel(f"Seconds since {self.T0}s ")
         if ax2:
@@ -238,9 +334,9 @@ class SpectrogramProduct(ScienceData):
             ax2.set_xlabel('Energy (keV)')
             ax2.set_ylabel('Counts')
         if ax3:
-            ax3.plot(self.data_frame['time'], self.data_frame['timedel'])
+            ax3.plot(self.time, self.timedel)
             ax3.set_xlabel(f"Seconds since {self.T0}s ")
             ax3.set_ylabel('Integration time (sec)')
         plt.suptitle(f'L4 request #{self.request_id}')
-        return fig,((ax0,ax1),(ax2,ax3))
-
+        plt.tight_layout()
+        return fig, ((ax0, ax1), (ax2, ax3))

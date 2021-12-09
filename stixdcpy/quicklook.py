@@ -22,7 +22,10 @@ class QuickLook(sio.IO):
 
 class LightCurves(QuickLook):
     def __init__(self, data):
-        self.data = data
+        if 'error' not in data:
+            self.data = data
+        else:
+            self.data = None
 
     @classmethod
     def fetch(cls, start_utc: str, end_utc: str, ltc=False):
