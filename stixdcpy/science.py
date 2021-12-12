@@ -284,6 +284,9 @@ class SpectrogramProduct(ScienceData):
             self.time = self.time[1:]
             self.T0 = self.T0[1:]
             print('Shifted time bins corrected')
+        else:
+            print('No need of time-bin correction')
+
 
         self.datetime = [sdt.unix2datetime(self.T0_unix + x + y*0.5) for  x, y in zip(self.time, self.timedel)]
         self.energy_bin_names = [

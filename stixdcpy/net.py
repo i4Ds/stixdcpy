@@ -24,7 +24,8 @@ URLS_POST = {
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'SCIENCE': f'{HOST}/api/request/science-data/id',
-    'transmission': f'{HOST}/api/request/transmission'
+    'TRANSMISSION': f'{HOST}/api/request/transmission',
+    'FLARE_LIST': f'{HOST}/api/request/flare-list'
 }
 
 FITS_TYPES = {
@@ -261,4 +262,11 @@ class JSONRequest(object):
     def fetch_science_data(_id: int):
         return JSONRequest.post(URLS_POST['SCIENCE'], {
             'id': _id,
+        })
+    @staticmethod
+    def fetch_flare_list(start_utc: str, end_utc:str, sortby:str='time'):
+        return JSONRequest.post(URLS_POST['FLARE_LIST'], {
+            'start_utc': start_utc,
+            'end_utc': end_utc,
+            'sortby': sortby
         })
