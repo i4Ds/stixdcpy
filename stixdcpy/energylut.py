@@ -21,7 +21,7 @@ class EnergyLUT(sio.IO):
 
     @classmethod
     def request(cls, utc):
-        data = jreq.fetch_onboard_and_true_eluts(utc)
+        data = jreq.fetch_elut(utc)
         '''
         data structure
         {'data':{

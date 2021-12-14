@@ -5,6 +5,7 @@
     Date: Sep. 1, 2021
 
 """
+
 import hashlib
 import pprint
 from pathlib import Path, PurePath
@@ -17,7 +18,7 @@ from tqdm import tqdm
 DOWNLOAD_PATH = Path.cwd() / 'downloads'
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
 HOST = 'https://pub023.cs.technik.fhnw.ch'
-# HOST='http://localhost:5000'
+#HOST='http://localhost:5000'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
     'HK': f'{HOST}/request/packets/hk/tw',
@@ -216,6 +217,7 @@ class JSONRequest(object):
         data = response.json()
         if 'error' in data:
             print(data['error'])
+            print(data)
             return None
         return data
 
@@ -243,7 +245,9 @@ class JSONRequest(object):
         }
         url = URLS_POST['HK']
         return JSONRequest.post(url, form)
-    def fetch_onboard_and_true_eluts(utc):
+
+    @staticmethod
+    def fetch_elut(utc):
         form = {
             'utc': utc
         }
