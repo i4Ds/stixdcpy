@@ -19,4 +19,4 @@ pip3 install stixdcpy
 
 ```
 # stixdcpy tutorial
-Examples are available [here](https://github.com/drhlxiao/stixdcpy/blob/master/examples/stixdcpy%20tutorial.ipynb)
+A tutorial is available [here](https://github.com/drhlxiao/stixdcpy/blob/master/examples/stixdcpy%20tutorial.ipynb)
