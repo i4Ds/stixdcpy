@@ -6,7 +6,6 @@
 
 '''
 import datetime
-
 from matplotlib import pyplot as plt
 
 from stixdcpy import io as sio
@@ -32,15 +31,10 @@ class LightCurves(QuickLook):
         data = jreq.fetch_light_curves(start_utc, end_utc, ltc)
         return cls(data)
 
-    # @classmethod
-    # def from_file(cls, filename):
-    #    return cls(filename)
 
     def __getattr__(self, name):
         if name == 'data':
             return self.data
-        # elif name == 'filename':
-        #    return self.fname
 
     def get_data(self):
         return self.data

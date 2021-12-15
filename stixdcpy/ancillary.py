@@ -5,6 +5,7 @@
     Date: Sep. 1, 2021
 
 """
+import pandas as pd
 from matplotlib import patches
 from matplotlib import pyplot as plt
 
@@ -35,6 +36,9 @@ class Ephemeris(sio.IO):
     def save_npy(cls, filename):
         _data={'data':self.data, 'start':self.start_utc, 'end':self.end_utc}
         np.save(filename,_data)
+
+    def to_pandas(self):
+        return pd.DataFrame(self.data)
 
 
         

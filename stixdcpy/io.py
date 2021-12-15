@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import numpy as np
+import pandas as pd
 
 from stixdcpy.logger import logger
 
@@ -28,3 +29,7 @@ class IO(object):
     def load(self, filename):
         logger.error("this feature has not been implemented!")
         pass
+    def to_pandas(self):
+        if self.data:
+            return pd.DataFrame(self.data)
+        return None

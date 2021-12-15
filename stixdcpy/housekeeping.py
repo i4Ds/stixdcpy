@@ -9,7 +9,7 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 
 from stixdcpy import io as sio
-from stixdcpy.net import FitsProduct as freq
+from stixdcpy.net import JSONRequest as jreq
 
 
 class Housekeeping(sio.IO):
@@ -18,7 +18,7 @@ class Housekeeping(sio.IO):
 
     @classmethod
     def fetch(cls, start_utc: str, end_utc: str):
-        filename = freq.fetch_continuous_data(start_utc, end_utc, 'hkmax')
+        filename = jreq.fetch_continuous_data(start_utc, end_utc)
         return cls(filename)
 
     @classmethod

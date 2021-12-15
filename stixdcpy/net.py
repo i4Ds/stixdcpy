@@ -7,6 +7,7 @@
 """
 
 import hashlib
+import pandas as pd
 import pprint
 from pathlib import Path, PurePath
 from dateutil import parser as dtparser
@@ -21,7 +22,7 @@ HOST = 'https://pub023.cs.technik.fhnw.ch'
 #HOST='http://localhost:5000'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
-    'HK': f'{HOST}/request/packets/hk/tw',
+    'HK': f'{HOST}/api/request/housekeeping',
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'SCIENCE': f'{HOST}/api/request/science-data/id',
@@ -58,6 +59,9 @@ class FitsProductQueryResult(object):
 
     def pprint(self):
         pprint.pprint(self.result)
+    def to_pandas(self):
+        return pd.DataFrame(self.result)
+
 
     def open_fits(self):
         self.hdu_objects = []
@@ -217,7 +221,6 @@ class JSONRequest(object):
         data = response.json()
         if 'error' in data:
             print(data['error'])
-            print(data)
             return None
         return data
 
