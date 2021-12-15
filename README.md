@@ -22,5 +22,3 @@ pip3 install stixdcpy
 # stixdcpy tutorial
 The tutorial is available [here](https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb)
 
-and on google colab: 
-https://colab.research.google.com/drive/1X5yd7dVky6cuRRtMZKCUGiMAsirVyOUR?usp=sharing
