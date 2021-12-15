@@ -29,6 +29,10 @@ class LightCurves(QuickLook):
     @classmethod
     def fetch(cls, start_utc: str, end_utc: str, ltc=False):
         data = jreq.fetch_light_curves(start_utc, end_utc, ltc)
+        if 'light_curves' in data:
+            #correct key name
+            data['counts']=data['light_curves']
+            del data['light_curves']
         return cls(data)
 
 
@@ -53,7 +57,7 @@ class LightCurves(QuickLook):
             _, ax = plt.subplots()
         dt = [datetime.datetime.utcfromtimestamp(t) for t in self.data['unix_time']]
         for i in range(5):
-            ax.plot(dt, self.data['light_curves'][str(i)], label=self.data['energy_bins']['names'][i])
+            ax.plot(dt, self.data['counts'][str(i)], label=self.data['energy_bins']['names'][i])
         dlt = self.data['DELTA_LIGHT_TIME']
         light_time_corrected = self.data['IS_LIGHT_TIME_CORRECTED']
 

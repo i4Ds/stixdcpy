@@ -18,8 +18,8 @@ from tqdm import tqdm
 
 DOWNLOAD_PATH = Path.cwd() / 'downloads'
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
-HOST = 'https://pub023.cs.technik.fhnw.ch'
 #HOST='http://localhost:5000'
+HOST = 'https://pub023.cs.technik.fhnw.ch'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
     'HK': f'{HOST}/api/request/housekeeping',
@@ -220,6 +220,7 @@ class JSONRequest(object):
         response = requests.post(url, data=form)
         data = response.json()
         if 'error' in data:
+            print(data)
             print(data['error'])
             return None
         return data
@@ -271,9 +272,9 @@ class JSONRequest(object):
             'id': _id,
         })
     @staticmethod
-    def fetch_flare_list(start_utc: str, end_utc:str, sortby:str='time'):
+    def fetch_flare_list(start_utc: str, end_utc:str, sortedby:str='time'):
         return JSONRequest.post(URLS_POST['FLARE_LIST'], {
             'start_utc': start_utc,
             'end_utc': end_utc,
-            'sortby': sortby
+            'sortedby': sortedby
         })
