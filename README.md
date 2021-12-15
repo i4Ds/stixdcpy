@@ -20,4 +20,4 @@ If you need validated data, please visit solar orbiter data archive or contact u
 
 ```
 # stixdcpy tutorial
-A tutorial is available [here](https://github.com/drhlxiao/stixdcpy/blob/master/examples/stixdcpy%20tutorial.ipynb)
+A tutorial is available [here](https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb)
