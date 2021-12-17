@@ -46,7 +46,10 @@ class DetectorView(object):
                 nx=(self.vis_counts-min_val)/(max_val-min_val)
                 self.colors=np.array([self.color_map[np.argmin(np.abs(y-self.color_x))] for y in nx])
         self.svg=self.create_detector_svg(colorbar)
+        self.html=f'<div style="width:400px;height:400px;">{self.svg}</html>'
 
+    def get_html(self):
+        return self.html
     def get_svg(self):
         """
         get svg string
