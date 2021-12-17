@@ -23,6 +23,7 @@ HOST = 'https://pub023.cs.technik.fhnw.ch'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
     'HK': f'{HOST}/api/request/housekeeping',
+    'HK2': f'{HOST}/api/request/hk2',
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'SCIENCE': f'{HOST}/api/request/science-data/id',
