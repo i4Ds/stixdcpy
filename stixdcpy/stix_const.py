@@ -1,4 +1,7 @@
-nominal = {
+import math
+import numpy as np
+
+nominal_grid_parameters = {
     "1": {
         "Label": "3c",
         "SlitWidth": 0.0419,
@@ -458,7 +461,7 @@ nominal = {
     },
 }
 #data from matj
-real = {
+real_grid_parameters = {
     "1": {
         "FrontPitch": 0.07805,
         "FrontOrient": 169.977,
@@ -1200,7 +1203,7 @@ real = {
         "RearBridgePitch": ""
     }
 }
-center_coords = {
+detector_center_coords = {
     "1": {
         "x": -62.5,
         "y": 36.5
@@ -1355,3 +1358,57 @@ grid_z = {
 }  # grid z coordinates
 
 bkg_hole_coords = {}
+
+ebins_low_edge= np.array([0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, math.inf])
+detector_group= np.array([
+	[1, 2],
+	[6, 7],
+	[5, 11],
+	[12, 13],
+	[14, 15],
+	[10, 16],
+	[8, 9],
+	[3, 4],
+	[31, 32],
+	[26, 27],
+	[22, 28],
+	[20, 21],
+	[18, 19],
+	[17, 23],
+	[24, 25],
+	[29, 30]
+])
+detector_group_map= np.array([
+	0,
+	0,
+	7,
+	7,
+	2,
+	1,
+	1,
+	6,
+	6,
+	5,
+	2,
+	3,
+	3,
+	4,
+	4,
+	5,
+	13,
+	12,
+	12,
+	11,
+	11,
+	10,
+	13,
+	14,
+	14,
+	9,
+	9,
+	10,
+	15,
+	15,
+	8,
+	8
+])
