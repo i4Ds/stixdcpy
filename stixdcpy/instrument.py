@@ -1,4 +1,5 @@
 import math
+
 import numpy as np
 
 nominal_grid_parameters = {
@@ -460,7 +461,7 @@ nominal_grid_parameters = {
         'Pitch': 'mm',
     },
 }
-#data from matj
+# data from matj
 real_grid_parameters = {
     "1": {
         "FrontPitch": 0.07805,
@@ -1344,13 +1345,13 @@ cfl_hole_coords = {
     'right_bottom': [(9.9, -10.0), (9.9, -3.45), (11.0, -3.45), (11.0, -10.0)]
 }
 
-r_front_detector = 550 + 47  #measured from CAD
+r_front_detector = 550 + 47  # measured from CAD
 r_rear_detector = 47
 frame_vertices = {
     'front': [(-11, -10), (-11, 10), (11, 10), (11, -10), (-11, -10)],
     'rear': [(-6.5, -6.5), (-6.5, 6.5), (6.5, 6.5), (6.5, -6.5), (-6.5, -6.5)]
 }
-grid_dim = {'front': (22, 20), 'rear': (13, 13)}  #grid dimemsions
+grid_dim = {'front': (22, 20), 'rear': (13, 13)}  # grid dimemsions
 grid_z = {
     'det': 0,
     'rear': r_rear_detector,
@@ -1359,56 +1360,116 @@ grid_z = {
 
 bkg_hole_coords = {}
 
-ebins_low_edge= np.array([0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, math.inf])
-detector_group= np.array([
-	[1, 2],
-	[6, 7],
-	[5, 11],
-	[12, 13],
-	[14, 15],
-	[10, 16],
-	[8, 9],
-	[3, 4],
-	[31, 32],
-	[26, 27],
-	[22, 28],
-	[20, 21],
-	[18, 19],
-	[17, 23],
-	[24, 25],
-	[29, 30]
+ebin_low_edges = np.array([
+    0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32,
+    36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, math.inf
 ])
-detector_group_map= np.array([
-	0,
-	0,
-	7,
-	7,
-	2,
-	1,
-	1,
-	6,
-	6,
-	5,
-	2,
-	3,
-	3,
-	4,
-	4,
-	5,
-	13,
-	12,
-	12,
-	11,
-	11,
-	10,
-	13,
-	14,
-	14,
-	9,
-	9,
-	10,
-	15,
-	15,
-	8,
-	8
+ebins=np.vstack((ebin_low_edges[0:-1],ebin_low_edges[1:])).T
+detector_ids_in_trigger_accumulators= np.array([[1, 2], [6, 7], [5, 11], [12, 13], [14, 15],
+                           [10, 16], [8, 9], [3, 4], [31, 32], [26, 27],
+                           [22, 28], [20, 21], [18, 19], [17, 23], [24, 25],
+                           [29, 30]])-1
+#detector ids of in trigger accounumator
+detector_group_map = np.array([
+    0, 0, 7, 7, 2, 1, 1, 6, 6, 5, 2, 3, 3, 4, 4, 5, 13, 12, 12, 11, 11, 10, 13,
+    14, 14, 9, 9, 10, 15, 15, 8, 8
 ])
+
+detector_pairs = {
+    0: 1,
+    5: 6,
+    4: 10,
+    11: 12,
+    13: 14,
+    9: 15,
+    7: 8,
+    2: 3,
+    30: 31,
+    25: 26,
+    21: 27,
+    19: 20,
+    17: 18,
+    16: 22,
+    23: 24,
+    28: 29,
+    1: 0,
+    6: 5,
+    10: 4,
+    12: 11,
+    14: 13,
+    15: 9,
+    8: 7,
+    3: 2,
+    31: 30,
+    26: 25,
+    27: 21,
+    20: 19,
+    18: 17,
+    22: 16,
+    24: 23,
+    29: 28
+}
+
+QL_LC_energy_slicers=[slice(1,7),slice(7,12),slice(12,17),slice(17,23),slice(23,28)]
+#energy slicer
+DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
+                   [8, 9], [3, 4], [31, 32], [26, 27], [22, 28], [20, 21],
+                   [18, 19], [17, 23], [24, 25], [29, 30]]
+DET_SIBLINGS = {
+    0: 1,
+    1: 0,
+    5: 6,
+    6: 5,
+    4: 10,
+    10: 4,
+    11: 12,
+    12: 11,
+    13: 14,
+    14: 13,
+    9: 15,
+    15: 9,
+    7: 8,
+    8: 7,
+    2: 3,
+    3: 2,
+    30: 31,
+    31: 30,
+    25: 26,
+    26: 25,
+    21: 27,
+    27: 21,
+    19: 20,
+    20: 19,
+    17: 18,
+    18: 17,
+    16: 22,
+    22: 16,
+    23: 24,
+    24: 23,
+    28: 29,
+    29: 28
+}
+
+
+def get_detector_in_same_group(idx):
+    """Get detector index in the same group
+    Args:
+        idx: int
+            detector id, detector id range: [0,31]
+    Returns
+        idx: int
+            ID of the detector in the same group
+    """
+    return detector_pairs.get(idx, None)
+
+def get_trigger_index(idx:int):
+    w=np.where(detector_ids_in_trigger_accumulators==idx)
+    return w[0][0]
+def get_trigger_detectors():
+    return  detector_ids_in_trigger_accumulators
+
+def get_sci_ebins(a,b):
+    low=np.where(ebin_low_edges==a)[0][0]
+    up=np.where(ebin_low_edges==b)[0][0]-1
+
+    return  (low,up)

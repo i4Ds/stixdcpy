@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from functools import partial
-
+from stixdcpy import instrument as ins
 import astropy.units as u
 import numpy as np
 from astropy.table.table import Table
@@ -14,68 +14,97 @@ MIL_SI = 0.0254 * u.mm
 
 # TODO move to configuration files
 COMPONENTS = OrderedDict([
-    ('front_window', [('solarblack', 0.005 * u.mm), ('be', 2*u.mm)]),
-    ('rear_window', [('be', 1*u.mm)]),
+    ('front_window', [('solarblack', 0.005 * u.mm), ('be', 2 * u.mm)]),
+    ('rear_window', [('be', 1 * u.mm)]),
     ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
     ('dem', [('kapton', 2 * 3 * MIL_SI)]),
     ('attenuator', [('al', 0.6 * u.mm)]),
-    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI), ('al', 40 * 1000 * u.angstrom),
-             ('mylar', 20 * 0.25 * MIL_SI), ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
+    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
+             ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
+             ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
              ('al', 1000 * u.angstrom)]),
-    ('calibration_foil', [('al', 4 * 1000 * u.angstrom), ('kapton', 4 * 2 * MIL_SI)]),
+    ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
+                          ('kapton', 4 * 2 * MIL_SI)]),
     ('dead_layer', [('te_o2', 392 * u.nm)]),
 ])
 
 MATERIALS = OrderedDict([
-    ('al', ({'Al': 1.0}, 2.7 * u.g/u.cm**3)),
-    ('be', ({'Be': 1.0}, 1.85 * u.g/u.cm**3)),
-    ('kapton', ({'H': 0.026362, 'C': 0.691133, 'N': 0.073270, 'O': 0.209235},
-                1.43 * u.g / u.cm ** 3)),
-    ('mylar', ({'H': 0.041959, 'C': 0.625017, 'O': 0.333025}, 1.38 * u.g / u.cm ** 3)),
-    ('pet', ({'H': 0.041960, 'C': 0.625016, 'O': 0.333024}, 1.370 * u.g / u.cm**3)),
-    ('solarblack_oxygen', ({'H': 0.002, 'O': 0.415, 'Ca': 0.396, 'P': 0.187}, 3.2 * u.g/u.cm**3)),
-    ('solarblack_carbon', ({'C': 0.301, 'Ca': 0.503, 'P': 0.195}, 3.2 * u.g/u.cm**3)),
-    ('te_o2', ({'Te': 0.7995088158691722, 'O': 0.20049124678825841}, 5.670 * u.g/u.cm**3)),
-    ]
-)
+    ('al', ({
+        'Al': 1.0
+    }, 2.7 * u.g / u.cm**3)),
+    ('be', ({
+        'Be': 1.0
+    }, 1.85 * u.g / u.cm**3)),
+    ('kapton', ({
+        'H': 0.026362,
+        'C': 0.691133,
+        'N': 0.073270,
+        'O': 0.209235
+    }, 1.43 * u.g / u.cm**3)),
+    ('mylar', ({
+        'H': 0.041959,
+        'C': 0.625017,
+        'O': 0.333025
+    }, 1.38 * u.g / u.cm**3)),
+    ('pet', ({
+        'H': 0.041960,
+        'C': 0.625016,
+        'O': 0.333024
+    }, 1.370 * u.g / u.cm**3)),
+    ('solarblack_oxygen', ({
+        'H': 0.002,
+        'O': 0.415,
+        'Ca': 0.396,
+        'P': 0.187
+    }, 3.2 * u.g / u.cm**3)),
+    ('solarblack_carbon', ({
+        'C': 0.301,
+        'Ca': 0.503,
+        'P': 0.195
+    }, 3.2 * u.g / u.cm**3)),
+    ('te_o2', ({
+        'Te': 0.7995088158691722,
+        'O': 0.20049124678825841
+    }, 5.670 * u.g / u.cm**3)),
+])
 
 #    'Channel Number', 'Channel Edge', 'Energy Edge ', 'Elower', 'Eupper ',
 #    'BinWidth', 'dE/E', 'QL channel'
-default_energy_bins = [
-    ['0', '0', '0', '0', '4', '4', '2', 'n/a'],
-    ['1', '1', '4', '4', '5', '1', '0.222', '0'],
-    ['2', '2', '5', '5', '6', '1', '0.182', '0'],
-    ['3', '3', '6', '6', '7', '1', '0.154', '0'],
-    ['4', '4', '7', '7', '8', '1', '0.133', '0'],
-    ['5', '5', '8', '8', '9', '1', '0.118', '0'],
-    ['6', '6', '9', '9', '10', '1', '0.105', '0'],
-    ['7', '7', '10', '10', '11', '1', '0.095', '1'],
-    ['8', '8', '11', '11', '12', '1', '0.087', '1'],
-    ['9', '9', '12', '12', '13', '1', '0.08', '1'],
-    ['10', '10', '13', '13', '14', '1', '0.074', '1'],
-    ['11', '11', '14', '14', '15', '1', '0.069', '1'],
-    ['12', '12', '15', '15', '16', '1', '0.065', '2'],
-    ['13', '13', '16', '16', '17', '1', '0.061', '2'],
-    ['14', '14', '18', '18', '20', '2', '0.105', '2'],
-    ['15', '15', '20', '20', '22', '2', '0.095', '2'],
-    ['16', '16', '22', '22', '25', '3', '0.128', '2'],
-    ['17', '17', '25', '25', '28', '3', '0.113', '3'],
-    ['18', '18', '28', '28', '32', '4', '0.133', '3'],
-    ['19', '19', '32', '32', '36', '4', '0.118', '3'],
-    ['20', '20', '36', '36', '40', '4', '0.105', '3'],
-    ['21', '21', '40', '40', '45', '5', '0.118', '3'],
-    ['22', '22', '45', '45', '50', '5', '0.105', '3'],
-    ['23', '23', '50', '50', '56', '6', '0.113', '4'],
-    ['24', '24', '56', '56', '63', '7', '0.118', '4'],
-    ['25', '25', '63', '63', '70', '7', '0.105', '4'],
-    ['26', '26', '70', '70', '76', '6', '0.082', '4'],
-    ['27', '27', '76', '76', '84', '8', '0.1', '4'],
-    ['28', '28', '84', '84', '100', '16', '0.174', '4'],
-    ['29', '29', '100', '100', '120', '20', '0.182', '4'],
-    ['30', '30', '120', '120', '150', '30', '0.222', '4'],
-    ['31', '31', '150', '150', 'maxADC', 'n/a', 'n/a', 'n/a'],
-    ['', '32', 'max ADC', '', '', '', '', '']
-]
+default_energy_bins = [['0', '0', '0', '0', '4', '4', '2', 'n/a'],
+                       ['1', '1', '4', '4', '5', '1', '0.222', '0'],
+                       ['2', '2', '5', '5', '6', '1', '0.182', '0'],
+                       ['3', '3', '6', '6', '7', '1', '0.154', '0'],
+                       ['4', '4', '7', '7', '8', '1', '0.133', '0'],
+                       ['5', '5', '8', '8', '9', '1', '0.118', '0'],
+                       ['6', '6', '9', '9', '10', '1', '0.105', '0'],
+                       ['7', '7', '10', '10', '11', '1', '0.095', '1'],
+                       ['8', '8', '11', '11', '12', '1', '0.087', '1'],
+                       ['9', '9', '12', '12', '13', '1', '0.08', '1'],
+                       ['10', '10', '13', '13', '14', '1', '0.074', '1'],
+                       ['11', '11', '14', '14', '15', '1', '0.069', '1'],
+                       ['12', '12', '15', '15', '16', '1', '0.065', '2'],
+                       ['13', '13', '16', '16', '17', '1', '0.061', '2'],
+                       ['14', '14', '18', '18', '20', '2', '0.105', '2'],
+                       ['15', '15', '20', '20', '22', '2', '0.095', '2'],
+                       ['16', '16', '22', '22', '25', '3', '0.128', '2'],
+                       ['17', '17', '25', '25', '28', '3', '0.113', '3'],
+                       ['18', '18', '28', '28', '32', '4', '0.133', '3'],
+                       ['19', '19', '32', '32', '36', '4', '0.118', '3'],
+                       ['20', '20', '36', '36', '40', '4', '0.105', '3'],
+                       ['21', '21', '40', '40', '45', '5', '0.118', '3'],
+                       ['22', '22', '45', '45', '50', '5', '0.105', '3'],
+                       ['23', '23', '50', '50', '56', '6', '0.113', '4'],
+                       ['24', '24', '56', '56', '63', '7', '0.118', '4'],
+                       ['25', '25', '63', '63', '70', '7', '0.105', '4'],
+                       ['26', '26', '70', '70', '76', '6', '0.082', '4'],
+                       ['27', '27', '76', '76', '84', '8', '0.1', '4'],
+                       ['28', '28', '84', '84', '100', '16', '0.174', '4'],
+                       ['29', '29', '100', '100', '120', '20', '0.182', '4'],
+                       ['30', '30', '120', '120', '150', '30', '0.222', '4'],
+                       [
+                           '31', '31', '150', '150', 'maxADC', 'n/a', 'n/a',
+                           'n/a'
+                       ], ['', '32', 'max ADC', '', '', '', '', '']]
 
 
 def float_def(value, default=np.inf):
@@ -97,6 +126,8 @@ def float_def(value, default=np.inf):
         return float(value)
     except ValueError:
         return default
+
+
 def int_def(value, default=0):
     """Parse the value into a int or return the default value.
 
@@ -136,8 +167,9 @@ class Transmission:
             The SolarBlack composition to use.
         """
         if solarblack not in ['solarblack_oxygen', 'solarblack_carbon']:
-            raise ValueError("solarblack must be either 'solarblack_oxygen' or "
-                             "'solarblack_carbon'.")
+            raise ValueError(
+                "solarblack must be either 'solarblack_oxygen' or "
+                "'solarblack_carbon'.")
 
         self.solarblack = solarblack
         self.materials = MATERIALS
@@ -152,11 +184,14 @@ class Transmission:
                 mass_frac, den = MATERIALS[material]
                 if material == 'al':
                     thickness = thickness * 0.8
-                parts.append(self.create_material(name=material, fractional_masses=mass_frac,
-                                                  thickness=thickness, density=den))
+                parts.append(
+                    self.create_material(name=material,
+                                         fractional_masses=mass_frac,
+                                         thickness=thickness,
+                                         density=den))
             self.components[name] = Compound(parts)
 
-    def get_transmission(self,energies, attenuator=False):
+    def get_transmission(self, energies, attenuator=False):
         """
         Get the transmission for each detector at the center of the given energy bins.
 
@@ -174,12 +209,15 @@ class Transmission:
         `astropy.table.Table`
             Table containing the transmission values for each energy and detector
         """
-        base_comps = [self.components[name] for name in ['front_window', 'rear_window', 'dem',
-                                                         'mli', 'calibration_foil',
-                                                         'dead_layer']]
+        base_comps = [
+            self.components[name] for name in [
+                'front_window', 'rear_window', 'dem', 'mli',
+                'calibration_foil', 'dead_layer'
+            ]
+        ]
 
         #if energies is None:
-        energies = energies*u.keV
+        energies = energies * u.keV
         #    self.energies = [ENERGY_CHANNELS[i].e_lower for i in range(1, 32)] * u.keV
 
         if attenuator:
@@ -202,11 +240,12 @@ class Transmission:
                 detector_transmission[name] = fine_trans
             else:
                 detector_transmission[name] = base_trans
-        return detector_transmission 
+        return detector_transmission
 
-
-    
-    def get_detector_transmission(self,detector_id, energy_bins,attenuator=False): 
+    def get_detector_transmission(self,
+                                  detector_id,
+                                  energy_bins,
+                                  attenuator=False):
         '''
             get transmission for detector
             Arguments
@@ -218,34 +257,29 @@ class Transmission:
             transmission for the energy bins
             
         '''
-        base_comps = [self.components[name] for name in ['front_window', 'rear_window', 'dem',
-                                                         'mli', 'calibration_foil',
-                                                         'dead_layer']]
+        base_comps = [
+            self.components[name] for name in [
+                'front_window', 'rear_window', 'dem', 'mli',
+                'calibration_foil', 'dead_layer'
+            ]
+        ]
 
         if attenuator:
             base_comps.append(self.components['attenuator'])
 
         fine_grids = [10, 12, 17, 11, 18, 16]
 
-
         if detector_id in fine_grids:
-            comp=Compound(base_comps + [self.components['grid_covers']])
+            comp = Compound(base_comps + [self.components['grid_covers']])
         else:
-            comp=Compound(base_comps)
+            comp = Compound(base_comps)
 
-
-
-
-        ebins_1d=energy_bins.reshape(-1) *u.keV
+        ebins_1d = energy_bins.reshape(-1) * u.keV
         #convert energy bin ranges to 1d
         det_trans = comp.transmission(ebins_1d)
-        mean_trans=np.mean(det_trans.reshape((-1,2)), axis=1)
+        mean_trans = np.mean(det_trans.reshape((-1, 2)), axis=1)
         #calculate mean energy transmission factors for energy bins
         return mean_trans
-
-
-
-
 
     def get_transmission_by_component(self):
         """
@@ -281,14 +315,22 @@ class Transmission:
         res = {}
         for name, thickness in material_thickness.items():
             frac_mass, density = self.materials[name]
-            mat = self.create_material(name=name, fractional_masses=frac_mass,
-                                       density=density, thickness=thickness)
+            mat = self.create_material(name=name,
+                                       fractional_masses=frac_mass,
+                                       density=density,
+                                       thickness=thickness)
             res[name] = mat
 
         return res
-
     @classmethod
-    def create_material(cls, name=None, fractional_masses=None, thickness=None, density=None):
+    def get_stix_ebins_transmission(cls, ebins=ins.ebins):
+        pass
+    @classmethod
+    def create_material(cls,
+                        name=None,
+                        fractional_masses=None,
+                        thickness=None,
+                        density=None):
         """
         Create a new material given the composition and fractional masses.
 
@@ -312,33 +354,39 @@ class Transmission:
         material.name = name
         # probably don't need this
         material.density = density
+
         # TODO remove in favour of upstream fix when completed
         #  see https://github.com/ehsteve/roentgen/issues/26
         def func(composition, e):
-            return sum([MassAttenuationCoefficient(element).func(e) * frac_mass
-                        for element, frac_mass in composition.items()])
+            return sum([
+                MassAttenuationCoefficient(element).func(e) * frac_mass
+                for element, frac_mass in composition.items()
+            ])
 
         material_func = partial(func, fractional_masses)
 
         material.mass_attenuation_coefficient.func = material_func
         return material
 
+
 def get_detector_absorption(energies=None):
-    mass_fraction={'Te': 0.531644, 'Cd': 0.4683554}
-    density=5.85* u.g/u.cm**3
-    thickness=1*u.mm
-    material=Transmission.create_material(name='cdte', fractional_masses=mass_fraction, thickness=thickness, density=density)
+    mass_fraction = {'Te': 0.531644, 'Cd': 0.4683554}
+    density = 5.85 * u.g / u.cm**3
+    thickness = 1 * u.mm
+    material = Transmission.create_material(name='cdte',
+                                            fractional_masses=mass_fraction,
+                                            thickness=thickness,
+                                            density=density)
     if energies is None:
         energies = np.linspace(2, 150, 1001)
-    energies_keV = energies*u.keV
-    absorption=material.absorption(energies_keV)
+    energies_keV = energies * u.keV
+    absorption = material.absorption(energies_keV)
     return energies, absorption
-
 
 
 #def get_transmission(energies):
 #    return trans.get_transmission(energies)
-if __name__=='__main__':
+if __name__ == '__main__':
     energies = np.linspace(2, 150, 1001)
     #tr=Transmission()
     #t=tr.get_transmission(energies)

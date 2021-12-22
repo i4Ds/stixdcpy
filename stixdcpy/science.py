@@ -28,6 +28,10 @@ class ScienceData(sio.IO):
         if self.request_id is None:
             self.request_id = self.hdul['CONTROL'].data['request_id']
         #self.read_data()
+    @property
+    def preview_link(self):
+        link=f'{net.HOST}/view/list/bsd/uid/{self.request_id}'
+        return f'<a href="{link}">{link}</a>'
 
     def is_time_bin_shifted(self, unix_time):
         """
@@ -130,21 +134,24 @@ class L1Product(ScienceData):
         self.counts = self.data['counts']
         self.timedel = self.data['timedel']
         self.time = self.data['time']
-        
 
         if tbin_correction != False and self.is_time_bin_shifted(self.T0_unix):
             self.counts = self.counts[1:, :, :, :]
             self.timedel = self.timedel[:-1]
             self.time = self.time[1:]
             print('Shifted time bins corrected')
-            self.triggers = self.triggers[1:,:]
-            self.rcr= self.rcr[1:]
-        
-        self.trigger_rates=self.triggers/self.timedel[:,None]
+            self.triggers = self.triggers[1:, :]
+            self.rcr = self.rcr[1:]
 
-        self.datetime = [sdt.unix2datetime(self.T0_unix + x + y*0.5) for  x, y in zip(self.time, self.timedel)]
+        self.trigger_rates = self.triggers / self.timedel[:, None]
+
+        self.datetime = [
+            sdt.unix2datetime(self.T0_unix + x + y * 0.5)
+            for x, y in zip(self.time, self.timedel)
+        ]
         self.spectrogram = np.sum(self.counts, axis=(1, 2))
-        self.count_rate_spectrogram = self.spectrogram / self.timedel[:,np.newaxis]
+        self.count_rate_spectrogram = self.spectrogram / self.timedel[:, np.
+                                                                      newaxis]
 
         self.energies = self.hdul['ENERGIES'].data
         #print(self.hdul['ENERGIES'].header)
@@ -278,23 +285,27 @@ class SpectrogramProduct(ScienceData):
         self.T0_unix = sdt.utc2unix(self.T0)
 
         if tbin_correction != False and self.is_time_bin_shifted(self.T0_unix):
-            self.counts = self.counts[
-                    1:, :]  #1st d: timebin, second: energies
-            self.timedel = self.timedel[:-1]  #remove the first integration time from the time bin array
+            self.counts = self.counts[1:, :]  #1st d: timebin, second: energies
+            self.timedel = self.timedel[:
+                                        -1]  #remove the first integration time from the time bin array
             self.time = self.time[1:]
             self.T0 = self.T0[1:]
             print('Shifted time bins corrected')
         else:
             print('No need of time-bin correction')
 
-
-        self.datetime = [sdt.unix2datetime(self.T0_unix + x + y*0.5) for  x, y in zip(self.time, self.timedel)]
+        self.datetime = [
+            sdt.unix2datetime(self.T0_unix + x + y * 0.5)
+            for x, y in zip(self.time, self.timedel)
+        ]
         self.energy_bin_names = [
             f'{a} - {b}' for a, b in zip(self.hdul['ENERGIES'].data['e_low'],
                                          self.hdul['ENERGIES'].data['e_high'])
         ]
-        self.ebins_mid = [(a + b) / 2. for a, b in zip(
-            self.hdul['ENERGIES'].data['e_low'], self.hdul['ENERGIES'].data['e_high'])]
+        self.ebins_mid = [(a + b) / 2.
+                          for a, b in zip(self.hdul['ENERGIES'].data['e_low'],
+                                          self.hdul['ENERGIES'].data['e_high'])
+                          ]
         self.ebins_low, self.ebins_high = self.hdul['ENERGIES'].data[
             'e_low'], self.hdul['ENERGIES'].data['e_high']
         self.spectrum = np.sum(self.counts, axis=0)
@@ -313,7 +324,8 @@ class SpectrogramProduct(ScienceData):
             _, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(8, 6))
 
         if ax0:
-            X, Y = np.meshgrid(self.time, self.hdul['ENERGIES'].data['channel'])
+            X, Y = np.meshgrid(self.time,
+                               self.hdul['ENERGIES'].data['channel'])
             im = ax0.pcolormesh(X, Y, np.transpose(
                 self.counts))  #pixel summed energy spectrum
             ax0.set_yticks(self.hdul['ENERGIES'].data['channel'][::2])
