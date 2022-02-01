@@ -162,9 +162,8 @@ class L1(ScienceData):
         self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
 
         self.inverse_energy_bin_mask = 1 - self.energy_bin_mask
-        self.max_ebin = np.max(
-            ebin_nz_idx :=
-            self.energy_bin_mask.nonzero())  #indices of the non-zero elements
+        ebin_nz_idx =self.energy_bin_mask.nonzero()
+        self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
         self.min_ebin = np.min(ebin_nz_idx)
 
         self.ebins_mid = [
