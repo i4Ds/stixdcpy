@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from stixdcpy import time as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio, net
-from stixdcpy.net import Fits as freq
+from stixdcpy.net import FitsQuery as freq
 from pathlib import PurePath
 
 
