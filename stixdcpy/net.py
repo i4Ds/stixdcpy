@@ -40,7 +40,7 @@ FITS_TYPES = {
 }
 
 
-class FitsProductQueryResult(object):
+class FitsQueryResult(object):
     def __init__(self, resp):
         self.hdu_objects = []
         self.result = resp
@@ -82,13 +82,13 @@ class FitsProductQueryResult(object):
 
     def fetch(self):
         if self.result:
-            self.downloaded_fits_files = FitsProduct.fetch(self.result)
+            self.downloaded_fits_files = FitsQuery.fetch(self.result)
             return self.downloaded_fits_files
         else:
             print('WARNING: Nothing to be downloaded from stix data center!')
 
 
-class FitsProduct(object):
+class FitsQuery(object):
     """
     Request FITS format data from STIX data center
     """
@@ -156,18 +156,18 @@ class FitsProduct(object):
             res = r
         elif 'error' in r:
             print(r['error'])
-        return FitsProductQueryResult(res)
+        return FitsQueryResult(res)
 
     @staticmethod
     def fetch_bulk_science_by_request_id(request_id):
         url = f'{HOST}/download/fits/bsd/{request_id}'
-        fname = FitsProduct.wget(url, f'Downloading BSD #{request_id}')
+        fname = FitsQuery.wget(url, f'Downloading BSD #{request_id}')
         return fname
 
     @staticmethod
     def fetch(query_results):
         fits_ids = []
-        if isinstance(query_results, FitsProductQueryResult):
+        if isinstance(query_results, FitsQueryResult):
             fits_ids = query_results.get_fits_ids()
         elif isinstance(query_results, int):
             fits_ids = [query_results]
@@ -189,7 +189,7 @@ class FitsProduct(object):
         fits_filenames = []
         try:
             for file_id in fits_ids:
-                fname = FitsProduct.get_fits(file_id)
+                fname = FitsQuery.get_fits(file_id)
                 fits_filenames.append(fname)
         except Exception as e:
             raise e
@@ -208,7 +208,7 @@ class FitsProduct(object):
             A FITS hdulist object if success;  None if failed
         """
         url = f'{HOST}/download/fits/{fits_id}'
-        fname = FitsProduct.wget(url, 'Downloading data', progress_bar)
+        fname = FitsQuery.wget(url, 'Downloading data', progress_bar)
         return fname
 
     @staticmethod
@@ -216,7 +216,7 @@ class FitsProduct(object):
         if data_type not in ['hkmax', 'lc', 'var', 'qlspec', 'bkg']:
             raise TypeError(f'Data type {data_type} not supported!')
         url = f'{HOST}/create/fits/{start_utc}/{end_utc}/{data_type}'
-        fname = FitsProduct.wget(url, 'Downloading data', True)
+        fname = FitsQuery.wget(url, 'Downloading data', True)
         return fname
 
 

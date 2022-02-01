@@ -8,6 +8,7 @@
 import pandas as pd
 from matplotlib import patches
 from matplotlib import pyplot as plt
+
 from stixdcpy import io as sio
 from stixdcpy.logger import logger
 from stixdcpy.net import JSONRequest as jreq

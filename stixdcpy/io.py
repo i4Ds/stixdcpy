@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import joblib
 import numpy as np
 import pandas as pd
 
@@ -11,13 +12,13 @@ from stixdcpy.logger import logger
 
 '''
 ALLOWED_EXTENSIONS = ['.pickle', '.npy', '.h5', '.fits']
-import joblib
 
 
 class IO(object):
     """
         Base object
     """
+
     def __init__(self):
         pass
 
@@ -36,7 +37,7 @@ class IO(object):
         joblib.dump(data, filename)
         return filename
         #logger.error("this feature has not been implemented!")
-        #pass
+        # pass
 
     def load(self, filename):
         """load object from file
@@ -51,7 +52,7 @@ class IO(object):
         """
         return joblib.load(filename)
         #logger.error("this feature has not been implemented!")
-        #pass
+        # pass
 
     def to_pandas(self):
         if self.data:

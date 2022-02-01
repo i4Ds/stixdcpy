@@ -87,7 +87,7 @@ class DetectorView(object):
         from IPython.display import SVG
         SVG(self.svg)
 
-    def create_color_bar(self, x0, y0, width, height):
+    def _create_color_bar(self, x0, y0, width, height):
         path = (
             '<rect x="{x0}" y="{y0}" width="{width}" height="{height}"'
             'style="fill:rgb(250,250,250); stroke-width:0;stroke:rgb(0,0,255)" />'
@@ -150,7 +150,7 @@ class DetectorView(object):
 
         color_bar = ''
         if colorbar:
-            color_bar = self.create_color_bar(10, 100, 1000, 30)
+            color_bar = self._create_color_bar(10, 100, 1000, 30)
         template = svg_start + color_bar + '{}' + svg_end
         items = []
         for i, pos in enumerate(positions):

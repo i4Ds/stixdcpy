@@ -7,10 +7,11 @@
 """
 import numpy as np
 from matplotlib import pyplot as plt
+
+from stixdcpy import instrument as inst
 from stixdcpy import science
 from stixdcpy import time as sdt
 from stixdcpy.logger import logger
-from stixdcpy import instrument as inst
 
 DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
                    [8, 9], [3, 4], [31, 32], [26, 27], [22, 28], [20, 21],
@@ -56,12 +57,12 @@ DET_SIBLINGS = {
 class BackgroundSubtraction(object):
     def __init__(self, l1sig: science.L1Product, l1bkg: science.L1Product):
         """
-		   do background subtraction
-		Arguments
-		l1sig: a L1product instance containing the signal
-		l1bkg: a L1Product instance containing the background
+                   do background subtraction
+                Arguments
+                l1sig: a L1product instance containing the signal
+                l1bkg: a L1Product instance containing the background
 
-		"""
+                """
         self.l1sig = l1sig
         self.l1bkg = l1bkg
 
@@ -85,7 +86,7 @@ class BackgroundSubtraction(object):
         # Dead time correction needs to be included in the future
         self.subtracted_counts_err = np.sqrt(
             self.l1sig.counts + np.array([int_time * self.l1bkg.mean_pixel_rate_spectra_err ** 2 for int_time in self.l1sig.timedel])) * \
-                                     self.l1sig.inverse_energy_bin_mask
+            self.l1sig.inverse_energy_bin_mask
         self.bkg_subtracted_spectrogram = np.sum(self.subtracted_counts,
                                                  axis=(1, 2))
 
@@ -148,7 +149,7 @@ class BackgroundSubtraction(object):
             axis=(0, 1, 2)) / time_span,
         bkg_sub_spectra_err = np.sqrt(
             np.sum(self.subtracted_counts_err[start_i_tbin:end_i_tbin, :, :, :]
-                   **2,
+                   ** 2,
                    axis=(0, 1, 2))) / time_span
         return bkg_sub_spectra, bkg_sub_spectra_err
 
@@ -180,35 +181,34 @@ class LiveTimeCorrection(object):
             live time ratio of detectors
         count_rate:
             corrected count rate
-        
+
         """
-        trig_tau=3.96e-6 #from idl
-        trig_tau=14e-6
-        #trig_rates=triggers/time_bins
-        time_bins=time_bins[:,None]
-        photons_in =   triggers/(time_bins-trig_tau*triggers)
+        trig_tau = 3.96e-6  # from idl
+        trig_tau = 14e-6
+        # trig_rates=triggers/time_bins
+        time_bins = time_bins[:, None]
+        photons_in = triggers/(time_bins-trig_tau*triggers)
         #photons_in = trig_rate /(1 - trig_tau*trig_rate)
-       
-        live_time_ratio=np.zeros((time_bins.size,32))
-        #print('photons_in',photons_in)
-      
-        time_bins=time_bins[:,:,None,None]
-        counts_rate=counts_arr/time_bins
-        #print(counts_arr.shape)
+
+        live_time_ratio = np.zeros((time_bins.size, 32))
+        # print('photons_in',photons_in)
+
+        time_bins = time_bins[:, :, None, None]
+        counts_rate = counts_arr/time_bins
+        # print(counts_arr.shape)
         for trig_i, g in enumerate(inst.get_trigger_detectors()):
-            det1,det2=g
+            det1, det2 = g
 
-            group_counts=counts_arr[:,det1,:,:]+counts_arr[:,det2,:,:]
-         
-            group_counts=np.sum(group_counts, axis=(1,2))
+            group_counts = counts_arr[:, det1, :, :]+counts_arr[:, det2, :, :]
+
+            group_counts = np.sum(group_counts, axis=(1, 2))
             print(group_counts)
-            
-            live_time_ratio[:,det1] = group_counts/photons_in[:,trig_i]
-            
-            live_time_ratio[:,det2]=live_time_ratio[:,det1]
-         
-    return live_time_ratio, counts_rate/live_time_ratio[:,:,None,None], counts_rate
 
+            live_time_ratio[:, det1] = group_counts/photons_in[:, trig_i]
+
+            live_time_ratio[:, det2] = live_time_ratio[:, det1]
+
+    return live_time_ratio, counts_rate/live_time_ratio[:, :, None, None], counts_rate
 
 
 class TransmissionCorrection(object):

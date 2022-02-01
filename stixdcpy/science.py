@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from stixdcpy import time as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio, net
-from stixdcpy.net import FitsProduct as freq
+from stixdcpy.net import Fits as freq
 from pathlib import PurePath
 
 
@@ -110,7 +110,7 @@ class ScienceData(sio.IO):
         return self.hdul
 
 
-class L1Product(ScienceData):
+class L1(ScienceData):
     """
     Tools to analyze L1 science data
     """
@@ -181,6 +181,25 @@ class L1Product(ScienceData):
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second
+    def solve_cfl(self, start_utc, end_utc, elow=0, eup=31, ax=None):
+        """calculate flare location using the online flare location solver.
+          
+        Args:
+            start_utc: str
+                ROI start time
+            end_utc: str
+                ROI end time
+            elow: int
+                ROI lower energy limit (science channel). 
+            eup: int
+                ROI upper energy limit (science channel). 
+        Returns:
+            cfl_loc: dict
+                containing coarse flare location as well as ephemeris and chisquare map
+
+        """
+        pass
+        
 
     def peek(self,
              plots=['spg', 'lc', 'spec', 'tbin'],
@@ -257,7 +276,7 @@ class L1Product(ScienceData):
         return ax0, ax1, ax2, ax3
 
 
-class SpectrogramProduct(ScienceData):
+class Spectrogram(ScienceData):
     """
     def __init__(self, entry_id=None):
         super().__init__(entry_id)

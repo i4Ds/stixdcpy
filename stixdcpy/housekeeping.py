@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 """
     This module provides APIs to retrieve Housekeeping data from STIX data center  ,and some tools to display the data
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
@@ -9,8 +10,8 @@ import pandas as pd
 from astropy.io import fits
 from matplotlib import pyplot as plt
 
-from stixdcpy import time as sdt
 from stixdcpy import io as sio
+from stixdcpy import time as sdt
 from stixdcpy.net import JSONRequest as jreq
 
 
