@@ -1,6 +1,6 @@
 # What is stixdcpy? 
 
-stixdcpy allows you to query and download data which are available at [STIX data center](https://pub023.cs.technik.fhnw.ch/) , include
+stixdcpy allows you to query and download data which are available at [STIX data center](https://pub023.cs.technik.fhnw.ch/) , including
 
 - Quick-look light curves
 - Housekeeping data
