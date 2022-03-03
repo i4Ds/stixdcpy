@@ -183,8 +183,9 @@ class LiveTimeCorrection(object):
             corrected count rate
 
         """
-        trig_tau = 3.96e-6  # from idl
-        trig_tau = 14e-6
+        #trig_tau = 3.96e-6  # from idl
+        trig_tau = 10.1+2.56 
+	# from olivier: 10.1 us (FPGA has no response) + 2.56 us (ASIC reset time)
         # trig_rates=triggers/time_bins
         time_bins = time_bins[:, None]
         photons_in = triggers/(time_bins-trig_tau*triggers)
