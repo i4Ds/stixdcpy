@@ -188,7 +188,7 @@ class LiveTimeCorrection(object):
         # trig_rates=triggers/time_bins
         time_bins = time_bins[:, None]
         photons_in = triggers/(time_bins-trig_tau*triggers)
-        #photons_in = trig_rate /(1 - trig_tau*trig_rate)
+        #equivalent to : photons_in = trig_rate /(1 - trig_tau*trig_rate)
 
         live_time_ratio = np.zeros((time_bins.size, 32))
         # print('photons_in',photons_in)
