@@ -110,7 +110,7 @@ class ScienceData(sio.IO):
         return self.hdul
 
 
-class L1(ScienceData):
+class ScienceL1(ScienceData):
     """
     Tools to analyze L1 science data
     """
