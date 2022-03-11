@@ -16,7 +16,7 @@ If you need validated data, please visit solar orbiter data archive or [contact 
 
 # Installation
 ```sh 
-pip3 install stixdcpy
+pip install git+https://github.com/drhlxiao/stixdcpy.git@analysis
 
 
 ```
