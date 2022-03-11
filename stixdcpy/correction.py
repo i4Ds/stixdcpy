@@ -183,33 +183,32 @@ class LiveTimeCorrection(object):
             corrected count rate
 
         """
+        #counts,  timebin: detector, pixel, energies
         #trig_tau = 3.96e-6  # from idl
         trig_tau = 10.1+2.56 
-	# from olivier: 10.1 us (FPGA has no response) + 2.56 us (ASIC reset time)
+	    # from olivier: 10.1 us (FPGA has no response) + 2.56 us (ASIC reset time)
         # trig_rates=triggers/time_bins
         time_bins = time_bins[:, None]
         photons_in = triggers/(time_bins-trig_tau*triggers)
+        #incoming photon rate for each time bin
         #equivalent to : photons_in = trig_rate /(1 - trig_tau*trig_rate)
-
-        live_time_ratio = np.zeros((time_bins.size, 32))
+        correction_factors= np.zeros((time_bins.size, 32))
         # print('photons_in',photons_in)
-
         time_bins = time_bins[:, :, None, None]
         counts_rate = counts_arr/time_bins
         # print(counts_arr.shape)
-        for trig_i, g in enumerate(inst.get_trigger_detectors()):
-            det1, det2 = g
-
+        for trig_i, detector_ids in enumerate(inst.get_trigger_acc_detector_ids()):
+            det1, det2 = detector_ids
             group_counts = counts_arr[:, det1, :, :]+counts_arr[:, det2, :, :]
+            detector_group_total_counts = np.sum(group_counts, axis=(1, 2))
+            #it is still a time series
+            #live_time_ratio[:, det1] = detector_group_total_counts/photons_in[:, trig_i]
+            #live_time_ratio[:, det2] = live_time_ratio[:, det1]
+            factor=photons_in[:,trig_i] / detector_group_total_counts 
+            correction_factors[:,det1]=factor
+            correction_factors[:,det2]=factor
 
-            group_counts = np.sum(group_counts, axis=(1, 2))
-            print(group_counts)
-
-            live_time_ratio[:, det1] = group_counts/photons_in[:, trig_i]
-
-            live_time_ratio[:, det2] = live_time_ratio[:, det1]
-
-    return live_time_ratio, counts_rate/live_time_ratio[:, :, None, None], counts_rate
+    return correction_factors, counts_rate/correction_factors[:, :, None, None], counts_rate
 
 
 class TransmissionCorrection(object):

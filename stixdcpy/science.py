@@ -24,6 +24,7 @@ class ScienceData(sio.IO):
         self.fname = fname
         self.request_id = request_id
         self.hdul = fits.open(fname)
+        self.energies=[]
         self.load()
         if self.request_id is None:
             self.request_id = self.hdul['CONTROL'].data['request_id']
@@ -77,6 +78,29 @@ class ScienceData(sio.IO):
     def from_fits(cls, filename):
         request_id = None
         return cls(request_id, filename)
+    def get_energy_range_slicer(self, elow, ehigh):
+        sel=[]
+        i=0
+        for a, b in zip(self.energies['e_low'], self.energies['e_high']):
+            if a>=elow  and b<=ehigh:
+                sel.append(i)
+            i+=1
+        return slice(min(sel),max(sel))
+
+
+
+    def rebin(self, ebins, min_tbin=0):
+        """
+         Energy rebin and time rebin
+         Arguments:
+         ebins: list or numpy array
+            energy bin range in units of keV
+         min_tbin: float
+            minimum time bin, shorter time bins are merged
+         Returns:
+            an object containing rebinned light curves
+        """
+        pass
 
     def save(self, filename=None):
         '''
@@ -201,7 +225,7 @@ class ScienceL1(ScienceData):
         
 
     def peek(self,
-             plots=['spg', 'lc', 'spec', 'tbin'],
+             plots=['spg', 'lc', 'spec', 'tbin', 'qllc'],
              ax0=None,
              ax1=None,
              ax2=None,
@@ -241,14 +265,24 @@ class ScienceL1(ScienceData):
             ax0.set_title('Count rate spectrogram')
             ax0.set_ylabel('Energy range(keV')
             ax0.set_xlabel(f"T0 at {self.T0_utc} ")
-        if 'lc' in plots:
+        if 'lc' in plots or 'qllc' in plots:
             if not ax1:
                 _, ax1 = plt.subplots()
             self.count_rate_spectrogram = self.spectrogram / self.timedel[:,
                                                                           None]
-            ax1.plot(
-                self.time,
-                self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
+            if 'qllc' in plots:
+
+               ql_ebins=[(4, 10),(10 ,15 ),(15 ,25 ),(25 ,50), (50 ,84)]
+               labels=('4 -- 10 keV','10 -- 15 keV','15 -- 25 keV','25 -- 50 keV', '50 -- 84 keV')
+               ql_sci_ebins=[self.get_energy_range_slicer(s[0],s[1]) for s in ql_ebins]
+               for ebin_slicer,label in zip(ql_sci_ebins, labels):
+                  ax1.plot(self.time,
+                        np.sum(self.count_rate_spectrogram[:, ebin_slicer], axis=1),label=label) 
+            else:
+
+                ax1.plot(
+                    self.time,
+                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
             #correct
             ax1.set_ylabel('Counts / sec')
             #plt.legend(self.energy_bin_names, ncol=4)
@@ -292,6 +326,7 @@ class Spectrogram(ScienceData):
 
     #def __init__(self):
     #    super().__init__(self)
+
 
     def load(self, tbin_correction='auto'):
         self.data = self.hdul['DATA'].data

@@ -1471,7 +1471,7 @@ def get_trigger_index(idx: int):
     return w[0][0]
 
 
-def get_trigger_detectors():
+def get_trigger_acc_detector_ids():
     return detector_ids_in_trigger_accumulators
 
 
