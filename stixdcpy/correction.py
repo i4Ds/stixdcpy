@@ -181,12 +181,14 @@ class LiveTimeCorrection(object):
             live time ratio of detectors
         count_rate:
             corrected count rate
+        photons_in:
+            rate of photons illuminating the detector group
 
         """
         #counts,  timebin: detector, pixel, energies
         #trig_tau = 3.96e-6  # from idl
-        trig_tau = 10.1+2.56 
-	    # from olivier: 10.1 us (FPGA has no response) + 2.56 us (ASIC reset time)
+        trig_tau = (10.1+2.63)*1e-6
+	    # from olivier: 10.1 us (FPGA has no response) + 2.63 us (ASIC reset time)
         # trig_rates=triggers/time_bins
         time_bins = time_bins[:, None]
         photons_in = triggers/(time_bins-trig_tau*triggers)
@@ -201,14 +203,11 @@ class LiveTimeCorrection(object):
             det1, det2 = detector_ids
             group_counts = counts_arr[:, det1, :, :]+counts_arr[:, det2, :, :]
             detector_group_total_counts = np.sum(group_counts, axis=(1, 2))
-            #it is still a time series
-            #live_time_ratio[:, det1] = detector_group_total_counts/photons_in[:, trig_i]
-            #live_time_ratio[:, det2] = live_time_ratio[:, det1]
             factor=photons_in[:,trig_i] / detector_group_total_counts 
             correction_factors[:,det1]=factor
             correction_factors[:,det2]=factor
 
-    return correction_factors, counts_rate/correction_factors[:, :, None, None], counts_rate
+    return correction_factors, counts_rate*correction_factors[:, :, None, None], counts_rate, photons_in
 
 
 class TransmissionCorrection(object):

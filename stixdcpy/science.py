@@ -242,9 +242,6 @@ class ScienceL1(ScienceData):
             self.load()
             self.data_loaded = True
 
-        #print(self.min_ebin,self.max_ebin)
-        #print(self.min_ebin,self.max_ebin)
-
         if 'spg' in plots:
             if not ax0:
                 _, ax0 = plt.subplots()
@@ -271,23 +268,23 @@ class ScienceL1(ScienceData):
             self.count_rate_spectrogram = self.spectrogram / self.timedel[:,
                                                                           None]
             if 'qllc' in plots:
-
                ql_ebins=[(4, 10),(10 ,15 ),(15 ,25 ),(25 ,50), (50 ,84)]
-               labels=('4 -- 10 keV','10 -- 15 keV','15 -- 25 keV','25 -- 50 keV', '50 -- 84 keV')
+               labels=('4 - 10 keV','10 - 15 keV','15 - 25 keV','25 - 50 keV', '50 - 84 keV')
                ql_sci_ebins=[self.get_energy_range_slicer(s[0],s[1]) for s in ql_ebins]
                for ebin_slicer,label in zip(ql_sci_ebins, labels):
-                  ax1.plot(self.time,
+                   ax1.plot(self.time,
                         np.sum(self.count_rate_spectrogram[:, ebin_slicer], axis=1),label=label) 
+                   ax1.set_title(f'Detector summed count rates (L1 request #{self.request_id})')
             else:
-
                 ax1.plot(
                     self.time,
                     self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
             #correct
-            ax1.set_ylabel('Counts / sec')
+            ax1.set_ylabel('counts / sec')
             #plt.legend(self.energy_bin_names, ncol=4)
             ax1.set_yscale('log')
-            ax1.set_xlabel(f"T0 at {self.T0_utc} ")
+            ax1.set_xlabel(f"seconds since {self.T0_utc} ")
+            plt.legend()
         if 'spec' in plots:
             if not ax2:
                 _, ax2 = plt.subplots()
