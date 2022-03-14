@@ -1453,6 +1453,41 @@ DET_SIBLINGS = {
     29: 28
 }
 
+det_id_to_trig_idx={0: 0,
+ 1: 0,
+ 2: 7,
+ 3: 7,
+ 4: 2,
+ 5: 1,
+ 6: 1,
+ 7: 6,
+ 8: 6,
+ 9: 5,
+ 10: 2,
+ 11: 3,
+ 12: 3,
+ 13: 4,
+ 14: 4,
+ 15: 5,
+ 16: 13,
+ 17: 12,
+ 18: 12,
+ 19: 11,
+ 20: 11,
+ 21: 10,
+ 22: 13,
+ 23: 14,
+ 24: 14,
+ 25: 9,
+ 26: 9,
+ 27: 10,
+ 28: 15,
+ 29: 15,
+ 30: 8,
+ 31: 8}
+
+def detector_id_to_trigger_index(i):
+    return det_id_to_trig_idx[i]
 
 def get_detector_in_same_group(idx):
     """Get detector index in the same group

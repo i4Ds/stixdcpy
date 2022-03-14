@@ -55,7 +55,7 @@ DET_SIBLINGS = {
 
 
 class BackgroundSubtraction(object):
-    def __init__(self, l1sig: science.L1Product, l1bkg: science.L1Product):
+    def __init__(self, l1sig: science.ScienceL1, l1bkg: science.ScienceL1):
         """
                    do background subtraction
                 Arguments
@@ -185,29 +185,27 @@ class LiveTimeCorrection(object):
             rate of photons illuminating the detector group
 
         """
-        #counts,  timebin: detector, pixel, energies
-        #trig_tau = 3.96e-6  # from idl
-        trig_tau = (10.1+2.63)*1e-6
-	    # from olivier: 10.1 us (FPGA has no response) + 2.63 us (ASIC reset time)
-        # trig_rates=triggers/time_bins
+
+        fpga_tau=10.1e-6
+        asic_tau=2.63e-6
+        trig_tau = fpga_tau+asic_tau
+
         time_bins = time_bins[:, None]
         photons_in = triggers/(time_bins-trig_tau*triggers)
-        #incoming photon rate for each time bin
-        #equivalent to : photons_in = trig_rate /(1 - trig_tau*trig_rate)
-        correction_factors= np.zeros((time_bins.size, 32))
-        # print('photons_in',photons_in)
-        time_bins = time_bins[:, :, None, None]
-        counts_rate = counts_arr/time_bins
-        # print(counts_arr.shape)
-        for trig_i, detector_ids in enumerate(inst.get_trigger_acc_detector_ids()):
-            det1, det2 = detector_ids
-            group_counts = counts_arr[:, det1, :, :]+counts_arr[:, det2, :, :]
-            detector_group_total_counts = np.sum(group_counts, axis=(1, 2))
-            factor=photons_in[:,trig_i] / detector_group_total_counts 
-            correction_factors[:,det1]=factor
-            correction_factors[:,det2]=factor
+        #photon rate calculated using triggers 
 
-    return correction_factors, counts_rate*correction_factors[:, :, None, None], counts_rate, photons_in
+        correction_factors= np.zeros((time_bins.size, 32))
+        time_bins = time_bins[:, :, None, None]
+
+        time_bins = time_bins[:, :, None, None]
+        count_rates = counts_arr/time_bins
+        for det in range(32):
+            trig_idx=inst.detector_id_to_trigger_index(det)
+            correction_factors[:,det]= 1 + trig_rate[:,trig_idx]*fpga_tau*1e-6 #live time per second 
+        corrected_rates=count_rates*correction_factors[:, :, None, None]/np.exp(-count_rates*asic_tau*1e-6)
+
+    return correction_factors, corrected_rates , count_rates,photons_in
+
 
 
 class TransmissionCorrection(object):

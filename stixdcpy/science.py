@@ -30,7 +30,7 @@ class ScienceData(sio.IO):
             self.request_id = self.hdul['CONTROL'].data['request_id']
         #self.read_data()
     @property
-    def preview_link(self):
+    def url(self):
         link=f'{net.HOST}/view/list/bsd/uid/{self.request_id}'
         return f'<a href="{link}">{link}</a>'
 
@@ -57,17 +57,18 @@ class ScienceData(sio.IO):
         pass
 
     @classmethod
-    def fetch(cls, request_id):
+    def from_sdc(cls, request_id):
         '''
-        Fetch science data file from stix data center
+        download science data file from stix data center
         Parameters
         ------
-        request_id : bulk science data request unique ID; Unique IDs can be found on the science data web page  at stix data center
+        request_id :  int
+            bulk science data request unique ID; Unique IDs can be found on the science data web page  at stix data center
 
 
         Returns
         ------
-        FITS file object
+            science data class object
 
         '''
         request_id = request_id
@@ -76,8 +77,15 @@ class ScienceData(sio.IO):
 
     @classmethod
     def from_fits(cls, filename):
+        """
+        factory class
+        Arguments
+        filename: str
+            FITS filename
+        """
         request_id = None
         return cls(request_id, filename)
+
     def get_energy_range_slicer(self, elow, ehigh):
         sel=[]
         i=0
@@ -326,6 +334,10 @@ class Spectrogram(ScienceData):
 
 
     def load(self, tbin_correction='auto'):
+        """
+         Load data from fits file
+
+        """
         self.data = self.hdul['DATA'].data
         self.counts = self.data['counts']
         self.time = self.data['time']
@@ -363,7 +375,10 @@ class Spectrogram(ScienceData):
 
     def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
-        Create quicklook plots for the loaded science data
+            preivew Science data
+        Arguments:
+        ax0: matplotlib axe 
+        ax0: matplotlib axe 
         """
         if not self.hdul:
             print(f'Data not loaded. ')
