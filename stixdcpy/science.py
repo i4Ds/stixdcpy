@@ -12,7 +12,11 @@ from stixdcpy import time as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio, net
 from stixdcpy.net import FitsQuery as freq
+from stixdcpy import instrument as inst
 from pathlib import PurePath
+
+FPGA_TAU=10.1e-6
+ASIC_TAU=2.63e-6
 
 
 class ScienceData(sio.IO):
@@ -20,19 +24,94 @@ class ScienceData(sio.IO):
       Retrieve science data from stix data center or load fits file from local storage
 
     """
-    def __init__(self, request_id, fname):
+    def __init__(self, request_id=None, fname=None):
         self.fname = fname
+        self.data_type=None
+        if not fname:
+            raise Exception("FITS filename not specified")
         self.request_id = request_id
         self.hdul = fits.open(fname)
         self.energies=[]
-        self.load()
-        if self.request_id is None:
-            self.request_id = self.hdul['CONTROL'].data['request_id']
         #self.read_data()
     @property
     def url(self):
         link=f'{net.HOST}/view/list/bsd/uid/{self.request_id}'
         return f'<a href="{link}">{link}</a>'
+
+    def read_fits(self, light_time_correction=True):
+        """
+            Read data  L1 compression level  FITS files
+            Parameters
+            ---------------------
+            light_time_correction: boolean
+                Correct light time difference
+        """
+
+        self.data = self.hdul['DATA'].data
+        self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        self.counts= self.data['counts']
+
+        self.light_time_del= self.hdul['PRIMARY'].header['EAR_TDEL']
+        self.light_time_corrected=light_time_correction
+
+        self.T0_unix = sdt.utc2unix(self.T0_utc)
+        self.triggers = self.data['triggers']
+        self.rcr = self.data['rcr']
+
+        self.timedel = self.data['timedel']
+        self.time = self.data['time']
+
+        if self.is_time_bin_shifted(self.T0_unix):
+            self.timedel = self.timedel[:-1]
+            self.time = self.time[1:]
+            logger.info('Shifted time bins have been corrected automatically!')
+            if self.data_type=='ScienceL1':
+                self.counts= self.counts[1:, :, :, :]
+                self.triggers = self.triggers[1:, :]
+                self.rcr = self.rcr[1:]
+            elif self.data_type=='Spectrogram':
+                self.counts= self.counts[1:, :]
+                self.triggers = self.triggers[1:]
+                #self.rcr = self.rcr[1:]
+
+        self.request_id = self.hdul['CONTROL'].data['request_id']
+        
+        lt=0 if light_time_correction else self.light_time_del
+        self.datetime = [
+            sdt.unix2datetime(self.T0_unix + x + y * 0.5 + lt)
+            for x, y in zip(self.time, self.timedel)
+        ]
+
+        self.duration = self.time[-1] - self.time[0] + (self.timedel[0] +
+                                                        self.timedel[-1]) / 2
+
+        self.energies = self.hdul['ENERGIES'].data
+
+        self.energy_bin_names = [
+            f'{a} - {b}'
+            for a, b in zip(self.energies['e_low'], self.energies['e_high'])
+        ]
+        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
+
+        ebin_nz_idx =self.energy_bin_mask.nonzero()
+        self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
+        self.min_ebin = np.min(ebin_nz_idx)
+
+        self.ebins_mid = [
+            (a + b) / 2.
+            for a, b in zip(self.energies['e_low'], self.energies['e_high'])
+        ]
+        self.ebins_low, self.ebins_high = self.energies[
+            'e_low'], self.energies['e_high']
+
+        if self.data_type=='ScienceL1':
+            self.pixel_counts=self.counts
+            self.pixel_count_rates= self.pixel_counts/self.timedel[:,None,None, None]
+            self.trigger_rates = self.triggers / self.timedel[:, None] 
+        elif self.data_type=='Spectrogram':
+            self.count_rates= self.counts/self.timedel[:,None]
+            self.trigger_rates = self.triggers / self.timedel
+
 
     def is_time_bin_shifted(self, unix_time):
         """
@@ -48,14 +127,6 @@ class ScienceData(sio.IO):
 
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
-    def load(self):
-        '''
-        load data object and extract basic information from science fits file
-        Code to be executed after a science data file is being loaded.
-        
-        '''
-        pass
-
     @classmethod
     def from_sdc(cls, request_id):
         '''
@@ -69,7 +140,6 @@ class ScienceData(sio.IO):
         Returns
         ------
             science data class object
-
         '''
         request_id = request_id
         fname = freq.fetch_bulk_science_by_request_id(request_id)
@@ -147,71 +217,28 @@ class ScienceL1(ScienceData):
     Tools to analyze L1 science data
     """
 
-    #duration: Union[float, Any]
+    def __init__(self, reqeust_id,fname):
+        print(reqeust_id, fname)
+        super().__init__(reqeust_id, fname)
+        self.data_type='ScienceL1'
+        self.pixel_count_rates=None
+        self.correct_pixel_count_rates=None
+        self.read_fits()
+        self.make_spectra()
 
-    def load(self, tbin_correction='auto'):
-        """
-            Read data  L1 compression level  FITS files
-            Parameters
-                tbin_correction: str or bool
-                    Correct the time bin bug in FSW with versions < v183 if it is not False
-
-        """
-        self.data = self.hdul['DATA'].data
-        self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
-        self.T0_unix = sdt.utc2unix(self.T0_utc)
-        self.triggers = self.data['triggers']
-        self.rcr = self.data['rcr']
-
-        self.counts = self.data['counts']
-        self.timedel = self.data['timedel']
-        self.time = self.data['time']
-
-        if tbin_correction != False and self.is_time_bin_shifted(self.T0_unix):
-            self.counts = self.counts[1:, :, :, :]
-            self.timedel = self.timedel[:-1]
-            self.time = self.time[1:]
-            print('Shifted time bins corrected')
-            self.triggers = self.triggers[1:, :]
-            self.rcr = self.rcr[1:]
-
-        self.trigger_rates = self.triggers / self.timedel[:, None]
-
-        self.datetime = [
-            sdt.unix2datetime(self.T0_unix + x + y * 0.5)
-            for x, y in zip(self.time, self.timedel)
-        ]
-        self.spectrogram = np.sum(self.counts, axis=(1, 2))
+    def make_spectra(self, pixel_counts=None):
+        if pixel_counts is None:
+            pixel_counts=self.pixel_counts
+        self.spectrogram = np.sum(pixel_counts, axis=(1, 2))
         self.count_rate_spectrogram = self.spectrogram / self.timedel[:, np.
                                                                       newaxis]
-
-        self.energies = self.hdul['ENERGIES'].data
-        #print(self.hdul['ENERGIES'].header)
-        self.energy_bin_names = [
-            f'{a} - {b}'
-            for a, b in zip(self.energies['e_low'], self.energies['e_high'])
-        ]
-        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
-
-        self.inverse_energy_bin_mask = 1 - self.energy_bin_mask
-        ebin_nz_idx =self.energy_bin_mask.nonzero()
-        self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
-        self.min_ebin = np.min(ebin_nz_idx)
-
-        self.ebins_mid = [
-            (a + b) / 2.
-            for a, b in zip(self.energies['e_low'], self.energies['e_high'])
-        ]
-        self.ebins_low, self.ebins_high = self.energies[
-            'e_low'], self.energies['e_high']
-        self.spectrum = np.sum(self.counts, axis=(0, 1, 2))
-        self.duration = self.time[-1] - self.time[0] + (self.timedel[0] +
-                                                        self.timedel[-1]) / 2
-        self.mean_pixel_rate_spectra = np.sum(self.counts,
+        self.spectrum = np.sum(pixel_counts, axis=(0, 1, 2))
+        self.mean_pixel_rate_spectra = np.sum(self.pixel_counts,
                                               axis=0) / self.duration
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second
+
     def solve_cfl(self, start_utc, end_utc, elow=0, eup=31, ax=None):
         """calculate flare location using the online flare location solver.
           
@@ -230,7 +257,26 @@ class ScienceL1(ScienceData):
 
         """
         pass
-        
+
+    def correct_live_time(self, clone=False):
+        """ Live time correction
+        Returns:
+          scienceL1 object
+        """
+
+        trig_tau = FPGA_TAU+ASIC_TAU
+        time_bins = self.time_bins[:, None]
+        photons_in = self.triggers/(time_bins-trig_tau*self.triggers)
+        #photon rate calculated using triggers 
+        cm= np.zeros((time_bins.size, 32))
+        time_bins = time_bins[:, :, None, None]
+        count_rates = self.pixel_counts/time_bins
+        for det in range(32):
+            trig_idx=inst.detector_id_to_trigger_index(det)
+
+            cm[:,det]= 1 + self.trigger_rates[:,trig_idx]*FPGA_TAU #live time per second 
+        self.correct_pixel_count_rates=count_rates*cm[:, :, None, None]/np.exp(-count_rates*ASIC_TAU)
+        return self
 
     def peek(self,
              plots=['spg', 'lc', 'spec', 'tbin', 'qllc'],
@@ -247,7 +293,7 @@ class ScienceL1(ScienceData):
         if isinstance(plots, str) and plots:
             plots = plots.split(',')
         if not self.data_loaded:
-            self.load()
+            self.read_fits()
             self.data_loaded = True
 
         if 'spg' in plots:
@@ -315,63 +361,15 @@ class ScienceL1(ScienceData):
 
 
 class Spectrogram(ScienceData):
-    """
-    def __init__(self, entry_id=None):
-        super().__init__(entry_id)
-        if self.data.get('data_type',None)!='L1':
-            raise TypeError('The requested data is not L1')
-    def info(self):
-        return {
-                'OBS_BEGIN': st.unix2utc(self.data['start_unix']),
-                'OBS_END': st.unix2utc(self.data['end_unix']),
-                'ID':self.entry_id,
-                'URL':f'{net.HOST}/view/list/bsd/id/{entry_id}',
-                }
-                """
-
-    #def __init__(self):
-    #    super().__init__(self)
 
 
-    def load(self, tbin_correction='auto'):
-        """
-         Load data from fits file
+    def __init__(self, reqeust_id,fname):
+        super().__init__(reqeust_id, fname)
+        self.data_type='Spectrogram'
 
-        """
-        self.data = self.hdul['DATA'].data
-        self.counts = self.data['counts']
-        self.time = self.data['time']
-        self.timedel = self.data['timedel']
+        self.read_fits()
 
-        self.T0 = self.hdul[0].header['DATE_BEG']
-        self.T0_unix = sdt.utc2unix(self.T0)
-
-        if tbin_correction != False and self.is_time_bin_shifted(self.T0_unix):
-            self.counts = self.counts[1:, :]  #1st d: timebin, second: energies
-            self.timedel = self.timedel[:
-                                        -1]  #remove the first integration time from the time bin array
-            self.time = self.time[1:]
-            self.T0 = self.T0[1:]
-            print('Shifted time bins corrected')
-        else:
-            print('No need of time-bin correction')
-
-        self.datetime = [
-            sdt.unix2datetime(self.T0_unix + x + y * 0.5)
-            for x, y in zip(self.time, self.timedel)
-        ]
-        self.energy_bin_names = [
-            f'{a} - {b}' for a, b in zip(self.hdul['ENERGIES'].data['e_low'],
-                                         self.hdul['ENERGIES'].data['e_high'])
-        ]
-        self.ebins_mid = [(a + b) / 2.
-                          for a, b in zip(self.hdul['ENERGIES'].data['e_low'],
-                                          self.hdul['ENERGIES'].data['e_high'])
-                          ]
-        self.ebins_low, self.ebins_high = self.hdul['ENERGIES'].data[
-            'e_low'], self.hdul['ENERGIES'].data['e_high']
         self.spectrum = np.sum(self.counts, axis=0)
-        self.count_rate_spectrogram = self.counts / self.timedel[:, np.newaxis]
 
     def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
@@ -403,7 +401,7 @@ class Spectrogram(ScienceData):
             ax0.set_xlabel(f"Seconds since {self.T0}s ")
         if ax1:
             #convert to 2d
-            ax1.plot(self.time, self.count_rate_spectrogram)
+            ax1.plot(self.time, self.count_rates)
             ax1.set_yscale('log')
             ax1.set_ylabel('Counts / sec')
             ax1.set_xlabel(f"Seconds since {self.T0}s ")

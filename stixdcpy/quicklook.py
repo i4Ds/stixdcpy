@@ -28,7 +28,7 @@ class LightCurves(QuickLook):
             self.data = None
 
     @classmethod
-    def fetch(cls, start_utc: str, end_utc: str, ltc=False):
+    def from_sdc(cls, start_utc: str, end_utc: str, ltc=False):
         """ fetch light curve data from STIX data center
 
         Args:

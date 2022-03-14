@@ -22,7 +22,7 @@ class Housekeeping(sio.IO):
         self.param_names = self.data['names']
 
     @classmethod
-    def fetch(cls, start_utc: str, end_utc: str):
+    def from_sdc(cls, start_utc: str, end_utc: str):
         """
             Fetch housekeeping data from server
             Parameters
