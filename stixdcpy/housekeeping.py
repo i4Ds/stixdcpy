@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 """
     This module provides APIs to retrieve Housekeeping data from STIX data center  ,and some tools to display the data
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
@@ -9,20 +10,19 @@ import pandas as pd
 from astropy.io import fits
 from matplotlib import pyplot as plt
 
-from stixdcpy import time as sdt
 from stixdcpy import io as sio
+from stixdcpy import time as sdt
 from stixdcpy.net import JSONRequest as jreq
 
 
 class Housekeeping(sio.IO):
     def __init__(self, data):
-        data['datetime']= [sdt.utc2datetime(x) for x in data['time']]
-        self.data=data
-        self.param_names=self.data['names']
-
+        data['datetime'] = [sdt.utc2datetime(x) for x in data['time']]
+        self.data = data
+        self.param_names = self.data['names']
 
     @classmethod
-    def fetch(cls, start_utc: str, end_utc: str):
+    def from_sdc(cls, start_utc: str, end_utc: str):
         """
             Fetch housekeeping data from server
             Parameters
@@ -36,7 +36,8 @@ class Housekeeping(sio.IO):
         """
         data = jreq.fetch_housekeeping(start_utc, end_utc)
         return cls(data)
-    def plot(self,parameters, which='eng', ax=None):
+
+    def plot(self, parameters, which='eng', ax=None):
         """
         Plot a housekeeping parameter
         Parameters
@@ -49,22 +50,19 @@ class Housekeeping(sio.IO):
         Returns:
         ax:  matplotlib axes
         """
-        params=parameters.split(',')
+        params = parameters.split(',')
         if not ax:
             _, ax = plt.subplots()
-        key='raw_values' if which=='raw' else 'eng_values'
+        key = 'raw_values' if which == 'raw' else 'eng_values'
         for param in params:
             if param not in self.data[key]:
                 raise KeyError('Invalid housekeeping parameter name')
-            ax.plot(self.data['datetime'], self.data[key][param], label=self.data['names'].get(param,''))
+            ax.plot(self.data['datetime'],
+                    self.data[key][param],
+                    label=self.data['names'].get(param, ''))
         ax.set_xlabel('UTC')
         ax.set_ylabel('Value')
         return ax
-        
-
-        
-
-
 
     def __getattr__(self, name):
         if name == 'data':
