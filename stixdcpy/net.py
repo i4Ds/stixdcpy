@@ -352,7 +352,7 @@ class JSONRequest(object):
         })
 
     @staticmethod
-    def fetch_flare_list(start_utc: str, end_utc: str, sortedby: str = 'time'):
+    def fetch_flare_list(start_utc: str, end_utc: str, sort: str = 'time'):
         """ query and download flare list from stix data center
 
         Args:
@@ -360,7 +360,7 @@ class JSONRequest(object):
                 flare start UTC
             end_utc: str
                 flare end UTC
-            sortedby: str
+            sort: str
                 key to sort flares. It can be one of ['goes','time', 'LC0','LC1','LC2','LC3','LC4], LCi here means the i-th QL light curve
 
 
@@ -372,5 +372,5 @@ class JSONRequest(object):
         return JSONRequest.post(URLS_POST['FLARE_LIST'], {
             'start_utc': start_utc,
             'end_utc': end_utc,
-            'sortedby': sortedby
+            'sort': sort
         })
