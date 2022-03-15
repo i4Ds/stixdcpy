@@ -32,14 +32,15 @@ class Ephemeris(sio.IO):
             End UTC
             steps:
             Number of data steps
-
         Returns:
             ephemeris: object
 
         """
         if end_utc is None:
             end_utc = start_utc
-        data = jreq.request_ephemeris(start_utc, end_utc, steps)
+        orbit= jreq.request_ephemeris(start_utc, end_utc, steps)
+        att= jreq.request_attitude(start_utc, end_utc, steps)
+        data={'orbit':orbit,'attitude':att}
         return cls(start_utc, end_utc, data)
 
     @classmethod
@@ -91,7 +92,7 @@ class Ephemeris(sio.IO):
         if not self.data:
             logger.error(f'Data not loaded. ')
             return None
-        data = self.data
+        data = self.data['orbit']
         if not ax:
             _, ax = plt.subplots()
         if not data or 'error' in data:

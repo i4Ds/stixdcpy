@@ -199,10 +199,12 @@ class LiveTimeCorrection(object):
 
         time_bins = time_bins[:, :, None, None]
         count_rates = counts_arr/time_bins
+        # print(counts_arr.shape)
         for det in range(32):
-            trig_idx=inst.detector_id_to_trigger_index(det)
-            correction_factors[:,det]= 1 + trig_rate[:,trig_idx]*fpga_tau*1e-6 #live time per second 
-        corrected_rates=count_rates*correction_factors[:, :, None, None]/np.exp(-count_rates*asic_tau*1e-6)
+            trig_idx=inst.detector_id_to_trigger_index[det]
+            nin=photons_in[:,trig_idx]
+            cor_factor=0.94
+            live_ratio[:,det]=np.exp(- cor_factor*nin*asic_tau*1e-6)/(1+ nin*trig_tau)
 
     return correction_factors, corrected_rates , count_rates,photons_in
 

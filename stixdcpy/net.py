@@ -28,6 +28,7 @@ URLS_POST = {
     'HK2': f'{HOST}/api/request/hk2',
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
+    'ATTITUDE': f'{HOST}/api/request/solo/attitude',
     'SCIENCE': f'{HOST}/api/request/science-data/id',
     'TRANSMISSION': f'{HOST}/api/request/transmission',
     'FLARE_LIST': f'{HOST}/api/request/flare-list',
@@ -321,7 +322,15 @@ class JSONRequest(object):
             'end_utc': end_utc,
             'steps': steps
         })
-
+    @staticmethod
+    def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame='SOLO_SRF', ref_frame='SOLO_SUN_RTN'):
+        return JSONRequest.post(URLS_POST['ATTITUDE'], {
+            'start_utc': start_utc,
+            'end_utc': end_utc,
+            'steps': steps,
+            'frame1':instrument_frame,
+            'frame2':ref_frame
+        })
     @staticmethod
     def fetch_science_data(_id: int):
         """fetch science data from stix data center
