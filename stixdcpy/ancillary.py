@@ -39,7 +39,7 @@ class Ephemeris(sio.IO):
         if end_utc is None:
             end_utc = start_utc
         orbit= jreq.request_ephemeris(start_utc, end_utc, steps)
-        att= jreq.request_attitude(start_utc, end_utc, steps)
+        att=jreq.request_attitude(start_utc, end_utc, steps)
         data={'orbit':orbit,'attitude':att}
         return cls(start_utc, end_utc, data)
 

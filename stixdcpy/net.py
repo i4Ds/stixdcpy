@@ -20,8 +20,8 @@ from tqdm import tqdm
 
 DOWNLOAD_PATH = Path.cwd() / 'downloads'
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
-#HOST='http://localhost:5000'
 HOST = 'https://pub023.cs.technik.fhnw.ch'
+#HOST='http://localhost:5000'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
     'HK': f'{HOST}/api/request/housekeeping',
@@ -227,10 +227,10 @@ class JSONRequest(object):
     def post(url, form):
         response = requests.post(url, data=form)
         data = response.json()
+
         if 'error' in data:
-            print(data)
-            print(data['error'])
-            return None
+            if data['error']:
+                return None
         return data
 
     @staticmethod
@@ -324,13 +324,15 @@ class JSONRequest(object):
         })
     @staticmethod
     def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame='SOLO_SRF', ref_frame='SOLO_SUN_RTN'):
-        return JSONRequest.post(URLS_POST['ATTITUDE'], {
+        form={
             'start_utc': start_utc,
             'end_utc': end_utc,
             'steps': steps,
             'frame1':instrument_frame,
             'frame2':ref_frame
-        })
+        }
+        ret=JSONRequest.post(URLS_POST['ATTITUDE'], form)
+        return ret
     @staticmethod
     def fetch_science_data(_id: int):
         """fetch science data from stix data center
