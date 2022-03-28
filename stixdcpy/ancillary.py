@@ -150,7 +150,7 @@ class STIXPointing(Ephemeris):
         ax.plot([data['sun_center'][0]], [data['sun_center'][1]], marker='+', label='Sun Center')
         ax.plot(data['limb']['x'], data['limb']['y'],label='Solar limb',color='red')
         center=[round(x,1) for x in data["sun_center"]]
-        ax.set_title(f'Solar center: {center}  arcsec ')
+        ax.set_title(f'Solar center: {center}  arcsec \n {data["time"]} UT ')
         nsew_coords=np.array(data['nsew'])
         ax.plot(nsew_coords[0:2:,0], nsew_coords[0:2,1])
         ax.plot(nsew_coords[2::,0], nsew_coords[2:,1])
