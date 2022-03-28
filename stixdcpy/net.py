@@ -32,6 +32,7 @@ URLS_POST = {
     'SCIENCE': f'{HOST}/api/request/science-data/id',
     'TRANSMISSION': f'{HOST}/api/request/transmission',
     'FLARE_LIST': f'{HOST}/api/request/flare-list',
+    'STIX_POINTING': f'{HOST}/api/request/stixfov',
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl'
 }
 
@@ -321,6 +322,11 @@ class JSONRequest(object):
             'start_utc': start_utc,
             'end_utc': end_utc,
             'steps': steps
+        })
+    @staticmethod
+    def request_pointing(utc: str):
+        return JSONRequest.post(URLS_POST['STIX_POINTING'], {
+            'utc': utc,
         })
     @staticmethod
     def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame='SOLO_SRF', ref_frame='SOLO_SUN_RTN'):

@@ -30,6 +30,7 @@ class ScienceData(sio.IO):
         if not fname:
             raise Exception("FITS filename not specified")
         self.request_id = request_id
+        self.time_shift_applied=0
         self.hdul = fits.open(fname)
         self.energies=[]
         #self.read_data()
@@ -76,9 +77,9 @@ class ScienceData(sio.IO):
 
         self.request_id = self.hdul['CONTROL'].data['request_id']
         
-        lt=0 if light_time_correction else self.light_time_del
+        self.time_shift_applied=0 if light_time_correction else self.light_time_del
         self.datetime = [
-            sdt.unix2datetime(self.T0_unix + x + y * 0.5 + lt)
+            sdt.unix2datetime(self.T0_unix + x + y * 0.5 + self.time_shift_applied)
             for x, y in zip(self.time, self.timedel)
         ]
 

@@ -1,3 +1,6 @@
+"""
+  calculation of stix transmission, taken from stixcore
+"""
 from collections import OrderedDict
 from functools import partial
 from stixdcpy import instrument as ins

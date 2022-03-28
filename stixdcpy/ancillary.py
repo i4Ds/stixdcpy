@@ -5,6 +5,7 @@
     Date: Sep. 1, 2021
 
 """
+import numpy as np
 import pandas as pd
 from matplotlib import patches
 from matplotlib import pyplot as plt
@@ -21,10 +22,9 @@ class Ephemeris(sio.IO):
         self.data = data
 
     @classmethod
-    def fetch(cls, start_utc: str, end_utc=None, steps=1):
+    def from_sdc(cls, start_utc: str, end_utc=None, steps=1):
         """
         Fetch ephemeris from STIX data center
-
         Args:
             start_utc: str
             Start UTC
@@ -92,9 +92,9 @@ class Ephemeris(sio.IO):
         if not self.data:
             logger.error(f'Data not loaded. ')
             return None
-        data = self.data['orbit']
         if not ax:
             _, ax = plt.subplots()
+        data = self.data['orbit']
         if not data or 'error' in data:
             logger.error(f'Data not available. ')
             return None
@@ -115,3 +115,55 @@ class Ephemeris(sio.IO):
         ax.grid()
         plt.title(f'SOLO Location at {self.start_utc}')
         return ax
+class STIXPointing(Ephemeris):
+    def __init__(self, utc,  data):
+        self.utc= utc
+        self.data = data
+    @classmethod
+    def from_sdc(cls, utc):
+        """
+        Fetch ephemeris from STIX data center
+        Args:
+            start_utc: str
+            Start UTC
+            end_utc: str
+            End UTC
+            steps:
+            Number of data steps
+        Returns:
+            ephemeris: object
+
+        """
+        data= jreq.request_pointing(utc)
+        return cls(utc, data)
+    def peek(self, ax=None):
+        if not self.data:
+            logger.error(f'Data not loaded. ')
+            return None
+        if not ax:
+            _, ax = plt.subplots()
+        data = self.data
+        if not data or 'error' in data:
+            logger.error(f'Data not available. ')
+            return None
+        ax.plot(data['fov']['x'], data['fov']['y'],'--', label='STIX FOV',color='black')
+        ax.plot([data['sun_center'][0]], [data['sun_center'][1]], marker='+', label='Sun Center')
+        ax.plot(data['limb']['x'], data['limb']['y'],label='Solar limb',color='red')
+        center=[round(x,1) for x in data["sun_center"]]
+        ax.set_title(f'Solar center: {center}  arcsec ')
+        nsew_coords=np.array(data['nsew'])
+        ax.plot(nsew_coords[0:2:,0], nsew_coords[0:2,1])
+        ax.plot(nsew_coords[2::,0], nsew_coords[2:,1])
+        ax.text(nsew_coords[0,0], nsew_coords[0,1],'N')
+        ax.text(nsew_coords[2,0], nsew_coords[2,1],'E')
+        ax.set_aspect('equal')
+        ax.legend(loc='upper right')
+        ax.set_xlim(-5400, 5400)
+        ax.grid(True)
+        ax.set_xlabel('STIX X (arcsec)')
+        ax.set_ylabel('STIX Y (arcsec)')
+        return ax
+        
+    
+
+
