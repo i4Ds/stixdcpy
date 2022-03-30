@@ -36,7 +36,8 @@ class ScienceData(sio.IO):
         #self.read_data()
     @property
     def url(self):
-        link=f'{net.HOST}/view/list/bsd/uid/{self.request_id}'
+        req_id=self.request_id if not isinstance(self.request_id, list) else self.request_id[0]
+        link=f'{net.HOST}/view/list/bsd/uid/{req_id}'
         return f'<a href="{link}">{link}</a>'
 
     def read_fits(self, light_time_correction=True):

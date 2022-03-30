@@ -20,7 +20,7 @@ from tqdm import tqdm
 
 DOWNLOAD_PATH = Path.cwd() / 'downloads'
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
-HOST = 'https://pub023.cs.technik.fhnw.ch'
+HOST = 'https://datacenter.stix.i4ds.net'
 #HOST='http://localhost:5000'
 URLS_POST = {
     'LC': f'{HOST}/api/request/ql/lightcurves',
