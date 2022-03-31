@@ -94,7 +94,7 @@ class FitsQueryResult(object):
         for hdu in self.hdu_objects:
             logger.info(hdu.info())
 
-    def get_fits_ids(self):
+    def get_fits_file_ids(self):
         """
         Get FITS file IDs
         Return
@@ -230,12 +230,12 @@ class FitsQuery(object):
         """
         fits_ids = []
         if isinstance(query_results, FitsQueryResult):
-            fits_ids = query_results.get_fits_ids()
+            fits_ids = query_results.get_fits_file_ids()
         elif isinstance(query_results, int):
             fits_ids = [query_results]
         elif isinstance(query_results, list):
             try:
-                fits_ids = [row['fits_id'] for row in query_results]
+                fits_ids = [row['file_id'] for row in query_results]
             except Exception as e:
                 pass
             if not fits_ids:
