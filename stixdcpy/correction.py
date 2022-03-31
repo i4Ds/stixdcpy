@@ -206,7 +206,7 @@ class LiveTimeCorrection(object):
             cor_factor=0.94
             live_ratio[:,det]=np.exp(- cor_factor*nin*asic_tau*1e-6)/(1+ nin*trig_tau)
 
-    return correction_factors, corrected_rates , count_rates,photons_in
+        return correction_factors, corrected_rates , count_rates,photons_in
 
 
 
