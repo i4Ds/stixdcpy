@@ -220,7 +220,6 @@ class ScienceL1(ScienceData):
     """
 
     def __init__(self, reqeust_id,fname):
-        print(reqeust_id, fname)
         super().__init__(reqeust_id, fname)
         self.data_type='ScienceL1'
         self.pixel_count_rates=None
@@ -381,7 +380,7 @@ class Spectrogram(ScienceData):
         ax0: matplotlib axe 
         """
         if not self.hdul:
-            print(f'Data not loaded. ')
+            logger.error(f'Data not loaded. ')
             return None
 
         #((ax0, ax1), (ax2, ax3))=axs
