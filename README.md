@@ -20,7 +20,7 @@ pip install git+https://github.com/drhlxiao/stixdcpy.git@analysis
 
 
 ```
-# stixdcpy tutorial
+# Tutorial and documentation
 - [Tutorial](https://colab.research.google.com/drive/17fQfbWjL0s0TpblbPL1Ysy_zFXj40FBf?usp=sharing)
 - [Documentation](https://drhlxiao.github.io/stixdcpy/)
 
