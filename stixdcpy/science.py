@@ -30,12 +30,14 @@ class ScienceData(sio.IO):
         if not fname:
             raise Exception("FITS filename not specified")
         self.request_id = request_id
+        self.time_shift_applied=0
         self.hdul = fits.open(fname)
         self.energies=[]
         #self.read_data()
     @property
     def url(self):
-        link=f'{net.HOST}/view/list/bsd/uid/{self.request_id}'
+        req_id=self.request_id if not isinstance(self.request_id, list) else self.request_id[0]
+        link=f'{net.HOST}/view/list/bsd/uid/{req_id}'
         return f'<a href="{link}">{link}</a>'
 
     def read_fits(self, light_time_correction=True):
@@ -76,9 +78,9 @@ class ScienceData(sio.IO):
 
         self.request_id = self.hdul['CONTROL'].data['request_id']
         
-        lt=0 if light_time_correction else self.light_time_del
+        self.time_shift_applied=0 if light_time_correction else self.light_time_del
         self.datetime = [
-            sdt.unix2datetime(self.T0_unix + x + y * 0.5 + lt)
+            sdt.unix2datetime(self.T0_unix + x + y * 0.5 + self.time_shift_applied)
             for x, y in zip(self.time, self.timedel)
         ]
 
@@ -218,7 +220,6 @@ class ScienceL1(ScienceData):
     """
 
     def __init__(self, reqeust_id,fname):
-        print(reqeust_id, fname)
         super().__init__(reqeust_id, fname)
         self.data_type='ScienceL1'
         self.pixel_count_rates=None
@@ -379,7 +380,7 @@ class Spectrogram(ScienceData):
         ax0: matplotlib axe 
         """
         if not self.hdul:
-            print(f'Data not loaded. ')
+            logger.error(f'Data not loaded. ')
             return None
 
         #((ax0, ax1), (ax2, ax3))=axs
