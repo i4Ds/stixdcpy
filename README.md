@@ -1,6 +1,7 @@
 # What is stixdcpy? 
-
-stixdcpy allows you to query and download data which are available at [STIX data center](https://pub023.cs.technik.fhnw.ch/) , including
+stixdcpy is a python package that facilitates access and analysis of data from the Spectrometer/Telescope for Imaging X-rays (STIX). 
+stixdcpy provides APIs to query and download data from STIX data center (https://datacenter.stix.i4ds.net/). It also provides a set of tools for visualizing data and performing common analysis tasks. 
+stixdcpy allows querying and downloading the following types of data from STIX data center:
 
 - Quick-look light curves
 - Housekeeping data
@@ -9,15 +10,14 @@ stixdcpy allows you to query and download data which are available at [STIX data
 - Auxilary data
 - STIX solar flare list
 
-It also provides modules for users to preview the data. 
-Note that data downloaded with stixdcpy are not validated. They should not be used for publication purpose. 
-If you need validated data, please visit solar orbiter data archive or [contact us](https://pub023.cs.technik.fhnw.ch/wiki/index.php?title=Contact_Us). 
 
 
 # Installation
 ```sh 
 pip install git+https://github.com/drhlxiao/stixdcpy.git@analysis
 
+# Citing stixdcpy
+If you use hissw in your work, please use the following citation,
 
 ```
 # Tutorial and documentation
