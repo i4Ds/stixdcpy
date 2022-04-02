@@ -35,4 +35,5 @@ If you use stixdcpy in your work, please use the following citation,
 
 - [Tutorial on Google Colab](https://colab.research.google.com/drive/17fQfbWjL0s0TpblbPL1Ysy_zFXj40FBf?usp=sharing)
 - [Documentation](https://drhlxiao.github.io/stixdcpy/)
-
+# Reporting Issues and Contributing
+Open an issue on GitHub to report a problem. Pull requests welcome.
