@@ -16,9 +16,20 @@ stixdcpy allows querying and downloading the following types of data from STIX d
 ```sh 
 pip install git+https://github.com/drhlxiao/stixdcpy.git@analysis
 
+```
 # Citing stixdcpy
-If you use hissw in your work, please use the following citation,
-
+If you use stixdcpy in your work, please use the following citation,
+```sh
+@software{hualin_xiao_2022_6408689,
+  author       = {Hualin Xiao},
+  title        = {stixdcpy},
+  month        = apr,
+  year         = 2022,
+  publisher    = {Zenodo},
+  version      = {v1.0},
+  doi          = {10.5281/zenodo.6408689},
+  url          = {https://doi.org/10.5281/zenodo.6408689}
+}
 ```
 # Tutorial and documentation
 - [Tutorial](https://github.com/drhlxiao/stixdcpy/edit/master/examples/tutorial.ipynb)
