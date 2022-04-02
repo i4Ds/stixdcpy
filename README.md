@@ -22,7 +22,7 @@ If you use stixdcpy in your work, please use the following citation,
 ```sh
 @software{hualin_xiao_2022_6408689,
   author       = {Hualin Xiao},
-  title        = {stixdcpy},
+  title        = {stixdcpy - a python package for accessing and analyzing STIX data},
   month        = apr,
   year         = 2022,
   publisher    = {Zenodo},
