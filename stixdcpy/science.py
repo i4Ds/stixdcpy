@@ -10,7 +10,7 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from stixdcpy import time as sdt
 from stixdcpy.logger import logger
-from stixdcpy import io as sio, net
+from stixdcpy import io as sio
 from stixdcpy.net import FitsQuery as freq
 from stixdcpy import instrument as inst
 from pathlib import PurePath

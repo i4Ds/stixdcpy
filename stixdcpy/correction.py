@@ -155,7 +155,6 @@ class BackgroundSubtraction(object):
 
 
 class LiveTimeCorrection(object):
-    pass
     """
     #counts is np.array   time_bins, detector, pixel, energy bins
     trigger_rates=l1data['triggers'][1:,:]/l1data['timedel'][:-1,None]
@@ -197,7 +196,6 @@ class LiveTimeCorrection(object):
         correction_factors= np.zeros((time_bins.size, 32))
         time_bins = time_bins[:, :, None, None]
 
-        time_bins = time_bins[:, :, None, None]
         count_rates = counts_arr/time_bins
         # print(counts_arr.shape)
         for det in range(32):

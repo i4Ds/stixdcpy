@@ -33,6 +33,7 @@ ENDPOINTS = {
     'FLARE_LIST': f'{HOST}/api/request/flare-list',
     'STIX_POINTING': f'{HOST}/api/request/stixfov',
     'FITS': f'{HOST}/api/query/fits',
+    'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl'
 }
 
@@ -389,8 +390,47 @@ class JSONRequest(object):
 
     @staticmethod
     def request_pointing(utc: str):
+        """
+        request STIX pointing data 
+        Parameters
+        ----
+        utc: str
+            UTC time
+        Returns
+        ----
+        data: dict
+            dictionary containing pointing information
+        """
         return JSONRequest.post(ENDPOINTS['STIX_POINTING'], {
             'utc': utc,
+        })
+        
+    @staticmethod
+    def request_flare_light_time_and_angle(utc: str, flare_x:float, flare_y:float, observer='earth'):
+        """
+            calculate flare light times and relative angles 
+        Parameters
+        ----
+            utc: str
+                observation time
+            flare_x: float
+                flare helio-projective longitude in units of arcsec as seen by the observer
+            flare_y: float
+                flare helio-projective latitude in units of arcsec 
+            observer: str
+                observer. It can be either "earth" or "stix" . Default "earth"
+        Returns
+        ----
+            data: dict
+                the light times and  angles
+                
+
+        """
+        return JSONRequest.post(ENDPOINTS['FLARE_AUX'], {
+            'observer': observer,
+            'sunx':flare_x,
+            'suny':flare_y,
+            'obstime': utc
         })
 
     @staticmethod
