@@ -423,7 +423,20 @@ class JSONRequest(object):
         ----
             data: dict
                 the light times and  angles
-                
+                'dt_flare':   difference of light time  between Flare-Earth and  Flare-STIX
+
+                 'dt_sun_center':  difference of light time  between SunCenter-Earth and  SunCenter-STIX
+                 'earth_flare_solo_deg':   Earth-Flare-SolO angle in units of degrees
+                 'earth_sun_lt':  Earth-SunCenter light time
+                 'flare_earth_lt':  Flare-Earth light time in units of seconds
+                 'flare_norm_earth_deg': Earth-Flare-normal  angle in units of seconds
+                 'flare_norm_solo_deg': SolO-Flare-normal  angle in units of seconds
+                 'flare_solo_lt': Flare-SolO light time
+                 'flare_solo_r': Flare-SolO distance in units of AU
+                 'flare_utc': observation time, 
+                 'mk': SPICE kernel version,
+                 'observer': observer,
+                 'sun_solo_lt':  SUN-SolO light time in units of seconds 
 
         """
         return JSONRequest.post(ENDPOINTS['FLARE_AUX'], {
