@@ -25,7 +25,7 @@ class DetectorView(object):
         """
          Plot STIX detector
          Parameters
-          pixel_counts: 1d np.array
+          pixel_counts: 1x384 np.array or a 32x12 np.array
             
             counts in 384 pixels
           cmap:  str, optional
@@ -34,9 +34,13 @@ class DetectorView(object):
             Plot colobar if it is True 
          Returns
            python object
-
         """
+        
+
+
+
         self.cmap_name = cmap
+        pixel_counts=pixel_counts.flatten()
         self.pixel_counts = pixel_counts
         col = (np.array(plt.get_cmap(cmap).colors) * 256).astype(int)
         self.color_map = [f'rgb({x[0]},{x[1]},{x[2]})' for x in col]
@@ -80,12 +84,16 @@ class DetectorView(object):
         with open(filename, 'w') as f:
             f.write(self.svg)
 
-    def plot_in_notebook(self):
+    def display(self):
         """
          Plot detector in nootbook
         """
-        from IPython.display import SVG
-        SVG(self.svg)
+        try:
+            from IPython.display import SVG
+        except ImportError:
+            print('IPython not installed. Can not display the detector view')
+            return
+        return SVG(self.svg)
 
     def _create_color_bar(self, x0, y0, width, height):
         path = (

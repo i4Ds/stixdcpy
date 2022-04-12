@@ -234,11 +234,14 @@ class ScienceL1(ScienceData):
         self.count_rate_spectrogram = self.spectrogram / self.timedel[:, np.
                                                                       newaxis]
         self.spectrum = np.sum(pixel_counts, axis=(0, 1, 2))
+    
         self.mean_pixel_rate_spectra = np.sum(self.pixel_counts,
                                               axis=0) / self.duration
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second
+
+        self.pixel_total_counts=np.sum(self.pixel_counts, axis=(0,3))
 
     def solve_cfl(self, start_utc, end_utc, elow=0, eup=31, ax=None):
         """calculate flare location using the online flare location solver.
