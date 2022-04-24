@@ -63,7 +63,7 @@ class ScienceData(sio.IO):
         self.timedel = self.data['timedel']
         self.time = self.data['time']
 
-        if self.is_time_bin_shifted(self.T0_unix):
+        if self.is_time_bin_shifted(self.T0_unix) and len(self.timedel)>1:
             self.timedel = self.timedel[:-1]
             self.time = self.time[1:]
             logger.info('Shifted time bins have been corrected automatically!')
