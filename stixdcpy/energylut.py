@@ -90,7 +90,7 @@ class EnergyLUT(sio.IO):
         Returns:
             ebins: numpy.array
                 Lower and upper bounds of 32 energy bins
-        """        
+        """
         true_ebins = np.array(self.data['data']['true_energy_bin_edges'])
         pixel_ebins = true_ebins[:, pixel]  # 33 x 384 retrieve the column
         ebins = np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))

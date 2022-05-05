@@ -1365,12 +1365,10 @@ ebin_low_edges = np.array([
     36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, math.inf
 ])
 ebins = np.vstack((ebin_low_edges[0:-1], ebin_low_edges[1:])).T
-detector_ids_in_trigger_accumulators = np.array([[1, 2], [6, 7], [5, 11], [12, 13], [14, 15],
-                                                [10, 16], [8, 9], [3, 4], [
-                                                    31, 32], [26, 27],
-                                                 [22, 28], [20, 21], [18, 19], [
-                                                     17, 23], [24, 25],
-                                                 [29, 30]])-1
+detector_ids_in_trigger_accumulators = np.array(
+    [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16], [8, 9], [3, 4],
+     [31, 32], [26, 27], [22, 28], [20, 21], [18, 19], [17, 23], [24, 25],
+     [29, 30]]) - 1
 # detector ids of in trigger accounumator
 detector_group_map = np.array([
     0, 0, 7, 7, 2, 1, 1, 6, 6, 5, 2, 3, 3, 4, 4, 5, 13, 12, 12, 11, 11, 10, 13,
@@ -1412,8 +1410,13 @@ detector_pairs = {
     29: 28
 }
 
-QL_LC_energy_slicers = [slice(1, 7), slice(
-    7, 12), slice(12, 17), slice(17, 23), slice(23, 28)]
+QL_LC_energy_slicers = [
+    slice(1, 7),
+    slice(7, 12),
+    slice(12, 17),
+    slice(17, 23),
+    slice(23, 28)
+]
 # energy slicer
 DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
                    [8, 9], [3, 4], [31, 32], [26, 27], [22, 28], [20, 21],
@@ -1453,41 +1456,45 @@ DET_SIBLINGS = {
     29: 28
 }
 
-det_id_to_trig_idx={0: 0,
- 1: 0,
- 2: 7,
- 3: 7,
- 4: 2,
- 5: 1,
- 6: 1,
- 7: 6,
- 8: 6,
- 9: 5,
- 10: 2,
- 11: 3,
- 12: 3,
- 13: 4,
- 14: 4,
- 15: 5,
- 16: 13,
- 17: 12,
- 18: 12,
- 19: 11,
- 20: 11,
- 21: 10,
- 22: 13,
- 23: 14,
- 24: 14,
- 25: 9,
- 26: 9,
- 27: 10,
- 28: 15,
- 29: 15,
- 30: 8,
- 31: 8}
+det_id_to_trig_idx = {
+    0: 0,
+    1: 0,
+    2: 7,
+    3: 7,
+    4: 2,
+    5: 1,
+    6: 1,
+    7: 6,
+    8: 6,
+    9: 5,
+    10: 2,
+    11: 3,
+    12: 3,
+    13: 4,
+    14: 4,
+    15: 5,
+    16: 13,
+    17: 12,
+    18: 12,
+    19: 11,
+    20: 11,
+    21: 10,
+    22: 13,
+    23: 14,
+    24: 14,
+    25: 9,
+    26: 9,
+    27: 10,
+    28: 15,
+    29: 15,
+    30: 8,
+    31: 8
+}
+
 
 def detector_id_to_trigger_index(i):
     return det_id_to_trig_idx[i]
+
 
 def get_detector_in_same_group(idx):
     """Get detector index in the same group
@@ -1512,6 +1519,6 @@ def get_trigger_acc_detector_ids():
 
 def get_sci_ebins(a, b):
     low = np.where(ebin_low_edges == a)[0][0]
-    up = np.where(ebin_low_edges == b)[0][0]-1
+    up = np.where(ebin_low_edges == b)[0][0] - 1
 
     return (low, up)

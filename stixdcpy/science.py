@@ -15,8 +15,8 @@ from stixdcpy.net import FitsQuery as freq
 from stixdcpy import instrument as inst
 from pathlib import PurePath
 
-FPGA_TAU=10.1e-6
-ASIC_TAU=2.63e-6
+FPGA_TAU = 10.1e-6
+ASIC_TAU = 2.63e-6
 
 
 class ScienceData(sio.IO):
@@ -26,18 +26,19 @@ class ScienceData(sio.IO):
     """
     def __init__(self, request_id=None, fname=None):
         self.fname = fname
-        self.data_type=None
+        self.data_type = None
         if not fname:
             raise Exception("FITS filename not specified")
         self.request_id = request_id
-        self.time_shift_applied=0
+        self.time_shift_applied = 0
         self.hdul = fits.open(fname)
-        self.energies=[]
+        self.energies = []
         #self.read_data()
     @property
     def url(self):
-        req_id=self.request_id if not isinstance(self.request_id, list) else self.request_id[0]
-        link=f'{net.HOST}/view/list/bsd/uid/{req_id}'
+        req_id = self.request_id if not isinstance(
+            self.request_id, list) else self.request_id[0]
+        link = f'{net.HOST}/view/list/bsd/uid/{req_id}'
         return f'<a href="{link}">{link}</a>'
 
     def read_fits(self, light_time_correction=True):
@@ -51,10 +52,10 @@ class ScienceData(sio.IO):
 
         self.data = self.hdul['DATA'].data
         self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
-        self.counts= self.data['counts']
+        self.counts = self.data['counts']
 
-        self.light_time_del= self.hdul['PRIMARY'].header['EAR_TDEL']
-        self.light_time_corrected=light_time_correction
+        self.light_time_del = self.hdul['PRIMARY'].header['EAR_TDEL']
+        self.light_time_corrected = light_time_correction
 
         self.T0_unix = sdt.utc2unix(self.T0_utc)
         self.triggers = self.data['triggers']
@@ -63,24 +64,25 @@ class ScienceData(sio.IO):
         self.timedel = self.data['timedel']
         self.time = self.data['time']
 
-        if self.is_time_bin_shifted(self.T0_unix) and len(self.timedel)>1:
+        if self.is_time_bin_shifted(self.T0_unix) and len(self.timedel) > 1:
             self.timedel = self.timedel[:-1]
             self.time = self.time[1:]
             logger.info('Shifted time bins have been corrected automatically!')
-            if self.data_type=='ScienceL1':
-                self.counts= self.counts[1:, :, :, :]
+            if self.data_type == 'ScienceL1':
+                self.counts = self.counts[1:, :, :, :]
                 self.triggers = self.triggers[1:, :]
                 self.rcr = self.rcr[1:]
-            elif self.data_type=='Spectrogram':
-                self.counts= self.counts[1:, :]
+            elif self.data_type == 'Spectrogram':
+                self.counts = self.counts[1:, :]
                 self.triggers = self.triggers[1:]
                 #self.rcr = self.rcr[1:]
 
         self.request_id = self.hdul['CONTROL'].data['request_id']
-        
-        self.time_shift_applied=0 if light_time_correction else self.light_time_del
+
+        self.time_shift_applied = 0 if light_time_correction else self.light_time_del
         self.datetime = [
-            sdt.unix2datetime(self.T0_unix + x + y * 0.5 + self.time_shift_applied)
+            sdt.unix2datetime(self.T0_unix + x + y * 0.5 +
+                              self.time_shift_applied)
             for x, y in zip(self.time, self.timedel)
         ]
 
@@ -95,7 +97,7 @@ class ScienceData(sio.IO):
         ]
         self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
 
-        ebin_nz_idx =self.energy_bin_mask.nonzero()
+        ebin_nz_idx = self.energy_bin_mask.nonzero()
         self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
         self.min_ebin = np.min(ebin_nz_idx)
 
@@ -106,14 +108,15 @@ class ScienceData(sio.IO):
         self.ebins_low, self.ebins_high = self.energies[
             'e_low'], self.energies['e_high']
 
-        if self.data_type=='ScienceL1':
-            self.pixel_counts=self.counts
-            self.pixel_count_rates= self.pixel_counts/self.timedel[:,None,None, None]
-            self.trigger_rates = self.triggers / self.timedel[:, None] 
-        elif self.data_type=='Spectrogram':
-            self.count_rates= self.counts/self.timedel[:,None]
+        if self.data_type == 'ScienceL1':
+            self.pixel_counts = self.counts
+            self.pixel_count_rates = self.pixel_counts / self.timedel[:, None,
+                                                                      None,
+                                                                      None]
+            self.trigger_rates = self.triggers / self.timedel[:, None]
+        elif self.data_type == 'Spectrogram':
+            self.count_rates = self.counts / self.timedel[:, None]
             self.trigger_rates = self.triggers / self.timedel
-
 
     def is_time_bin_shifted(self, unix_time):
         """
@@ -159,15 +162,13 @@ class ScienceData(sio.IO):
         return cls(request_id, filename)
 
     def get_energy_range_slicer(self, elow, ehigh):
-        sel=[]
-        i=0
+        sel = []
+        i = 0
         for a, b in zip(self.energies['e_low'], self.energies['e_high']):
-            if a>=elow  and b<=ehigh:
+            if a >= elow and b <= ehigh:
                 sel.append(i)
-            i+=1
-        return slice(min(sel),max(sel))
-
-
+            i += 1
+        return slice(min(sel), max(sel))
 
     def rebin(self, ebins, min_tbin=0):
         """
@@ -218,30 +219,29 @@ class ScienceL1(ScienceData):
     """
     Tools to analyze L1 science data
     """
-
-    def __init__(self, reqeust_id,fname):
+    def __init__(self, reqeust_id, fname):
         super().__init__(reqeust_id, fname)
-        self.data_type='ScienceL1'
-        self.pixel_count_rates=None
-        self.correct_pixel_count_rates=None
+        self.data_type = 'ScienceL1'
+        self.pixel_count_rates = None
+        self.correct_pixel_count_rates = None
         self.read_fits()
         self.make_spectra()
 
     def make_spectra(self, pixel_counts=None):
         if pixel_counts is None:
-            pixel_counts=self.pixel_counts
+            pixel_counts = self.pixel_counts
         self.spectrogram = np.sum(pixel_counts, axis=(1, 2))
         self.count_rate_spectrogram = self.spectrogram / self.timedel[:, np.
                                                                       newaxis]
         self.spectrum = np.sum(pixel_counts, axis=(0, 1, 2))
-    
+
         self.mean_pixel_rate_spectra = np.sum(self.pixel_counts,
                                               axis=0) / self.duration
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second
 
-        self.pixel_total_counts=np.sum(self.pixel_counts, axis=(0,3))
+        self.pixel_total_counts = np.sum(self.pixel_counts, axis=(0, 3))
 
     def solve_cfl(self, start_utc, end_utc, elow=0, eup=31, ax=None):
         """calculate flare location using the online flare location solver.
@@ -268,18 +268,23 @@ class ScienceL1(ScienceData):
           scienceL1 object
         """
 
-        trig_tau = FPGA_TAU+ASIC_TAU
+        trig_tau = FPGA_TAU + ASIC_TAU
         time_bins = self.time_bins[:, None]
-        photons_in = self.triggers/(time_bins-trig_tau*self.triggers)
-        #photon rate calculated using triggers 
-        cm= np.zeros((time_bins.size, 32))
+        photons_in = self.triggers / (time_bins - trig_tau * self.triggers)
+        #photon rate calculated using triggers
+        cm = np.zeros((time_bins.size, 32))
         time_bins = time_bins[:, :, None, None]
-        count_rates = self.pixel_counts/time_bins
+        count_rates = self.pixel_counts / time_bins
         for det in range(32):
-            trig_idx=inst.detector_id_to_trigger_index(det)
+            trig_idx = inst.detector_id_to_trigger_index(det)
 
-            cm[:,det]= 1 + self.trigger_rates[:,trig_idx]*FPGA_TAU #live time per second 
-        self.correct_pixel_count_rates=count_rates*cm[:, :, None, None]/np.exp(-count_rates*ASIC_TAU)
+            cm[:,
+               det] = 1 + self.trigger_rates[:,
+                                             trig_idx] * FPGA_TAU  #live time per second
+        self.correct_pixel_count_rates = count_rates * cm[:, :, None,
+                                                          None] / np.exp(
+                                                              -count_rates *
+                                                              ASIC_TAU)
         return self
 
     def peek(self,
@@ -326,17 +331,26 @@ class ScienceL1(ScienceData):
             self.count_rate_spectrogram = self.spectrogram / self.timedel[:,
                                                                           None]
             if 'qllc' in plots:
-               ql_ebins=[(4, 10),(10 ,15 ),(15 ,25 ),(25 ,50), (50 ,84)]
-               labels=('4 - 10 keV','10 - 15 keV','15 - 25 keV','25 - 50 keV', '50 - 84 keV')
-               ql_sci_ebins=[self.get_energy_range_slicer(s[0],s[1]) for s in ql_ebins]
-               for ebin_slicer,label in zip(ql_sci_ebins, labels):
-                   ax1.plot(self.time,
-                        np.sum(self.count_rate_spectrogram[:, ebin_slicer], axis=1),label=label) 
-                   ax1.set_title(f'Detector summed count rates (L1 request #{self.request_id})')
+                ql_ebins = [(4, 10), (10, 15), (15, 25), (25, 50), (50, 84)]
+                labels = ('4 - 10 keV', '10 - 15 keV', '15 - 25 keV',
+                          '25 - 50 keV', '50 - 84 keV')
+                ql_sci_ebins = [
+                    self.get_energy_range_slicer(s[0], s[1]) for s in ql_ebins
+                ]
+                for ebin_slicer, label in zip(ql_sci_ebins, labels):
+                    ax1.plot(self.time,
+                             np.sum(self.count_rate_spectrogram[:,
+                                                                ebin_slicer],
+                                    axis=1),
+                             label=label)
+                    ax1.set_title(
+                        f'Detector summed count rates (L1 request #{self.request_id})'
+                    )
             else:
                 ax1.plot(
                     self.time,
-                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
+                    self.count_rate_spectrogram[:,
+                                                self.min_ebin:self.max_ebin])
             #correct
             ax1.set_ylabel('counts / sec')
             #plt.legend(self.energy_bin_names, ncol=4)
@@ -365,11 +379,9 @@ class ScienceL1(ScienceData):
 
 
 class Spectrogram(ScienceData):
-
-
-    def __init__(self, reqeust_id,fname):
+    def __init__(self, reqeust_id, fname):
         super().__init__(reqeust_id, fname)
-        self.data_type='Spectrogram'
+        self.data_type = 'Spectrogram'
 
         self.read_fits()
 

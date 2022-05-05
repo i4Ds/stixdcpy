@@ -325,9 +325,11 @@ class Transmission:
             res[name] = mat
 
         return res
+
     @classmethod
     def get_stix_ebins_transmission(cls, ebins=ins.ebins):
         pass
+
     @classmethod
     def create_material(cls,
                         name=None,

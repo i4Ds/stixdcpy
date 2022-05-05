@@ -35,12 +35,9 @@ class DetectorView(object):
          Returns
            python object
         """
-        
-
-
 
         self.cmap_name = cmap
-        pixel_counts=pixel_counts.flatten()
+        pixel_counts = pixel_counts.flatten()
         self.pixel_counts = pixel_counts
         col = (np.array(plt.get_cmap(cmap).colors) * 256).astype(int)
         self.color_map = [f'rgb({x[0]},{x[1]},{x[2]})' for x in col]

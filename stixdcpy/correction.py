@@ -149,13 +149,12 @@ class BackgroundSubtraction(object):
             axis=(0, 1, 2)) / time_span,
         bkg_sub_spectra_err = np.sqrt(
             np.sum(self.subtracted_counts_err[start_i_tbin:end_i_tbin, :, :, :]
-                   ** 2,
+                   **2,
                    axis=(0, 1, 2))) / time_span
         return bkg_sub_spectra, bkg_sub_spectra_err
 
 
 class LiveTimeCorrection(object):
-
     """
     #counts is np.array   time_bins, detector, pixel, energy bins
     trigger_rates=l1data['triggers'][1:,:]/l1data['timedel'][:-1,None]
@@ -165,7 +164,6 @@ class LiveTimeCorrection(object):
     live_time=1 - tau*trig
     photo_in=trig/(live_time)
 	"""
-
     @classmethod
     def L1_live_time_correction(cls, triggers, counts_arr, time_bins):
         """ Live time correction
@@ -186,27 +184,27 @@ class LiveTimeCorrection(object):
 
         """
 
-        fpga_tau=10.1e-6
-        asic_tau=2.63e-6
-        trig_tau = fpga_tau+asic_tau
+        fpga_tau = 10.1e-6
+        asic_tau = 2.63e-6
+        trig_tau = fpga_tau + asic_tau
 
         time_bins = time_bins[:, None]
-        photons_in = triggers/(time_bins-trig_tau*triggers)
-        #photon rate calculated using triggers 
+        photons_in = triggers / (time_bins - trig_tau * triggers)
+        #photon rate calculated using triggers
 
-        correction_factors= np.zeros((time_bins.size, 32))
+        correction_factors = np.zeros((time_bins.size, 32))
         time_bins = time_bins[:, :, None, None]
 
-        count_rates = counts_arr/time_bins
+        count_rates = counts_arr / time_bins
         # print(counts_arr.shape)
         for det in range(32):
-            trig_idx=inst.detector_id_to_trigger_index[det]
-            nin=photons_in[:,trig_idx]
-            cor_factor=0.94
-            live_ratio[:,det]=np.exp(- cor_factor*nin*asic_tau*1e-6)/(1+ nin*trig_tau)
+            trig_idx = inst.detector_id_to_trigger_index[det]
+            nin = photons_in[:, trig_idx]
+            cor_factor = 0.94
+            live_ratio[:, det] = np.exp(
+                -cor_factor * nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
 
-        return correction_factors, corrected_rates , count_rates,photons_in
-
+        return correction_factors, corrected_rates, count_rates, photons_in
 
 
 class TransmissionCorrection(object):

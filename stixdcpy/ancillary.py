@@ -38,9 +38,9 @@ class Ephemeris(sio.IO):
         """
         if end_utc is None:
             end_utc = start_utc
-        orbit= jreq.request_ephemeris(start_utc, end_utc, steps)
-        att=jreq.request_attitude(start_utc, end_utc, steps)
-        data={'orbit':orbit,'attitude':att}
+        orbit = jreq.request_ephemeris(start_utc, end_utc, steps)
+        att = jreq.request_attitude(start_utc, end_utc, steps)
+        data = {'orbit': orbit, 'attitude': att}
         return cls(start_utc, end_utc, data)
 
     @classmethod
@@ -115,10 +115,13 @@ class Ephemeris(sio.IO):
         ax.grid()
         plt.title(f'SOLO Location at {self.start_utc}')
         return ax
+
+
 class STIXPointing(Ephemeris):
-    def __init__(self, utc,  data):
-        self.utc= utc
+    def __init__(self, utc, data):
+        self.utc = utc
         self.data = data
+
     @classmethod
     def from_sdc(cls, utc):
         """
@@ -134,8 +137,9 @@ class STIXPointing(Ephemeris):
             ephemeris: object
 
         """
-        data= jreq.request_pointing(utc)
+        data = jreq.request_pointing(utc)
         return cls(utc, data)
+
     def peek(self, ax=None):
         if not self.data:
             logger.error(f'Data not loaded. ')
@@ -146,16 +150,25 @@ class STIXPointing(Ephemeris):
         if not data or 'error' in data:
             logger.error(f'Data not available. ')
             return None
-        ax.plot(data['fov']['x'], data['fov']['y'],'--', label='STIX FOV',color='black')
-        ax.plot([data['sun_center'][0]], [data['sun_center'][1]], marker='+', label='Sun Center')
-        ax.plot(data['limb']['x'], data['limb']['y'],label='Solar limb',color='red')
-        center=[round(x,1) for x in data["sun_center"]]
+        ax.plot(data['fov']['x'],
+                data['fov']['y'],
+                '--',
+                label='STIX FOV',
+                color='black')
+        ax.plot([data['sun_center'][0]], [data['sun_center'][1]],
+                marker='+',
+                label='Sun Center')
+        ax.plot(data['limb']['x'],
+                data['limb']['y'],
+                label='Solar limb',
+                color='red')
+        center = [round(x, 1) for x in data["sun_center"]]
         ax.set_title(f'Solar center: {center}  arcsec \n {data["time"]} UT ')
-        nsew_coords=np.array(data['nsew'])
-        ax.plot(nsew_coords[0:2:,0], nsew_coords[0:2,1])
-        ax.plot(nsew_coords[2::,0], nsew_coords[2:,1])
-        ax.text(nsew_coords[0,0], nsew_coords[0,1],'N')
-        ax.text(nsew_coords[2,0], nsew_coords[2,1],'E')
+        nsew_coords = np.array(data['nsew'])
+        ax.plot(nsew_coords[0:2:, 0], nsew_coords[0:2, 1])
+        ax.plot(nsew_coords[2::, 0], nsew_coords[2:, 1])
+        ax.text(nsew_coords[0, 0], nsew_coords[0, 1], 'N')
+        ax.text(nsew_coords[2, 0], nsew_coords[2, 1], 'E')
         ax.set_aspect('equal')
         ax.legend(loc='upper right')
         ax.set_xlim(-5400, 5400)
@@ -163,7 +176,3 @@ class STIXPointing(Ephemeris):
         ax.set_xlabel('STIX X (arcsec)')
         ax.set_ylabel('STIX Y (arcsec)')
         return ax
-        
-    
-
-

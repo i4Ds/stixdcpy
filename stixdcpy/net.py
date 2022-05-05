@@ -17,8 +17,8 @@ from astropy.io import fits
 from tqdm import tqdm
 from stixdcpy.logger import logger
 
-DOWNLOAD_PATH = Path.cwd() / 'downloads'
-DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
+DOWNLOAD_LOCATION = Path.cwd() / 'downloads'
+
 HOST = 'https://datacenter.stix.i4ds.net'
 #HOST='http://localhost:5000'
 ENDPOINTS = {
@@ -66,6 +66,7 @@ class FitsQueryResult(object):
 
     def __len__(self):
         return len(self.result)
+
     def to_pandas(self):
         """
         Convert FitsQueryResult to pandas dataframe
@@ -120,16 +121,29 @@ class FitsQueryResult(object):
             self.downloaded_fits_files = FitsQuery.fetch(self.result)
             return self.downloaded_fits_files
         else:
-            logger.warning('WARNING: Nothing to be downloaded from stix data center!')
+            logger.warning(
+                'WARNING: Nothing to be downloaded from stix data center!')
 
 
 class FitsQuery(object):
     """
     Query or Fetch FITS products from STIX data center
     """
+    download_location=DOWNLOAD_LOCATION
 
     def __init__(self):
         self.fits_file_list = []
+    
+    @classmethod
+    def chdir(cls, path):
+        Path(path).mkdir(parents=True, exist_ok=True)
+        FitsQuery.download_location=path
+
+    @staticmethod
+    def getcwd():
+        return FitsQuery.download_location
+        
+
 
     @staticmethod
     def wget(url: str, desc: str, progress_bar=True):
@@ -150,7 +164,9 @@ class FitsQuery(object):
             logger.error(resp.content)
             return None
 
-        folder = DOWNLOAD_PATH
+        folder = FitsQuery.download_location
+        Path(folder).mkdir(parents=True, exist_ok=True)
+
         try:
             fname = resp.headers.get("Content-Disposition").split(
                 "filename=")[1]
@@ -160,7 +176,8 @@ class FitsQuery(object):
         filename = PurePath(folder, fname)
         file_path = Path(filename)
         if file_path.is_file():
-            logger.info(f'Found the data in local storage. Filename: {filename} ...')
+            logger.info(
+                f'Found the data in local storage. Filename: {filename} ...')
             return str(file_path)
         f = open(filename, 'wb')
         chunk_size = 1024
@@ -180,7 +197,7 @@ class FitsQuery(object):
         return name
 
     @staticmethod
-    def query(begin_utc, end_utc, product_type='lc', filter=None):
+    def query(begin_utc, end_utc, product_type='lc', filter=None, path='.'):
         """Query FITS products from STIX data center
 
         Args:
@@ -198,13 +215,17 @@ class FitsQuery(object):
             raise TypeError(
                 f'Invalid product type! product_type can be one of {str(FITS_TYPES)}'
             )
-        form = {'start_utc': begin_utc, 'end_utc': end_utc, 'product_type':product_type, 'filter':str(filter)}
+        form = {
+            'start_utc': begin_utc,
+            'end_utc': end_utc,
+            'product_type': product_type,
+            'filter': str(filter)
+        }
         url = ENDPOINTS['FITS']
-        res=[]
-        r=JSONRequest.post(url, form)
+        res = []
+        r = JSONRequest.post(url, form)
         if isinstance(r, list):
             res = r
-        
         return FitsQueryResult(res)
 
     @staticmethod
@@ -256,7 +277,6 @@ class FitsQuery(object):
                 fits_filenames.append(fname)
         except Exception as e:
             raise e
-        # self.fits_file_list=fits_filenames
         return fits_filenames
 
     @staticmethod
@@ -404,9 +424,12 @@ class JSONRequest(object):
         return JSONRequest.post(ENDPOINTS['STIX_POINTING'], {
             'utc': utc,
         })
-        
+
     @staticmethod
-    def request_flare_light_time_and_angle(utc: str, flare_x:float, flare_y:float, observer='earth'):
+    def request_flare_light_time_and_angle(utc: str,
+                                           flare_x: float,
+                                           flare_y: float,
+                                           observer='earth'):
         """
             calculate flare light times and relative angles 
         Parameters
@@ -441,8 +464,8 @@ class JSONRequest(object):
         """
         return JSONRequest.post(ENDPOINTS['FLARE_AUX'], {
             'observer': observer,
-            'sunx':flare_x,
-            'suny':flare_y,
+            'sunx': flare_x,
+            'suny': flare_y,
             'obstime': utc
         })
 

@@ -18,7 +18,6 @@ class IO(object):
     """
         Base object
     """
-
     def __init__(self):
         pass
 
