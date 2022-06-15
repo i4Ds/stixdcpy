@@ -1,6 +1,7 @@
 """
-  calculation of stix transmission, taken from stixcore
+  Calculation of stix transmission, based on the version on stixcore
 """
+import json
 from collections import OrderedDict
 from functools import partial
 from stixdcpy import instrument as ins
@@ -17,24 +18,47 @@ MIL_SI = 0.0254 * u.mm
 
 # TODO move to configuration files
 COMPONENTS = OrderedDict([
-    ('front_window', [('solarblack', 0.005 * u.mm), ('be', 2 * u.mm)]),
+    ('front_window', [('solarblack', 0.005 * u.mm), ('be-s200fh', 2 * u.mm)]),
     ('rear_window', [('be', 1 * u.mm)]),
     ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
     ('dem', [('kapton', 2 * 3 * MIL_SI)]),
-    ('attenuator', [('al', 0.6 * u.mm)]),
+    ('attenuator', [('alum7075', 0.6 * u.mm)]),
     ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
              ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
              ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
              ('al', 1000 * u.angstrom)]),
+
     ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
                           ('kapton', 4 * 2 * MIL_SI)]),
     ('dead_layer', [('te_o2', 392 * u.nm)]),
+    ('grid_strip':[('tungsten',0.4*u.mm)])
 ])
 
 MATERIALS = OrderedDict([
     ('al', ({
         'Al': 1.0
     }, 2.7 * u.g / u.cm**3)),
+    ('tungsten',({'W':1.0},
+        19.28*u.g/u.cm**3))
+    
+    ('alum7075',({
+      'Al': 0.876,
+      'Zn': 0.056,
+      'Cr': 0.023,
+      'Mg': 0.025,
+      'Cu': 0.016,
+      'Fe': 0.0025,
+      'Mn': 0.0015},
+        2.8*u.g/u.cm**3)),
+    ('be-s200fh',({
+             'Be': 0.985,
+      'O': 0.00555,
+      'Al': 0.0005,
+      'C': 0.0075,
+      'Fe': 0.00075,
+      'Mg': 0.0004,
+      'Si': 0.0003}, 1.84*u.g/u.cm**3)
+        ),
     ('be', ({
         'Be': 1.0
     }, 1.85 * u.g / u.cm**3)),
