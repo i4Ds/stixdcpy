@@ -1,7 +1,6 @@
 """
   Calculation of stix transmission, based on the version on stixcore
 """
-import json
 from collections import OrderedDict
 from functools import partial
 from stixdcpy import instrument as ins
@@ -30,17 +29,17 @@ COMPONENTS = OrderedDict([
 
     ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
                           ('kapton', 4 * 2 * MIL_SI)]),
-    ('dead_layer', [('te_o2', 392 * u.nm)]),
-    ('grid_strip':[('tungsten',0.4*u.mm)])
+    ('dead_layer', [('te_o2', 392 * u.nm )]),
+    ('grid_strip',[('tungsten',0.4*u.mm )])
 ])
 
 MATERIALS = OrderedDict([
     ('al', ({
         'Al': 1.0
     }, 2.7 * u.g / u.cm**3)),
-    ('tungsten',({'W':1.0},
-        19.28*u.g/u.cm**3))
-    
+    ('tungsten',({
+        'W':1.0
+        },19.28*u.g/u.cm**3)),
     ('alum7075',({
       'Al': 0.876,
       'Zn': 0.056,
