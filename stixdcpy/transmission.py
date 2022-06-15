@@ -306,12 +306,12 @@ class Transmission:
         mean_trans = np.mean(det_trans.reshape((-1, 2)), axis=1)
         #calculate mean energy transmission factors for energy bins
         return mean_trans
-    def get_transmission_of_components(self, component_names:str, energies_keV:np.array):
+    def get_transmission_of_component(self, component_name:str, energies_keV:np.array):
         """
         get the transmission of a list of components
         """
-        base_comp=[self.components[names]]
-        comp = Compound(base_comps)
+        base_comp=[self.components[component_name]]
+        comp = Compound(base_comp)
         return comp.transmission(energies_keV)
 
 
