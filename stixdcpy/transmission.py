@@ -269,6 +269,7 @@ class Transmission:
         #    self.energies = [ENERGY_CHANNELS[i].e_lower for i in range(1, 32)] * u.keV
 
         if attenuator:
+            print('attenuator included')
             base_comps.append(self.components['attenuator'])
 
         base = Compound(base_comps)
@@ -313,6 +314,7 @@ class Transmission:
         ]
 
         if attenuator:
+            print('attenuator included')
             base_comps.append(self.components['attenuator'])
 
         fine_grids = [10, 12, 17, 11, 18, 16]
