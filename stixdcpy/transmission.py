@@ -16,7 +16,7 @@ __all__ = ['Transmission']
 MIL_SI = 0.0254 * u.mm
 
 # TODO move to configuration files
-OLD_COMPONENTS = OrderedDict([
+NEW_COMPONENTS = OrderedDict([
     ('front_window', [('solarblack', 0.005 * u.mm),
         ('be-s200fh', 2 * u.mm)]),
     ('rear_window', [('be-s200fh', 1 * u.mm)]),
@@ -34,7 +34,7 @@ OLD_COMPONENTS = OrderedDict([
     ('single_grid',[('tungsten',0.4*u.mm )]),
     ('double_grid',[('tungsten',0.8*u.mm )]),
 ]) #old materials, not valid anymore
-NEW_COMPONENTS = OrderedDict([
+OLD_COMPONENTS = OrderedDict([
     ('front_window', [('solarblack', 0.005 * u.mm),
         ('be', 2 * u.mm)]),
     ('rear_window', [('be', 1 * u.mm)]),
@@ -222,7 +222,10 @@ class Transmission:
 
     def load_components(self, version=1):
         self.components = {}
-        comps= OLD_COMPONENTS if version==0 else NEW_COMPONENTS
+        if version==0:
+            comps= OLD_COMPONENTS 
+        else:
+            comps=NEW_COMPONENTS
 
         for name, layers in comps.items():
             parts = []
@@ -230,13 +233,13 @@ class Transmission:
                 if material == 'solarblack':
                     material = self.solarblack
                 mass_frac, den = MATERIALS[material]
-                if material == 'al':
-                    thickness = thickness * 0.8
-                parts.append(
-                    self.create_material(name=material,
+                #if material == 'al':
+                #    thickness = thickness * 0.8
+                part=self.create_material(name=material,
                                          fractional_masses=mass_frac,
                                          thickness=thickness,
-                                         density=den))
+                                         density=den)
+                parts.append(part)
             self.components[name] = Compound(parts)
 
     def get_transmission(self, energies, attenuator=False):
@@ -269,7 +272,6 @@ class Transmission:
         #    self.energies = [ENERGY_CHANNELS[i].e_lower for i in range(1, 32)] * u.keV
 
         if attenuator:
-            print('attenuator included')
             base_comps.append(self.components['attenuator'])
 
         base = Compound(base_comps)
