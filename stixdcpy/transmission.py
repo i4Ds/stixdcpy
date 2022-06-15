@@ -16,9 +16,10 @@ __all__ = ['Transmission']
 MIL_SI = 0.0254 * u.mm
 
 # TODO move to configuration files
-COMPONENTS = OrderedDict([
-    ('front_window', [('solarblack', 0.005 * u.mm), ('be-s200fh', 2 * u.mm)]),
-    ('rear_window', [('be', 1 * u.mm)]),
+OLD_COMPONENTS = OrderedDict([
+    ('front_window', [('solarblack', 0.005 * u.mm),
+        ('be-s200fh', 2 * u.mm)]),
+    ('rear_window', [('be-s200fh', 1 * u.mm)]),
     ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
     ('dem', [('kapton', 2 * 3 * MIL_SI)]),
     ('attenuator', [('alum7075', 0.6 * u.mm)]),
@@ -32,8 +33,25 @@ COMPONENTS = OrderedDict([
     ('dead_layer', [('te_o2', 392 * u.nm )]),
     ('single_grid',[('tungsten',0.4*u.mm )]),
     ('double_grid',[('tungsten',0.8*u.mm )]),
-])
+]) #old materials, not valid anymore
+NEW_COMPONENTS = OrderedDict([
+    ('front_window', [('solarblack', 0.005 * u.mm),
+        ('be', 2 * u.mm)]),
+    ('rear_window', [('be', 1 * u.mm)]),
+    ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
+    ('dem', [('kapton', 2 * 3 * MIL_SI)]),
+    ('attenuator', [('al', 0.6 * u.mm)]),
+    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
+             ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
+             ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
+             ('al', 1000 * u.angstrom)]),
 
+    ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
+                          ('kapton', 4 * 2 * MIL_SI)]),
+    ('dead_layer', [('te_o2', 392 * u.nm )]),
+    ('single_grid',[('tungsten',0.4*u.mm )]),
+    ('double_grid',[('tungsten',0.8*u.mm )]),
+])
 MATERIALS = OrderedDict([
     ('al', ({
         'Al': 1.0
@@ -183,7 +201,7 @@ class Transmission:
     """
     Calculate the energy dependant transmission of X-ray through the instrument
     """
-    def __init__(self, solarblack='solarblack_carbon'):
+    def __init__(self, solarblack='solarblack_carbon', material_version=1):
         """
         Create a new instance of the transmission with the given solar black composition.
 
@@ -200,10 +218,13 @@ class Transmission:
 
         self.solarblack = solarblack
         self.materials = MATERIALS
-        self.components = COMPONENTS
-        self.components = dict()
+        self.load_components(material_version)
 
-        for name, layers in COMPONENTS.items():
+    def load_components(self, version=1):
+        self.components = {}
+        comps= OLD_COMPONENTS if version==0 else NEW_COMPONENTS
+
+        for name, layers in comps.items():
             parts = []
             for material, thickness in layers:
                 if material == 'solarblack':
