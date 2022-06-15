@@ -412,7 +412,7 @@ class Transmission:
 
 def get_detector_absorption(energies=None):
     mass_fraction = {'Te': 0.531644, 'Cd': 0.4683554}
-    density = 5.85 * u.g / u.cm**3
+    density = 6.2 * u.g / u.cm**3
     thickness = 1 * u.mm
     material = Transmission.create_material(name='cdte',
                                             fractional_masses=mass_fraction,
