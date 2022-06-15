@@ -30,7 +30,8 @@ COMPONENTS = OrderedDict([
     ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
                           ('kapton', 4 * 2 * MIL_SI)]),
     ('dead_layer', [('te_o2', 392 * u.nm )]),
-    ('grid_strip',[('tungsten',0.4*u.mm )])
+    ('single_grid',[('tungsten',0.4*u.mm )]),
+    ('double_grid',[('tungsten',0.8*u.mm )]),
 ])
 
 MATERIALS = OrderedDict([
@@ -312,8 +313,11 @@ class Transmission:
         """
         base_comp=[self.components[component_name]]
         comp = Compound(base_comp)
+        print(comp)
+        energies_keV=energies_keV*u.keV
         return comp.transmission(energies_keV)
 
+    
 
 
     def get_transmission_by_component(self):
