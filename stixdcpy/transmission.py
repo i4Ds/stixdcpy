@@ -33,10 +33,12 @@ NEW_COMPONENTS = OrderedDict([
     ('dead_layer', [('te_o2', 392 * u.nm )]),
     ('single_grid',[('tungsten',0.4*u.mm )]),
     ('double_grid',[('tungsten',0.8*u.mm )]),
+    ('caliste', [('cdte', 1*u.mm)]),
 ]) #old materials, not valid anymore
 OLD_COMPONENTS = OrderedDict([
     ('front_window', [('solarblack', 0.005 * u.mm),
         ('be', 2 * u.mm)]),
+    ('caliste', [('cdte', 1*u.mm)]),
     ('rear_window', [('be', 1 * u.mm)]),
     ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
     ('dem', [('kapton', 2 * 3 * MIL_SI)]),
@@ -56,6 +58,10 @@ MATERIALS = OrderedDict([
     ('al', ({
         'Al': 1.0
     }, 2.7 * u.g / u.cm**3)),
+    ('cdte', ({
+        'Te': 0.53164,
+        'Cd': 0.46836
+    }, 6.2* u.g / u.cm**3)),
     ('tungsten',({
         'W':1.0
         },19.28*u.g/u.cm**3)),
