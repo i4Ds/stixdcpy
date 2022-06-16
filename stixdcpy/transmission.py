@@ -16,7 +16,7 @@ __all__ = ['Transmission']
 MIL_SI = 0.0254 * u.mm
 
 # TODO move to configuration files
-NEW_COMPONENTS = OrderedDict([
+NEW_COMPONENTS_MEAN= OrderedDict([
     ('front_window', [('solarblack', 0.005 * u.mm),
         ('be-s200fh', 2 * u.mm)]),
     ('rear_window', [('be-s200fh', 1 * u.mm)]),
@@ -35,6 +35,28 @@ NEW_COMPONENTS = OrderedDict([
     ('double_grid',[('tungsten',0.8*u.mm )]),
     ('caliste', [('cdte', 1*u.mm)]),
 ]) #old materials, not valid anymore
+
+NEW_COMPONENTS_MAX= OrderedDict([
+    ('front_window', [('solarblack', 0.005 * u.mm),
+        ('be-s200fh', 2 * u.mm)]),
+    ('rear_window', [('be-s200fh', 1 * u.mm)]),
+    ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
+    ('dem', [('kapton', 2 * 3 * MIL_SI)]),
+    ('attenuator', [('alum7075-max', 0.6 * u.mm)]),
+    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
+             ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
+             ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
+             ('al', 1000 * u.angstrom)]),
+
+    ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
+                          ('kapton', 4 * 2 * MIL_SI)]),
+    ('dead_layer', [('te_o2', 392 * u.nm )]),
+    ('single_grid',[('tungsten',0.4*u.mm )]),
+    ('double_grid',[('tungsten',0.8*u.mm )]),
+    ('caliste', [('cdte', 1*u.mm)]),
+]) #old materials, not valid anymore
+
+
 OLD_COMPONENTS = OrderedDict([
     ('front_window', [('solarblack', 0.005 * u.mm),
         ('be', 2 * u.mm)]),
@@ -74,6 +96,7 @@ MATERIALS = OrderedDict([
       'Fe': 0.0025,
       'Mn': 0.0015},
         2.8*u.g/u.cm**3)),
+
     ('be-s200fh',({
              'Be': 0.985,
       'O': 0.00555,
@@ -83,6 +106,16 @@ MATERIALS = OrderedDict([
       'Mg': 0.0004,
       'Si': 0.0003}, 1.84*u.g/u.cm**3)
         ),
+
+    ('alum7075-max',({
+      'Al': 0.858,
+      'Zn': 0.061,
+      'Cr': 0.028,
+      'Mg': 0.029,
+      'Cu': 0.02,
+      'Fe': 0.0025,
+      'Mn': 0.0015},
+        2.8*u.g/u.cm**3)),
     ('be', ({
         'Be': 1.0
     }, 1.85 * u.g / u.cm**3)),
@@ -230,8 +263,11 @@ class Transmission:
         self.components = {}
         if version==0:
             comps= OLD_COMPONENTS 
-        else:
-            comps=NEW_COMPONENTS
+        elif version==1:
+            comps=NEW_COMPONENTS_MEAN
+        elif version==2:
+            comps=NEW_COMPONENTS_MAX
+
 
         for name, layers in comps.items():
             parts = []
