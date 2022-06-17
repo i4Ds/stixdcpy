@@ -15,10 +15,8 @@ __all__ = ['Transmission']
 
 MIL_SI = 0.0254 * u.mm
 
-# TODO move to configuration files
-NEW_COMPONENTS_MEAN= OrderedDict([
-    ('front_window', [('solarblack', 0.005 * u.mm),
-        ('be-s200fh', 2 * u.mm)]),
+COMPONENTS = OrderedDict([
+    ('front_window', [('solarblack', 0.005 * u.mm), ('be-s200fh', 2 * u.mm)]),
     ('rear_window', [('be-s200fh', 1 * u.mm)]),
     ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
     ('dem', [('kapton', 2 * 3 * MIL_SI)]),
@@ -27,55 +25,14 @@ NEW_COMPONENTS_MEAN= OrderedDict([
              ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
              ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
              ('al', 1000 * u.angstrom)]),
-
     ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
                           ('kapton', 4 * 2 * MIL_SI)]),
-    ('dead_layer', [('te_o2', 392 * u.nm )]),
-    ('single_grid',[('tungsten',0.4*u.mm )]),
-    ('double_grid',[('tungsten',0.8*u.mm )]),
-    ('caliste', [('cdte', 1*u.mm)]),
-]) #old materials, not valid anymore
+    ('dead_layer', [('te_o2', 392 * u.nm)]),
+    ('single_grid', [('tungsten', 0.4 * u.mm)]),
+    ('double_grid', [('tungsten', 0.8 * u.mm)]),
+    ('caliste', [('cdte', 1 * u.mm)]),
+])  #old materials, not valid anymore
 
-NEW_COMPONENTS_MAX= OrderedDict([
-    ('front_window', [('solarblack', 0.005 * u.mm),
-        ('be-s200fh', 2 * u.mm)]),
-    ('rear_window', [('be-s200fh', 1 * u.mm)]),
-    ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
-    ('dem', [('kapton', 2 * 3 * MIL_SI)]),
-    ('attenuator', [('alum7075-max', 0.6 * u.mm)]),
-    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
-             ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
-             ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
-             ('al', 1000 * u.angstrom)]),
-
-    ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
-                          ('kapton', 4 * 2 * MIL_SI)]),
-    ('dead_layer', [('te_o2', 392 * u.nm )]),
-    ('single_grid',[('tungsten',0.4*u.mm )]),
-    ('double_grid',[('tungsten',0.8*u.mm )]),
-    ('caliste', [('cdte', 1*u.mm)]),
-]) #old materials, not valid anymore
-
-
-OLD_COMPONENTS = OrderedDict([
-    ('front_window', [('solarblack', 0.005 * u.mm),
-        ('be', 2 * u.mm)]),
-    ('caliste', [('cdte', 1*u.mm)]),
-    ('rear_window', [('be', 1 * u.mm)]),
-    ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
-    ('dem', [('kapton', 2 * 3 * MIL_SI)]),
-    ('attenuator', [('al', 0.6 * u.mm)]),
-    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
-             ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
-             ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
-             ('al', 1000 * u.angstrom)]),
-
-    ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
-                          ('kapton', 4 * 2 * MIL_SI)]),
-    ('dead_layer', [('te_o2', 392 * u.nm )]),
-    ('single_grid',[('tungsten',0.4*u.mm )]),
-    ('double_grid',[('tungsten',0.8*u.mm )]),
-])
 MATERIALS = OrderedDict([
     ('al', ({
         'Al': 1.0
@@ -83,39 +40,80 @@ MATERIALS = OrderedDict([
     ('cdte', ({
         'Te': 0.53164,
         'Cd': 0.46836
-    }, 6.2* u.g / u.cm**3)),
-    ('tungsten',({
-        'W':1.0
-        },19.28*u.g/u.cm**3)),
-    ('alum7075',({
-      'Al': 0.876,
-      'Zn': 0.056,
-      'Cr': 0.023,
-      'Mg': 0.025,
-      'Cu': 0.016,
-      'Fe': 0.0025,
-      'Mn': 0.0015},
-        2.8*u.g/u.cm**3)),
-
-    ('be-s200fh',({
-             'Be': 0.985,
-      'O': 0.00555,
-      'Al': 0.0005,
-      'C': 0.0075,
-      'Fe': 0.00075,
-      'Mg': 0.0004,
-      'Si': 0.0003}, 1.84*u.g/u.cm**3)
-        ),
-
-    ('alum7075-max',({
-      'Al': 0.858,
-      'Zn': 0.061,
-      'Cr': 0.028,
-      'Mg': 0.029,
-      'Cu': 0.02,
-      'Fe': 0.0025,
-      'Mn': 0.0015},
-        2.8*u.g/u.cm**3)),
+    }, 5.85 * u.g / u.cm**3)),
+    ('tungsten', ({
+        'W': 1.0
+    }, 19.28 * u.g / u.cm**3)),
+    (
+        'alum7075-max',
+        (
+            {
+                'Si':
+                0.004,  #the mass fractions of other elements are the maximum 
+                'Fe': 0.005,
+                'Cu': 0.02,
+                'Mn': 0.003,
+                'Mg': 0.029,
+                'Cr': 0.0028,
+                'Ni': 0.0005,
+                'Zn': 0.061,
+                'Ti': 0.002,
+                'Al': 0.8727
+            },
+            2.8 * u.g / u.cm**3)),
+    (
+        'alum7075-mean',
+        (
+            {
+                'Si':
+                0.002,  #take the mean of the min and max the mass fractions of other elements 
+                'Fe': 0.0025,
+                'Cu': 0.016,
+                'Mn': 0.0015,
+                'Mg': 0.025,
+                'Cr': 0.0023,
+                'Ni': 0.00025,
+                'Zn': 0.056,
+                'Ti': 0.001,
+                'Al': 0.89345
+            },
+            2.8 * u.g / u.cm**3)),
+    (
+        'alum7075-min',
+        (
+            {
+                'Si':
+                0.0,  #the mass fractions of other elements are the minimum 
+                'Fe': 0.0,
+                'Cu': 0.012,
+                'Mn': 0.0,
+                'Mg': 0.021,
+                'Cr': 0.0018,
+                'Ni': 0.0,
+                'Zn': 0.051,
+                'Ti': 0.0,
+                'Al': 0.9142
+            },
+            2.8 * u.g / u.cm**3)),
+    ('be-s200fh-max', ({
+        'Al': 0.001,
+        'Be': 0.98676,
+        'O': 0.00954,
+        'Fe': 0.0013,
+        'Mg': 0.0008,
+        'Si': 0.0006
+    }, 1.84 * u.g / u.cm**3)),
+    ('be-s200fh-min', ({
+        'Be': 1
+    }, 1.85 * u.g / u.cm**3)),
+    ('be-s200fh-mean', ({
+        'Al': 0.0005,
+        'Be': 0.99338,
+        'O': 0.00477,
+        'Fe': 0.00065,
+        'Mg': 0.0004,
+        'Si': 0.0003
+    }, 1.84 * u.g / u.cm**3)),
     ('be', ({
         'Be': 1.0
     }, 1.85 * u.g / u.cm**3)),
@@ -240,7 +238,8 @@ class Transmission:
     """
     Calculate the energy dependant transmission of X-ray through the instrument
     """
-    def __init__(self, solarblack='solarblack_carbon', material_version=1):
+
+    def __init__(self, solarblack='solarblack_carbon', matlist='mean'):
         """
         Create a new instance of the transmission with the given solar black composition.
 
@@ -249,38 +248,44 @@ class Transmission:
 
         solarblack : `str` optional
             The SolarBlack composition to use.
+        matlist: str optional
+         
+           'old': use the old material info
+           'min': take the minimum  mass fractions for other elements in the alloys
+           'max': take the maximum mass fractions for other elements in the alloys
+           'mean': take the mean mass fractions for other elements in the alloys
+
         """
         if solarblack not in ['solarblack_oxygen', 'solarblack_carbon']:
             raise ValueError(
                 "solarblack must be either 'solarblack_oxygen' or "
                 "'solarblack_carbon'.")
-
+        if matlist not in ['old', 'min', 'max','mean']:
+            raise ValueError("'matlist' must be 'old', 'min','max' or 'mean'!")
         self.solarblack = solarblack
         self.materials = MATERIALS
-        self.load_components(material_version)
+        self.matlist = matlist
+        self.load_components(matlist)
 
-    def load_components(self, version=1):
+    def load_components(self, matlist):
         self.components = {}
-        if version==0:
-            comps= OLD_COMPONENTS 
-        elif version==1:
-            comps=NEW_COMPONENTS_MEAN
-        elif version==2:
-            comps=NEW_COMPONENTS_MAX
 
-
-        for name, layers in comps.items():
+        for name, layers in COMPONENTS.items():
             parts = []
             for material, thickness in layers:
                 if material == 'solarblack':
                     material = self.solarblack
+                elif material == 'be-s200fh':
+                    material = 'be' if matlist == 'old' else material + '-' + matlist
+                elif material == 'alum7075':
+                    material = 'al' if matlist == 'old' else material + '-' + matlist
+
+                #print('material:', material)
                 mass_frac, den = MATERIALS[material]
-                #if material == 'al':
-                #    thickness = thickness * 0.8
-                part=self.create_material(name=material,
-                                         fractional_masses=mass_frac,
-                                         thickness=thickness,
-                                         density=den)
+                part = self.create_material(name=material,
+                                            fractional_masses=mass_frac,
+                                            thickness=thickness,
+                                            density=den)
                 parts.append(part)
             self.components[name] = Compound(parts)
 
@@ -348,7 +353,7 @@ class Transmission:
             Returns
             --------
             transmission for the energy bins
-            
+
         '''
         base_comps = [
             self.components[name] for name in [
@@ -374,18 +379,17 @@ class Transmission:
         mean_trans = np.mean(det_trans.reshape((-1, 2)), axis=1)
         #calculate mean energy transmission factors for energy bins
         return mean_trans
-    def get_transmission_of_component(self, component_name:str, energies_keV:np.array):
+
+    def get_transmission_of_component(self, component_name: str,
+                                      energies_keV: np.array):
         """
         get the transmission of a list of components
         """
-        base_comp=[self.components[component_name]]
+        base_comp = [self.components[component_name]]
         comp = Compound(base_comp)
         print(comp)
-        energies_keV=energies_keV*u.keV
+        energies_keV = energies_keV * u.keV
         return comp.transmission(energies_keV)
-
-    
-
 
     def get_transmission_by_component(self):
         """
@@ -463,8 +467,6 @@ class Transmission:
         # probably don't need this
         material.density = density
 
-        # TODO remove in favour of upstream fix when completed
-        #  see https://github.com/ehsteve/roentgen/issues/26
         def func(composition, e):
             return sum([
                 MassAttenuationCoefficient(element).func(e) * frac_mass
