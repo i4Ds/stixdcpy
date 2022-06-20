@@ -19,10 +19,15 @@ COMPONENTS = OrderedDict([
     ('front_window', [('solarblack', 0.005 * u.mm), ('be-s200fh', 2 * u.mm)]),
     ('rear_window', [('be-s200fh', 1 * u.mm)]),
     ('grid_covers', [('kapton', 4 * 2 * MIL_SI)]),
-    ('dem', [('kapton', 2 * 3 * MIL_SI)]),
+    ('dem', [
+        ('kapton', 2 * 3 * MIL_SI),
+        ('al', 2 * 1000 * u.angstrom)
+        ]),
     ('attenuator', [('alum7075', 0.6 * u.mm)]),
-    ('mli', [('al', 1000 * u.angstrom), ('kapton', 3 * MIL_SI),
-             ('al', 40 * 1000 * u.angstrom), ('mylar', 20 * 0.25 * MIL_SI),
+    ('mli', [('al', 1000 * u.angstrom), 
+        ('kapton', 3 * MIL_SI),
+             ('al', 40 * 1000 * u.angstrom), 
+             ('mylar', 20 * 0.25 * MIL_SI),
              ('pet', 21 * 0.005 * u.mm), ('kapton', 3 * MIL_SI),
              ('al', 1000 * u.angstrom)]),
     ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
