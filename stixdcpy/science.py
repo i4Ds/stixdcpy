@@ -13,6 +13,7 @@ from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import FitsQuery as freq
 from stixdcpy import instrument as inst
+from stixdcpy.correction import LiveTimeCorrection
 from pathlib import PurePath
 
 FPGA_TAU = 10.1e-6
@@ -24,7 +25,7 @@ class ScienceData(sio.IO):
       Retrieve science data from stix data center or load fits file from local storage
 
     """
-    def __init__(self, request_id=None, fname=None):
+    def __init__(self, fname=None, request_id=None):
         self.fname = fname
         self.data_type = None
         if not fname:
@@ -148,7 +149,7 @@ class ScienceData(sio.IO):
         '''
         request_id = request_id
         fname = freq.fetch_bulk_science_by_request_id(request_id)
-        return cls(request_id, fname)
+        return cls(fname, request_id)
 
     @classmethod
     def from_fits(cls, filename):
@@ -159,7 +160,7 @@ class ScienceData(sio.IO):
             FITS filename
         """
         request_id = None
-        return cls(request_id, filename)
+        return cls(filename, request_id)
 
     def get_energy_range_slicer(self, elow, ehigh):
         sel = []
@@ -219,8 +220,8 @@ class ScienceL1(ScienceData):
     """
     Tools to analyze L1 science data
     """
-    def __init__(self, reqeust_id, fname):
-        super().__init__(reqeust_id, fname)
+    def __init__(self, fname, request_id):
+        super().__init__(fname, request_id)
         self.data_type = 'ScienceL1'
         self.pixel_count_rates = None
         self.correct_pixel_count_rates = None
@@ -262,30 +263,18 @@ class ScienceL1(ScienceData):
         """
         pass
 
-    def correct_live_time(self, clone=False):
-        """ Live time correction
+    def correct_dead_time(self ):
+        """ dead time correction
         Returns:
-          scienceL1 object
+          corrected_counts: tuple
+          the tuple has four elements:
+              corrected_rate: np.array
+              count_rates:  np.array
+              photon_in: np.array
+              live_ratio: np.array
         """
-
-        trig_tau = FPGA_TAU + ASIC_TAU
-        time_bins = self.time_bins[:, None]
-        photons_in = self.triggers / (time_bins - trig_tau * self.triggers)
-        #photon rate calculated using triggers
-        cm = np.zeros((time_bins.size, 32))
-        time_bins = time_bins[:, :, None, None]
-        count_rates = self.pixel_counts / time_bins
-        for det in range(32):
-            trig_idx = inst.detector_id_to_trigger_index(det)
-
-            cm[:,
-               det] = 1 + self.trigger_rates[:,
-                                             trig_idx] * FPGA_TAU  #live time per second
-        self.correct_pixel_count_rates = count_rates * cm[:, :, None,
-                                                          None] / np.exp(
-                                                              -count_rates *
-                                                              ASIC_TAU)
-        return self
+        self.corrected_counts=LiveTimeCorrection.correct(self.triggers, self.pixel_counts, self.time_bins)
+        return self.corrected_counts
 
     def peek(self,
              plots=['spg', 'lc', 'spec', 'tbin', 'qllc'],
@@ -379,8 +368,8 @@ class ScienceL1(ScienceData):
 
 
 class Spectrogram(ScienceData):
-    def __init__(self, reqeust_id, fname):
-        super().__init__(reqeust_id, fname)
+    def __init__(self, fname, request_id):
+        super().__init__(fname,request_id)
         self.data_type = 'Spectrogram'
 
         self.read_fits()

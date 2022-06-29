@@ -164,8 +164,8 @@ class LiveTimeCorrection(object):
     live_time=1 - tau*trig
     photo_in=trig/(live_time)
 	"""
-    @classmethod
-    def L1_live_time_correction(cls, triggers, counts_arr, time_bins):
+    @staticmethod
+    def correct(triggers, counts_arr, time_bins):
         """ Live time correction
         Args
             triggers: ndarray
@@ -186,13 +186,14 @@ class LiveTimeCorrection(object):
 
         fpga_tau = 10.1e-6
         asic_tau = 2.63e-6
+        beta= 0.94
         trig_tau = fpga_tau + asic_tau
 
         time_bins = time_bins[:, None]
         photons_in = triggers / (time_bins - trig_tau * triggers)
         #photon rate calculated using triggers
 
-        correction_factors = np.zeros((time_bins.size, 32))
+        live_ratio= np.zeros((time_bins.size, 32))
         time_bins = time_bins[:, :, None, None]
 
         count_rates = counts_arr / time_bins
@@ -200,11 +201,10 @@ class LiveTimeCorrection(object):
         for det in range(32):
             trig_idx = inst.detector_id_to_trigger_index[det]
             nin = photons_in[:, trig_idx]
-            cor_factor = 0.94
             live_ratio[:, det] = np.exp(
-                -cor_factor * nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
-
-        return correction_factors, corrected_rates, count_rates, photons_in
+                -beta* nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
+        corrected_rates=count_rates/live_ratio[:, :, None, None]
+        return  (corrected_rates, count_rates, photons_in, live_ratio)
 
 
 class TransmissionCorrection(object):
