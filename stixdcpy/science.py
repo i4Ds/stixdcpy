@@ -15,6 +15,7 @@ from stixdcpy.net import FitsQuery as freq
 from stixdcpy import instrument as inst
 from pathlib import PurePath
 
+
 FPGA_TAU = 10.1e-6
 ASIC_TAU = 2.63e-6
 DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
@@ -283,24 +284,6 @@ class ScienceL1(ScienceData):
 
         self.pixel_total_counts = np.sum(self.pixel_counts, axis=(0, 3))
 
-    def solve_cfl(self, start_utc, end_utc, elow=0, eup=31, ax=None):
-        """calculate flare location using the online flare location solver.
-          
-        Args:
-            start_utc: str
-                ROI start time
-            end_utc: str
-                ROI end time
-            elow: int
-                ROI lower energy limit (science channel). 
-            eup: int
-                ROI upper energy limit (science channel). 
-        Returns:
-            cfl_loc: dict
-                containing coarse flare location as well as ephemeris and chisquare map
-
-        """
-        pass
 
     def correct_dead_time(self ):
         """ dead time correction
@@ -312,8 +295,8 @@ class ScienceL1(ScienceData):
               photon_in: np.array
               live_ratio: np.array
         """
-        self.corrected_counts=LiveTimeCorrection.correct(self.triggers, self.pixel_counts, self.time_bins)
-        return self.corrected_counts
+        self.corrected=LiveTimeCorrection.correct(self.triggers, self.pixel_counts, self.timedel)
+        return self.corrected
 
     def peek(self,
              plots=['spg', 'lc', 'spec', 'tbin', 'qllc'],
@@ -607,15 +590,15 @@ class LiveTimeCorrection(object):
         live_ratio= np.zeros((time_bins.size, 32))
         time_bins = time_bins[:, :, None, None]
 
-        count_rates = counts_arr / time_bins
+        count_rate = counts_arr / time_bins
         # print(counts_arr.shape)
         for det in range(32):
-            trig_idx = inst.detector_id_to_trigger_index[det]
+            trig_idx = inst.detector_id_to_trigger_index(det)
             nin = photons_in[:, trig_idx]
             live_ratio[:, det] = np.exp(
                 -beta* nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
-        corrected_rates=count_rates/live_ratio[:, :, None, None]
-        return  (corrected_rates, count_rates, photons_in, live_ratio)
+        corrected_rate=count_rate/live_ratio[:, :, None, None]
+        return  {'corrected_rates': corrected_rate, 'count_rate': count_rate, 'photons_in': photons_in, 'live_ratio':live_ratio}
 
 
 class TransmissionCorrection(object):
