@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>stixdcpy.instrument API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>stixdcpy.instrument</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import math
+
+import numpy as np
+
+nominal_grid_parameters = {
+    &#34;1&#34;: {
+        &#34;Label&#34;: &#34;3c&#34;,
+        &#34;SlitWidth&#34;: 0.0419,
+        &#34;FrontPitch&#34;: 0.078039,
+        &#34;FrontOrient&#34;: 169.9559,
+        &#34;RearPitch&#34;: 0.077364,
+        &#34;RearOrient&#34;: 170.0437,
+        &#34;PitchToler&#34;: 0.0000245,
+        &#34;OrientToler&#34;: 0.0181,
+        &#34;BridgePitch&#34;: 1.13,
+        &#34;BridgeOrient&#34;: 80,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;2&#34;: {
+        &#34;Label&#34;: &#34;5c&#34;,
+        &#34;SlitWidth&#34;: 0.0825,
+        &#34;FrontPitch&#34;: 0.158078,
+        &#34;FrontOrient&#34;: 130.3942,
+        &#34;RearPitch&#34;: 0.159925,
+        &#34;RearOrient&#34;: 129.6012,
+        &#34;PitchToler&#34;: 0.000103,
+        &#34;OrientToler&#34;: 0.037,
+        &#34;BridgePitch&#34;: 1.97,
+        &#34;BridgeOrient&#34;: 40,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;3&#34;: {
+        &#34;Label&#34;: &#34;10a&#34;,
+        &#34;SlitWidth&#34;: 0.4793,
+        &#34;FrontPitch&#34;: 0.909644,
+        &#34;FrontOrient&#34;: 151.4808,
+        &#34;RearPitch&#34;: 0.999045,
+        &#34;RearOrient&#34;: 148.3736,
+        &#34;PitchToler&#34;: 0.00368,
+        &#34;OrientToler&#34;: 0.222,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;4&#34;: {
+        &#34;Label&#34;: &#34;8c&#34;,
+        &#34;SlitWidth&#34;: 0.2358,
+        &#34;FrontPitch&#34;: 0.461187,
+        &#34;FrontOrient&#34;: 68.589,
+        &#34;RearPitch&#34;: 0.469602,
+        &#34;RearOrient&#34;: 71.4367,
+        &#34;PitchToler&#34;: 0.000879,
+        &#34;OrientToler&#34;: 0.108,
+        &#34;BridgePitch&#34;: 3.15,
+        &#34;BridgeOrient&#34;: 160,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;5&#34;: {
+        &#34;Label&#34;: &#34;4b&#34;,
+        &#34;SlitWidth&#34;: 0.0586,
+        &#34;FrontPitch&#34;: 0.110594,
+        &#34;FrontOrient&#34;: 29.82,
+        &#34;RearPitch&#34;: 0.111811,
+        &#34;RearOrient&#34;: 30.182,
+        &#34;PitchToler&#34;: 0.0000502,
+        &#34;OrientToler&#34;: 0.0259,
+        &#34;BridgePitch&#34;: 1.69,
+        &#34;BridgeOrient&#34;: 120,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;6&#34;: {
+        &#34;Label&#34;: &#34;5a&#34;,
+        &#34;SlitWidth&#34;: 0.0825,
+        &#34;FrontPitch&#34;: 0.158505,
+        &#34;FrontOrient&#34;: 69.5151,
+        &#34;RearPitch&#34;: 0.159487,
+        &#34;RearOrient&#34;: 70.4879,
+        &#34;PitchToler&#34;: 0.000103,
+        &#34;OrientToler&#34;: 0.037,
+        &#34;BridgePitch&#34;: 1.58,
+        &#34;BridgeOrient&#34;: 160,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;7&#34;: {
+        &#34;Label&#34;: &#34;3a&#34;,
+        &#34;SlitWidth&#34;: 0.0419,
+        &#34;FrontPitch&#34;: 0.077582,
+        &#34;FrontOrient&#34;: 110.2373,
+        &#34;RearPitch&#34;: 0.077817,
+        &#34;RearOrient&#34;: 109.7619,
+        &#34;PitchToler&#34;: 0.0000245,
+        &#34;OrientToler&#34;: 0.0181,
+        &#34;BridgePitch&#34;: 1.05,
+        &#34;BridgeOrient&#34;: 20,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;8&#34;: {
+        &#34;Label&#34;: &#34;7b&#34;,
+        &#34;SlitWidth&#34;: 0.1657,
+        &#34;FrontPitch&#34;: 0.320259,
+        &#34;FrontOrient&#34;: 150.5213,
+        &#34;RearPitch&#34;: 0.33068,
+        &#34;RearOrient&#34;: 149.4617,
+        &#34;PitchToler&#34;: 0.00043,
+        &#34;OrientToler&#34;: 0.0757,
+        &#34;BridgePitch&#34;: 2.66,
+        &#34;BridgeOrient&#34;: 60,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;9&#34;: {
+        &#34;Label&#34;: &#34;CFL&#34;,
+        &#34;SlitWidth&#34;: &#34;NA&#34;,
+        &#34;FrontPitch&#34;: &#34;NA&#34;,
+        &#34;FrontOrient&#34;: &#34;NA&#34;,
+        &#34;RearPitch&#34;: &#34;NA&#34;,
+        &#34;RearOrient&#34;: &#34;NA&#34;,
+        &#34;PitchToler&#34;: &#34;NA&#34;,
+        &#34;OrientToler&#34;: &#34;NA&#34;,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;10&#34;: {
+        &#34;Label&#34;: &#34;BKG&#34;,
+        &#34;SlitWidth&#34;: &#34;NA&#34;,
+        &#34;FrontPitch&#34;: &#34;NA&#34;,
+        &#34;FrontOrient&#34;: &#34;NA&#34;,
+        &#34;RearPitch&#34;: &#34;NA&#34;,
+        &#34;RearOrient&#34;: &#34;NA&#34;,
+        &#34;PitchToler&#34;: &#34;NA&#34;,
+        &#34;OrientToler&#34;: &#34;NA&#34;,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;11&#34;: {
+        &#34;Label&#34;: &#34;1a&#34;,
+        &#34;SlitWidth&#34;: 0.022,
+        &#34;FrontPitch&#34;: 0.037929,
+        &#34;FrontOrient&#34;: 150.0617,
+        &#34;RearPitch&#34;: 0.038071,
+        &#34;RearOrient&#34;: 149.938,
+        &#34;PitchToler&#34;: 0.00000586,
+        &#34;OrientToler&#34;: 0.00884,
+        &#34;BridgePitch&#34;: 1.1,
+        &#34;BridgeOrient&#34;: 60,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;12&#34;: {
+        &#34;Label&#34;: &#34;2a&#34;,
+        &#34;SlitWidth&#34;: 0.0302,
+        &#34;FrontPitch&#34;: 0.054408,
+        &#34;FrontOrient&#34;: 129.8643,
+        &#34;RearPitch&#34;: 0.054192,
+        &#34;RearOrient&#34;: 130.1351,
+        &#34;PitchToler&#34;: 0.000012,
+        &#34;OrientToler&#34;: 0.0126,
+        &#34;BridgePitch&#34;: 1.18,
+        &#34;BridgeOrient&#34;: 40,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;13&#34;: {
+        &#34;Label&#34;: &#34;1b&#34;,
+        &#34;SlitWidth&#34;: 0.022,
+        &#34;FrontPitch&#34;: 0.038,
+        &#34;FrontOrient&#34;: 90.1237,
+        &#34;RearPitch&#34;: 0.038,
+        &#34;RearOrient&#34;: 89.8763,
+        &#34;PitchToler&#34;: 0.00000586,
+        &#34;OrientToler&#34;: 0.00884,
+        &#34;BridgePitch&#34;: 1.1,
+        &#34;BridgeOrient&#34;: 0,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;14&#34;: {
+        &#34;Label&#34;: &#34;9b&#34;,
+        &#34;SlitWidth&#34;: 0.336,
+        &#34;FrontPitch&#34;: 0.674193,
+        &#34;FrontOrient&#34;: 107.9371,
+        &#34;RearPitch&#34;: 0.656988,
+        &#34;RearOrient&#34;: 112.0102,
+        &#34;PitchToler&#34;: 0.0018,
+        &#34;OrientToler&#34;: 0.155,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;15&#34;: {
+        &#34;Label&#34;: &#34;6a&#34;,
+        &#34;SlitWidth&#34;: 0.1168,
+        &#34;FrontPitch&#34;: 0.229395,
+        &#34;FrontOrient&#34;: 50.5721,
+        &#34;RearPitch&#34;: 0.225614,
+        &#34;RearOrient&#34;: 49.4374,
+        &#34;PitchToler&#34;: 0.00021,
+        &#34;OrientToler&#34;: 0.0529,
+        &#34;BridgePitch&#34;: 1.97,
+        &#34;BridgeOrient&#34;: 140,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;16&#34;: {
+        &#34;Label&#34;: &#34;9a&#34;,
+        &#34;SlitWidth&#34;: 0.336,
+        &#34;FrontPitch&#34;: 0.641967,
+        &#34;FrontOrient&#34;: 170.3629,
+        &#34;RearPitch&#34;: 0.691656,
+        &#34;RearOrient&#34;: 169.609,
+        &#34;PitchToler&#34;: 0.0018,
+        &#34;OrientToler&#34;: 0.155,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;17&#34;: {
+        &#34;Label&#34;: &#34;2c&#34;,
+        &#34;SlitWidth&#34;: 0.0302,
+        &#34;FrontPitch&#34;: 0.054136,
+        &#34;FrontOrient&#34;: 9.9694,
+        &#34;RearPitch&#34;: 0.054465,
+        &#34;RearOrient&#34;: 10.0308,
+        &#34;PitchToler&#34;: 0.000012,
+        &#34;OrientToler&#34;: 0.0126,
+        &#34;BridgePitch&#34;: 1.13,
+        &#34;BridgeOrient&#34;: 100,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;18&#34;: {
+        &#34;Label&#34;: &#34;1c&#34;,
+        &#34;SlitWidth&#34;: 0.022,
+        &#34;FrontPitch&#34;: 0.037929,
+        &#34;FrontOrient&#34;: 29.9383,
+        &#34;RearPitch&#34;: 0.038071,
+        &#34;RearOrient&#34;: 30.062,
+        &#34;PitchToler&#34;: 0.00000586,
+        &#34;OrientToler&#34;: 0.00884,
+        &#34;BridgePitch&#34;: 1.1,
+        &#34;BridgeOrient&#34;: 120,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;19&#34;: {
+        &#34;Label&#34;: &#34;2b&#34;,
+        &#34;SlitWidth&#34;: 0.0302,
+        &#34;FrontPitch&#34;: 0.054357,
+        &#34;FrontOrient&#34;: 70.1663,
+        &#34;RearPitch&#34;: 0.054243,
+        &#34;RearOrient&#34;: 69.8341,
+        &#34;PitchToler&#34;: 0.000012,
+        &#34;OrientToler&#34;: 0.0126,
+        &#34;BridgePitch&#34;: 1.05,
+        &#34;BridgeOrient&#34;: 160,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;20&#34;: {
+        &#34;Label&#34;: &#34;10b&#34;,
+        &#34;SlitWidth&#34;: 0.4793,
+        &#34;FrontPitch&#34;: 0.951208,
+        &#34;FrontOrient&#34;: 86.9019,
+        &#34;RearPitch&#34;: 0.951208,
+        &#34;RearOrient&#34;: 93.0981,
+        &#34;PitchToler&#34;: 0.00368,
+        &#34;OrientToler&#34;: 0.222,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;21&#34;: {
+        &#34;Label&#34;: &#34;8a&#34;,
+        &#34;SlitWidth&#34;: 0.2358,
+        &#34;FrontPitch&#34;: 0.453678,
+        &#34;FrontOrient&#34;: 9.7435,
+        &#34;RearPitch&#34;: 0.477944,
+        &#34;RearOrient&#34;: 10.2702,
+        &#34;PitchToler&#34;: 0.000879,
+        &#34;OrientToler&#34;: 0.108,
+        &#34;BridgePitch&#34;: 3.02,
+        &#34;BridgeOrient&#34;: 100,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;22&#34;: {
+        &#34;Label&#34;: &#34;10c&#34;,
+        &#34;SlitWidth&#34;: 0.4793,
+        &#34;FrontPitch&#34;: 0.909644,
+        &#34;FrontOrient&#34;: 28.5192,
+        &#34;RearPitch&#34;: 0.999045,
+        &#34;RearOrient&#34;: 31.6264,
+        &#34;PitchToler&#34;: 0.00368,
+        &#34;OrientToler&#34;: 0.222,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;23&#34;: {
+        &#34;Label&#34;: &#34;4c&#34;,
+        &#34;SlitWidth&#34;: 0.0586,
+        &#34;FrontPitch&#34;: 0.110594,
+        &#34;FrontOrient&#34;: 150.18,
+        &#34;RearPitch&#34;: 0.111811,
+        &#34;RearOrient&#34;: 149.818,
+        &#34;PitchToler&#34;: 0.0000502,
+        &#34;OrientToler&#34;: 0.0259,
+        &#34;BridgePitch&#34;: 1.69,
+        &#34;BridgeOrient&#34;: 60,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;24&#34;: {
+        &#34;Label&#34;: &#34;7a&#34;,
+        &#34;SlitWidth&#34;: 0.1657,
+        &#34;FrontPitch&#34;: 0.320259,
+        &#34;FrontOrient&#34;: 29.4787,
+        &#34;RearPitch&#34;: 0.33068,
+        &#34;RearOrient&#34;: 30.5383,
+        &#34;PitchToler&#34;: 0.00043,
+        &#34;OrientToler&#34;: 0.0757,
+        &#34;BridgePitch&#34;: 2.66,
+        &#34;BridgeOrient&#34;: 120,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;25&#34;: {
+        &#34;Label&#34;: &#34;4a&#34;,
+        &#34;SlitWidth&#34;: 0.0586,
+        &#34;FrontPitch&#34;: 0.111198,
+        &#34;FrontOrient&#34;: 89.638,
+        &#34;RearPitch&#34;: 0.111198,
+        &#34;RearOrient&#34;: 90.362,
+        &#34;PitchToler&#34;: 0.0000502,
+        &#34;OrientToler&#34;: 0.0259,
+        &#34;BridgePitch&#34;: 1.1,
+        &#34;BridgeOrient&#34;: 0,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;26&#34;: {
+        &#34;Label&#34;: &#34;8b&#34;,
+        &#34;SlitWidth&#34;: 0.2358,
+        &#34;FrontPitch&#34;: 0.457628,
+        &#34;FrontOrient&#34;: 131.1413,
+        &#34;RearPitch&#34;: 0.47345,
+        &#34;RearOrient&#34;: 128.8192,
+        &#34;PitchToler&#34;: 0.000879,
+        &#34;OrientToler&#34;: 0.108,
+        &#34;BridgePitch&#34;: 2.95,
+        &#34;BridgeOrient&#34;: 40,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;27&#34;: {
+        &#34;Label&#34;: &#34;6b&#34;,
+        &#34;SlitWidth&#34;: 0.1168,
+        &#34;FrontPitch&#34;: 0.230433,
+        &#34;FrontOrient&#34;: 169.8697,
+        &#34;RearPitch&#34;: 0.22464,
+        &#34;RearOrient&#34;: 170.127,
+        &#34;PitchToler&#34;: 0.00021,
+        &#34;OrientToler&#34;: 0.0529,
+        &#34;BridgePitch&#34;: 2.28,
+        &#34;BridgeOrient&#34;: 80,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;28&#34;: {
+        &#34;Label&#34;: &#34;7c&#34;,
+        &#34;SlitWidth&#34;: 0.1657,
+        &#34;FrontPitch&#34;: 0.325344,
+        &#34;FrontOrient&#34;: 91.0592,
+        &#34;RearPitch&#34;: 0.325344,
+        &#34;RearOrient&#34;: 88.9408,
+        &#34;PitchToler&#34;: 0.00043,
+        &#34;OrientToler&#34;: 0.0757,
+        &#34;BridgePitch&#34;: 2.2,
+        &#34;BridgeOrient&#34;: 0,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;29&#34;: {
+        &#34;Label&#34;: &#34;3b&#34;,
+        &#34;SlitWidth&#34;: 0.0419,
+        &#34;FrontPitch&#34;: 0.077921,
+        &#34;FrontOrient&#34;: 50.1943,
+        &#34;RearPitch&#34;: 0.07748,
+        &#34;RearOrient&#34;: 49.8068,
+        &#34;PitchToler&#34;: 0.0000245,
+        &#34;OrientToler&#34;: 0.0181,
+        &#34;BridgePitch&#34;: 1.18,
+        &#34;BridgeOrient&#34;: 140,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;30&#34;: {
+        &#34;Label&#34;: &#34;5b&#34;,
+        &#34;SlitWidth&#34;: 0.0825,
+        &#34;FrontPitch&#34;: 0.160427,
+        &#34;FrontOrient&#34;: 10.0907,
+        &#34;RearPitch&#34;: 0.157598,
+        &#34;RearOrient&#34;: 9.9109,
+        &#34;PitchToler&#34;: 0.000103,
+        &#34;OrientToler&#34;: 0.037,
+        &#34;BridgePitch&#34;: 1.81,
+        &#34;BridgeOrient&#34;: 100,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;31&#34;: {
+        &#34;Label&#34;: &#34;6c&#34;,
+        &#34;SlitWidth&#34;: 0.1168,
+        &#34;FrontPitch&#34;: 0.228493,
+        &#34;FrontOrient&#34;: 109.301,
+        &#34;RearPitch&#34;: 0.226482,
+        &#34;RearOrient&#34;: 110.6929,
+        &#34;PitchToler&#34;: 0.00021,
+        &#34;OrientToler&#34;: 0.0529,
+        &#34;BridgePitch&#34;: 2.07,
+        &#34;BridgeOrient&#34;: 20,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#34;32&#34;: {
+        &#34;Label&#34;: &#34;9c&#34;,
+        &#34;SlitWidth&#34;: 0.336,
+        &#34;FrontPitch&#34;: 0.682197,
+        &#34;FrontOrient&#34;: 51.7015,
+        &#34;RearPitch&#34;: 0.64983,
+        &#34;RearOrient&#34;: 48.3792,
+        &#34;PitchToler&#34;: 0.0018,
+        &#34;OrientToler&#34;: 0.155,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;33&#34;: {
+        &#34;Label&#34;: &#34;dummy&#34;,
+        &#34;SlitWidth&#34;: 0.0302 * 0.5,
+        &#34;FrontPitch&#34;: 0.054136 * 0.5,
+        &#34;FrontOrient&#34;: 9.9694,
+        &#34;RearPitch&#34;: 0.054465 * .5,
+        &#34;RearOrient&#34;: 10.0308,
+        &#34;PitchToler&#34;: 0.000012,
+        &#34;OrientToler&#34;: 0.0126,
+        &#34;BridgePitch&#34;: 1.13,
+        &#34;BridgeOrient&#34;: 100,
+        &#34;BridgeWidth&#34;: 0.05
+    },
+    &#39;34&#39;: {
+        &#34;Label&#34;: &#34;9c&#34;,
+        &#34;SlitWidth&#34;: 0.5,
+        &#34;FrontPitch&#34;: 1,
+        &#34;FrontOrient&#34;: 90,
+        &#34;RearPitch&#34;: 1,
+        &#34;RearOrient&#34;: 90,
+        &#34;PitchToler&#34;: 0,
+        &#34;OrientToler&#34;: 0,
+        &#34;BridgePitch&#34;: &#34;NA&#34;,
+        &#34;BridgeOrient&#34;: &#34;NA&#34;,
+        &#34;BridgeWidth&#34;: &#34;NA&#34;
+    },
+    &#34;units&#34;: {
+        &#34;SlitWidth&#34;: &#34;mm&#34;,
+        &#34;FrontPitch&#34;: &#34;mm&#34;,
+        &#34;FrontOrient&#34;: &#34;deg&#34;,
+        &#34;RearPitch&#34;: &#34;mm&#34;,
+        &#34;RearOrient&#34;: &#34;deg&#34;,
+        &#34;PitchToler&#34;: &#34;mm&#34;,
+        &#34;OrientToler&#34;: &#34;deg&#34;,
+        &#34;BridgePitch&#34;: &#34;mm&#34;,
+        &#34;BridgeOrient&#34;: &#34;deg&#34;,
+        &#34;BridgeWidth&#34;: &#34;mm&#34;,
+        &#34;AvgOrient&#34;: &#39;deg&#39;,
+        &#39;AngRes&#39;: &#39;arcsec&#39;,
+        &#39;Pitch&#39;: &#39;mm&#39;,
+    },
+}
+# data from matj
+real_grid_parameters = {
+    &#34;1&#34;: {
+        &#34;FrontPitch&#34;: 0.07805,
+        &#34;FrontOrient&#34;: 169.977,
+        &#34;FrontPhase&#34;: 0.0048,
+        &#34;FrontSlitWidth&#34;: 0.0457,
+        &#34;FrontSlitGradient&#34;: 0.0009,
+        &#34;FrontRMS&#34;: 0.0012,
+        &#34;FrontThickness&#34;: 0.3538,
+        &#34;FrontBridgeWidth&#34;: 0.0433,
+        &#34;FrontBridgePitch&#34;: 1.130299,
+        &#34;RearPitch&#34;: 0.077388,
+        &#34;RearOrient&#34;: 170.037,
+        &#34;RearPhase&#34;: 0.0173,
+        &#34;RearSlitWidth&#34;: 0.0507,
+        &#34;RearSlitGradient&#34;: 0.0007,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: 0.3628,
+        &#34;RearBridgeWidth&#34;: 0.0398,
+        &#34;RearBridgePitch&#34;: 1.130199
+    },
+    &#34;2&#34;: {
+        &#34;FrontPitch&#34;: 0.158102,
+        &#34;FrontOrient&#34;: 130.406,
+        &#34;FrontPhase&#34;: 0.1136,
+        &#34;FrontSlitWidth&#34;: 0.07645,
+        &#34;FrontSlitGradient&#34;: 0.0008,
+        &#34;FrontRMS&#34;: 0.0009,
+        &#34;FrontThickness&#34;: 0.3897,
+        &#34;FrontBridgeWidth&#34;: 0.0587,
+        &#34;FrontBridgePitch&#34;: 1.970416,
+        &#34;RearPitch&#34;: 0.159965,
+        &#34;RearOrient&#34;: 129.588,
+        &#34;RearPhase&#34;: 0.1497,
+        &#34;RearSlitWidth&#34;: 0.0806,
+        &#34;RearSlitGradient&#34;: 0.0004,
+        &#34;RearRMS&#34;: 0.0008,
+        &#34;RearThickness&#34;: 0.3901,
+        &#34;RearBridgeWidth&#34;: 0.0543,
+        &#34;RearBridgePitch&#34;: 1.970729
+    },
+    &#34;3&#34;: {
+        &#34;FrontPitch&#34;: 0.909818,
+        &#34;FrontOrient&#34;: 151.503,
+        &#34;FrontPhase&#34;: 0.1114,
+        &#34;FrontSlitWidth&#34;: 0.4811,
+        &#34;FrontSlitGradient&#34;: 0.0008,
+        &#34;FrontRMS&#34;: 0.0014,
+        &#34;FrontThickness&#34;: 0.4413,
+        &#34;FrontBridgeWidth&#34;: 0,
+        &#34;FrontBridgePitch&#34;: 0,
+        &#34;RearPitch&#34;: 0.999226,
+        &#34;RearOrient&#34;: 148.373,
+        &#34;RearPhase&#34;: 0.086,
+        &#34;RearSlitWidth&#34;: 0.492,
+        &#34;RearSlitGradient&#34;: 0.0026,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: 0.421,
+        &#34;RearBridgeWidth&#34;: 0,
+        &#34;RearBridgePitch&#34;: 0
+    },
+    &#34;4&#34;: {
+        &#34;FrontPitch&#34;: 0.46131,
+        &#34;FrontOrient&#34;: 68.608,
+        &#34;FrontPhase&#34;: 0.1562,
+        &#34;FrontSlitWidth&#34;: 0.2352,
+        &#34;FrontSlitGradient&#34;: 0.0004,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: 0.4171,
+        &#34;FrontBridgeWidth&#34;: 0.0426,
+        &#34;FrontBridgePitch&#34;: 3.150334,
+        &#34;RearPitch&#34;: 0.469697,
+        &#34;RearOrient&#34;: 71.434,
+        &#34;RearPhase&#34;: 0.456,
+        &#34;RearSlitWidth&#34;: 0.2431,
+        &#34;RearSlitGradient&#34;: 0.0029,
+        &#34;RearRMS&#34;: 0.001,
+        &#34;RearThickness&#34;: 0.3922,
+        &#34;RearBridgeWidth&#34;: 0.0416,
+        &#34;RearBridgePitch&#34;: 3.150274
+    },
+    &#34;5&#34;: {
+        &#34;FrontPitch&#34;: 0.110609,
+        &#34;FrontOrient&#34;: 29.839,
+        &#34;FrontPhase&#34;: 0.0102,
+        &#34;FrontSlitWidth&#34;: 0.0566,
+        &#34;FrontSlitGradient&#34;: 0.0009,
+        &#34;FrontRMS&#34;: 0.0008,
+        &#34;FrontThickness&#34;: 0.3813,
+        &#34;FrontBridgeWidth&#34;: 0.5,
+        &#34;FrontBridgePitch&#34;: 1.65,
+        &#34;RearPitch&#34;: 0.111831,
+        &#34;RearOrient&#34;: 30.18,
+        &#34;RearPhase&#34;: 0.0497,
+        &#34;RearSlitWidth&#34;: 0.0623,
+        &#34;RearSlitGradient&#34;: 0.0005,
+        &#34;RearRMS&#34;: 0.0009,
+        &#34;RearThickness&#34;: 0.4082,
+        &#34;RearBridgeWidth&#34;: 0.0378,
+        &#34;RearBridgePitch&#34;: 1.690653
+    },
+    &#34;6&#34;: {
+        &#34;FrontPitch&#34;: 0.15853,
+        &#34;FrontOrient&#34;: 69.527,
+        &#34;FrontPhase&#34;: 0.0247,
+        &#34;FrontSlitWidth&#34;: 0.0741,
+        &#34;FrontSlitGradient&#34;: 0.0007,
+        &#34;FrontRMS&#34;: 0.0007,
+        &#34;FrontThickness&#34;: 0.3924,
+        &#34;FrontBridgeWidth&#34;: 0.0618,
+        &#34;FrontBridgePitch&#34;: 1.580188,
+        &#34;RearPitch&#34;: 0.159539,
+        &#34;RearOrient&#34;: 70.48,
+        &#34;RearPhase&#34;: 0.0086,
+        &#34;RearSlitWidth&#34;: 0.0849,
+        &#34;RearSlitGradient&#34;: 0.0006,
+        &#34;RearRMS&#34;: 0.0007,
+        &#34;RearThickness&#34;: 0.4226,
+        &#34;RearBridgeWidth&#34;: 0.0582,
+        &#34;RearBridgePitch&#34;: 1.580039
+    },
+    &#34;7&#34;: {
+        &#34;FrontPitch&#34;: 0.077594,
+        &#34;FrontOrient&#34;: 110.252,
+        &#34;FrontPhase&#34;: 0.0195,
+        &#34;FrontSlitWidth&#34;: 0.0465,
+        &#34;FrontSlitGradient&#34;: 0.0019,
+        &#34;FrontRMS&#34;: 0.0009,
+        &#34;FrontThickness&#34;: 0.374,
+        &#34;FrontBridgeWidth&#34;: 0.0422,
+        &#34;FrontBridgePitch&#34;: 1.050062,
+        &#34;RearPitch&#34;: 0.077834,
+        &#34;RearOrient&#34;: 109.754,
+        &#34;RearPhase&#34;: 0.0388,
+        &#34;RearSlitWidth&#34;: 0.0534,
+        &#34;RearSlitGradient&#34;: 0.0012,
+        &#34;RearRMS&#34;: 0.0007,
+        &#34;RearThickness&#34;: 0.3896,
+        &#34;RearBridgeWidth&#34;: 0.0399,
+        &#34;RearBridgePitch&#34;: 1.050446
+    },
+    &#34;8&#34;: {
+        &#34;FrontPitch&#34;: 0.32033,
+        &#34;FrontOrient&#34;: 150.541,
+        &#34;FrontPhase&#34;: 0.0178,
+        &#34;FrontSlitWidth&#34;: 0.1589,
+        &#34;FrontSlitGradient&#34;: 0.0006,
+        &#34;FrontRMS&#34;: 0.0008,
+        &#34;FrontThickness&#34;: 0.405,
+        &#34;FrontBridgeWidth&#34;: 0.0441,
+        &#34;FrontBridgePitch&#34;: 2.661093,
+        &#34;RearPitch&#34;: 0.330751,
+        &#34;RearOrient&#34;: 149.46,
+        &#34;RearPhase&#34;: 0.3021,
+        &#34;RearSlitWidth&#34;: 0.1712,
+        &#34;RearSlitGradient&#34;: 0.001,
+        &#34;RearRMS&#34;: 0.0009,
+        &#34;RearThickness&#34;: 0.3805,
+        &#34;RearBridgeWidth&#34;: 0.0434,
+        &#34;RearBridgePitch&#34;: 2.660393
+    },
+    &#34;9&#34;: {
+        &#34;FrontPitch&#34;: &#34;CFL&#34;,
+        &#34;FrontOrient&#34;: &#34;CFL&#34;,
+        &#34;FrontPhase&#34;: &#34;CFL&#34;,
+        &#34;FrontSlitWidth&#34;: &#34;CFL&#34;,
+        &#34;FrontSlitGradient&#34;: &#34;CFL&#34;,
+        &#34;FrontRMS&#34;: &#34;CFL&#34;,
+        &#34;FrontThickness&#34;: &#34;CFL&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;CFL&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;CFL&#34;,
+        &#34;RearPitch&#34;: &#34;CFL&#34;,
+        &#34;RearOrient&#34;: &#34;CFL&#34;,
+        &#34;RearPhase&#34;: &#34;CFL&#34;,
+        &#34;RearSlitWidth&#34;: &#34;CFL&#34;,
+        &#34;RearSlitGradient&#34;: &#34;CFL&#34;,
+        &#34;RearRMS&#34;: &#34;CFL&#34;,
+        &#34;RearThickness&#34;: &#34;CFL&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;CFL&#34;,
+        &#34;RearBridgePitch&#34;: &#34;CFL&#34;
+    },
+    &#34;10&#34;: {
+        &#34;FrontPitch&#34;: &#34;BKG&#34;,
+        &#34;FrontOrient&#34;: &#34;BKG&#34;,
+        &#34;FrontPhase&#34;: &#34;BKG&#34;,
+        &#34;FrontSlitWidth&#34;: &#34;BKG&#34;,
+        &#34;FrontSlitGradient&#34;: &#34;BKG&#34;,
+        &#34;FrontRMS&#34;: &#34;BKG&#34;,
+        &#34;FrontThickness&#34;: &#34;BKG&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;BKG&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;BKG&#34;,
+        &#34;RearPitch&#34;: &#34;BKG&#34;,
+        &#34;RearOrient&#34;: &#34;BKG&#34;,
+        &#34;RearPhase&#34;: &#34;BKG&#34;,
+        &#34;RearSlitWidth&#34;: &#34;BKG&#34;,
+        &#34;RearSlitGradient&#34;: &#34;BKG&#34;,
+        &#34;RearRMS&#34;: &#34;BKG&#34;,
+        &#34;RearThickness&#34;: &#34;BKG&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;BKG&#34;,
+        &#34;RearBridgePitch&#34;: &#34;BKG&#34;
+    },
+    &#34;11&#34;: {
+        &#34;FrontPitch&#34;: 0.113799,
+        &#34;FrontOrient&#34;: 150.076,
+        &#34;FrontPhase&#34;: 0.0147,
+        &#34;FrontSlitWidth&#34;: 0.0934,
+        &#34;FrontSlitGradient&#34;: 0.0013,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: 0.0464,
+        &#34;FrontBridgePitch&#34;: 1.099888,
+        &#34;RearPitch&#34;: 0.114224,
+        &#34;RearOrient&#34;: 149.93,
+        &#34;RearPhase&#34;: 0.0668,
+        &#34;RearSlitWidth&#34;: 0.0971,
+        &#34;RearSlitGradient&#34;: 0.0004,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: 0.0495,
+        &#34;RearBridgePitch&#34;: 1.100279
+    },
+    &#34;15&#34;: {
+        &#34;FrontPitch&#34;: 0.229421,
+        &#34;FrontOrient&#34;: 50.582,
+        &#34;FrontPhase&#34;: 0.0469,
+        &#34;FrontSlitWidth&#34;: 0.1094,
+        &#34;FrontSlitGradient&#34;: 0.0014,
+        &#34;FrontRMS&#34;: 0.0016,
+        &#34;FrontThickness&#34;: 0.3819,
+        &#34;FrontBridgeWidth&#34;: 0.0516,
+        &#34;FrontBridgePitch&#34;: 1.970634,
+        &#34;RearPitch&#34;: 0.225653,
+        &#34;RearOrient&#34;: 49.427,
+        &#34;RearPhase&#34;: 0.0326,
+        &#34;RearSlitWidth&#34;: 0.1155,
+        &#34;RearSlitGradient&#34;: 0.002,
+        &#34;RearRMS&#34;: 0.0014,
+        &#34;RearThickness&#34;: 0.3787,
+        &#34;RearBridgeWidth&#34;: 0.0527,
+        &#34;RearBridgePitch&#34;: 1.970511
+    },
+    &#34;16&#34;: {
+        &#34;FrontPitch&#34;: 0.642102,
+        &#34;FrontOrient&#34;: 170.393,
+        &#34;FrontPhase&#34;: 0.0152,
+        &#34;FrontSlitWidth&#34;: 0.3364,
+        &#34;FrontSlitGradient&#34;: 0.0031,
+        &#34;FrontRMS&#34;: 0.0014,
+        &#34;FrontThickness&#34;: 0.4011,
+        &#34;FrontBridgeWidth&#34;: 0,
+        &#34;FrontBridgePitch&#34;: 0,
+        &#34;RearPitch&#34;: 0.691758,
+        &#34;RearOrient&#34;: 169.609,
+        &#34;RearPhase&#34;: 0.3612,
+        &#34;RearSlitWidth&#34;: 0.3451,
+        &#34;RearSlitGradient&#34;: 0.0021,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: 0.4053,
+        &#34;RearBridgeWidth&#34;: 0,
+        &#34;RearBridgePitch&#34;: 0
+    },
+    &#34;20&#34;: {
+        &#34;FrontPitch&#34;: 0.951346,
+        &#34;FrontOrient&#34;: 86.916,
+        &#34;FrontPhase&#34;: 0.913,
+        &#34;FrontSlitWidth&#34;: 0.4903,
+        &#34;FrontSlitGradient&#34;: 0.0017,
+        &#34;FrontRMS&#34;: 0.0012,
+        &#34;FrontThickness&#34;: 0.4375,
+        &#34;FrontBridgeWidth&#34;: 0,
+        &#34;FrontBridgePitch&#34;: 0,
+        &#34;RearPitch&#34;: 0.951412,
+        &#34;RearOrient&#34;: 93.105,
+        &#34;RearPhase&#34;: 0.2194,
+        &#34;RearSlitWidth&#34;: 0.492,
+        &#34;RearSlitGradient&#34;: 0.0039,
+        &#34;RearRMS&#34;: 0.0014,
+        &#34;RearThickness&#34;: 0.4052,
+        &#34;RearBridgeWidth&#34;: 0,
+        &#34;RearBridgePitch&#34;: 0
+    },
+    &#34;21&#34;: {
+        &#34;FrontPitch&#34;: 0.453733,
+        &#34;FrontOrient&#34;: 9.763,
+        &#34;FrontPhase&#34;: 0.1752,
+        &#34;FrontSlitWidth&#34;: 0.2286,
+        &#34;FrontSlitGradient&#34;: 0.0024,
+        &#34;FrontRMS&#34;: 0.0019,
+        &#34;FrontThickness&#34;: 0.3819,
+        &#34;FrontBridgeWidth&#34;: 0.0463,
+        &#34;FrontBridgePitch&#34;: 3.020667,
+        &#34;RearPitch&#34;: 0.478018,
+        &#34;RearOrient&#34;: 10.273,
+        &#34;RearPhase&#34;: 0.4254,
+        &#34;RearSlitWidth&#34;: 0.2415,
+        &#34;RearSlitGradient&#34;: 0.0012,
+        &#34;RearRMS&#34;: 0.0014,
+        &#34;RearThickness&#34;: 0.3866,
+        &#34;RearBridgeWidth&#34;: 0.0436,
+        &#34;RearBridgePitch&#34;: 3.021032
+    },
+    &#34;22&#34;: {
+        &#34;FrontPitch&#34;: 0.909875,
+        &#34;FrontOrient&#34;: 28.534,
+        &#34;FrontPhase&#34;: 0.7453,
+        &#34;FrontSlitWidth&#34;: 0.4781,
+        &#34;FrontSlitGradient&#34;: 0.0009,
+        &#34;FrontRMS&#34;: 0.0027,
+        &#34;FrontThickness&#34;: 0.4153,
+        &#34;FrontBridgeWidth&#34;: 0,
+        &#34;FrontBridgePitch&#34;: 0,
+        &#34;RearPitch&#34;: 0.999212,
+        &#34;RearOrient&#34;: 31.621,
+        &#34;RearPhase&#34;: 0.2162,
+        &#34;RearSlitWidth&#34;: 0.4878,
+        &#34;RearSlitGradient&#34;: 0.0026,
+        &#34;RearRMS&#34;: 0.0016,
+        &#34;RearThickness&#34;: 0.4144,
+        &#34;RearBridgeWidth&#34;: 0,
+        &#34;RearBridgePitch&#34;: 0
+    },
+    &#34;23&#34;: {
+        &#34;FrontPitch&#34;: 0.110621,
+        &#34;FrontOrient&#34;: 150.188,
+        &#34;FrontPhase&#34;: 0.0762,
+        &#34;FrontSlitWidth&#34;: 0.0555,
+        &#34;FrontSlitGradient&#34;: 0.001,
+        &#34;FrontRMS&#34;: 0.0009,
+        &#34;FrontThickness&#34;: 0.3714,
+        &#34;FrontBridgeWidth&#34;: 0.0356,
+        &#34;FrontBridgePitch&#34;: 1.690305,
+        &#34;RearPitch&#34;: 0.111829,
+        &#34;RearOrient&#34;: 149.804,
+        &#34;RearPhase&#34;: 0.038,
+        &#34;RearSlitWidth&#34;: 0.0624,
+        &#34;RearSlitGradient&#34;: 0.0009,
+        &#34;RearRMS&#34;: 0.0009,
+        &#34;RearThickness&#34;: 0.3947,
+        &#34;RearBridgeWidth&#34;: 0.0391,
+        &#34;RearBridgePitch&#34;: 1.69002
+    },
+    &#34;24&#34;: {
+        &#34;FrontPitch&#34;: 0.320329,
+        &#34;FrontOrient&#34;: 29.494,
+        &#34;FrontPhase&#34;: 0.192,
+        &#34;FrontSlitWidth&#34;: 0.1555,
+        &#34;FrontSlitGradient&#34;: 0.001,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: 0.4183,
+        &#34;FrontBridgeWidth&#34;: 0.0508,
+        &#34;FrontBridgePitch&#34;: 2.660021,
+        &#34;RearPitch&#34;: 0.330741,
+        &#34;RearOrient&#34;: 30.534,
+        &#34;RearPhase&#34;: 0.2552,
+        &#34;RearSlitWidth&#34;: 0.1632,
+        &#34;RearSlitGradient&#34;: 0.0005,
+        &#34;RearRMS&#34;: 0.001,
+        &#34;RearThickness&#34;: 0.4123,
+        &#34;RearBridgeWidth&#34;: 0.0467,
+        &#34;RearBridgePitch&#34;: 2.660331
+    },
+    &#34;25&#34;: {
+        &#34;FrontPitch&#34;: 0.111218,
+        &#34;FrontOrient&#34;: 89.65,
+        &#34;FrontPhase&#34;: 0.0078,
+        &#34;FrontSlitWidth&#34;: 0.0575,
+        &#34;FrontSlitGradient&#34;: 0.0009,
+        &#34;FrontRMS&#34;: 0.0006,
+        &#34;FrontThickness&#34;: 0.391,
+        &#34;FrontBridgeWidth&#34;: 0.0386,
+        &#34;FrontBridgePitch&#34;: 1.100597,
+        &#34;RearPitch&#34;: 0.111216,
+        &#34;RearOrient&#34;: 90.354,
+        &#34;RearPhase&#34;: 0.1018,
+        &#34;RearSlitWidth&#34;: 0.0626,
+        &#34;RearSlitGradient&#34;: 0.0008,
+        &#34;RearRMS&#34;: 0.0005,
+        &#34;RearThickness&#34;: 0.3697,
+        &#34;RearBridgeWidth&#34;: 0.042,
+        &#34;RearBridgePitch&#34;: 1.09966
+    },
+    &#34;26&#34;: {
+        &#34;FrontPitch&#34;: 0.457701,
+        &#34;FrontOrient&#34;: 131.16,
+        &#34;FrontPhase&#34;: 0.1632,
+        &#34;FrontSlitWidth&#34;: 0.2307,
+        &#34;FrontSlitGradient&#34;: 0.0044,
+        &#34;FrontRMS&#34;: 0.0014,
+        &#34;FrontThickness&#34;: 0.3609,
+        &#34;FrontBridgeWidth&#34;: 0.0492,
+        &#34;FrontBridgePitch&#34;: 2.9513,
+        &#34;RearPitch&#34;: 0.473501,
+        &#34;RearOrient&#34;: 128.82,
+        &#34;RearPhase&#34;: 0.3551,
+        &#34;RearSlitWidth&#34;: 0.241,
+        &#34;RearSlitGradient&#34;: 0.0057,
+        &#34;RearRMS&#34;: 0.0015,
+        &#34;RearThickness&#34;: 0.3879,
+        &#34;RearBridgeWidth&#34;: 0.0399,
+        &#34;RearBridgePitch&#34;: 2.949872
+    },
+    &#34;27&#34;: {
+        &#34;FrontPitch&#34;: 0.23049,
+        &#34;FrontOrient&#34;: 169.887,
+        &#34;FrontPhase&#34;: 0.0272,
+        &#34;FrontSlitWidth&#34;: 0.1039,
+        &#34;FrontSlitGradient&#34;: 0.0017,
+        &#34;FrontRMS&#34;: 0.0016,
+        &#34;FrontThickness&#34;: 0.3476,
+        &#34;FrontBridgeWidth&#34;: 0.0568,
+        &#34;FrontBridgePitch&#34;: 2.280569,
+        &#34;RearPitch&#34;: 0.224674,
+        &#34;RearOrient&#34;: 170.124,
+        &#34;RearPhase&#34;: 0.2222,
+        &#34;RearSlitWidth&#34;: 0.1155,
+        &#34;RearSlitGradient&#34;: 0.0024,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: 0.3676,
+        &#34;RearBridgeWidth&#34;: 0.0567,
+        &#34;RearBridgePitch&#34;: 2.279257
+    },
+    &#34;28&#34;: {
+        &#34;FrontPitch&#34;: 0.32543,
+        &#34;FrontOrient&#34;: 91.078,
+        &#34;FrontPhase&#34;: 0.2984,
+        &#34;FrontSlitWidth&#34;: 0.1679,
+        &#34;FrontSlitGradient&#34;: 0.0006,
+        &#34;FrontRMS&#34;: 0.0013,
+        &#34;FrontThickness&#34;: 0.4149,
+        &#34;FrontBridgeWidth&#34;: 0.0554,
+        &#34;FrontBridgePitch&#34;: 2.200088,
+        &#34;RearPitch&#34;: 0.325412,
+        &#34;RearOrient&#34;: 88.938,
+        &#34;RearPhase&#34;: 0.058,
+        &#34;RearSlitWidth&#34;: 0.171,
+        &#34;RearSlitGradient&#34;: 0.0014,
+        &#34;RearRMS&#34;: 0.0015,
+        &#34;RearThickness&#34;: 0.3852,
+        &#34;RearBridgeWidth&#34;: 0.0521,
+        &#34;RearBridgePitch&#34;: 2.200617
+    },
+    &#34;29&#34;: {
+        &#34;FrontPitch&#34;: 0.077934,
+        &#34;FrontOrient&#34;: 50.203,
+        &#34;FrontPhase&#34;: 0.0628,
+        &#34;FrontSlitWidth&#34;: 0.046,
+        &#34;FrontSlitGradient&#34;: 0.0011,
+        &#34;FrontRMS&#34;: 0.0009,
+        &#34;FrontThickness&#34;: 0.3597,
+        &#34;FrontBridgeWidth&#34;: 0.0446,
+        &#34;FrontBridgePitch&#34;: 1.180051,
+        &#34;RearPitch&#34;: 0.077494,
+        &#34;RearOrient&#34;: 49.798,
+        &#34;RearPhase&#34;: 0.0494,
+        &#34;RearSlitWidth&#34;: 0.0513,
+        &#34;RearSlitGradient&#34;: 0.0005,
+        &#34;RearRMS&#34;: 0.0007,
+        &#34;RearThickness&#34;: 0.3546,
+        &#34;RearBridgeWidth&#34;: 0.0357,
+        &#34;RearBridgePitch&#34;: 1.180175
+    },
+    &#34;30&#34;: {
+        &#34;FrontPitch&#34;: 0.16043,
+        &#34;FrontOrient&#34;: 10.117,
+        &#34;FrontPhase&#34;: 0.0749,
+        &#34;FrontSlitWidth&#34;: 0.0772,
+        &#34;FrontSlitGradient&#34;: 0.0007,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: 0.3903,
+        &#34;FrontBridgeWidth&#34;: 0.059,
+        &#34;FrontBridgePitch&#34;: 1.810433,
+        &#34;RearPitch&#34;: 0.157633,
+        &#34;RearOrient&#34;: 9.911,
+        &#34;RearPhase&#34;: 0.0927,
+        &#34;RearSlitWidth&#34;: 0.0852,
+        &#34;RearSlitGradient&#34;: 0.0008,
+        &#34;RearRMS&#34;: 0.001,
+        &#34;RearThickness&#34;: 0.3989,
+        &#34;RearBridgeWidth&#34;: 0.0615,
+        &#34;RearBridgePitch&#34;: 1.810039
+    },
+    &#34;31&#34;: {
+        &#34;FrontPitch&#34;: 0.228531,
+        &#34;FrontOrient&#34;: 109.323,
+        &#34;FrontPhase&#34;: 0.0969,
+        &#34;FrontSlitWidth&#34;: 0.119,
+        &#34;FrontSlitGradient&#34;: 0.0006,
+        &#34;FrontRMS&#34;: 0.001,
+        &#34;FrontThickness&#34;: 0.3838,
+        &#34;FrontBridgeWidth&#34;: 0.0595,
+        &#34;FrontBridgePitch&#34;: 2.070182,
+        &#34;RearPitch&#34;: 0.226511,
+        &#34;RearOrient&#34;: 110.694,
+        &#34;RearPhase&#34;: 0.1825,
+        &#34;RearSlitWidth&#34;: 0.115,
+        &#34;RearSlitGradient&#34;: 0.001,
+        &#34;RearRMS&#34;: 0.0013,
+        &#34;RearThickness&#34;: 0.365,
+        &#34;RearBridgeWidth&#34;: 0.0541,
+        &#34;RearBridgePitch&#34;: 2.070283
+    },
+    &#34;32&#34;: {
+        &#34;FrontPitch&#34;: 0.682253,
+        &#34;FrontOrient&#34;: 51.714,
+        &#34;FrontPhase&#34;: 0.4855,
+        &#34;FrontSlitWidth&#34;: 0.3384,
+        &#34;FrontSlitGradient&#34;: 0.0018,
+        &#34;FrontRMS&#34;: 0.0032,
+        &#34;FrontThickness&#34;: 0.398,
+        &#34;FrontBridgeWidth&#34;: 0,
+        &#34;FrontBridgePitch&#34;: 0,
+        &#34;RearPitch&#34;: 0.649947,
+        &#34;RearOrient&#34;: 48.378,
+        &#34;RearPhase&#34;: 0.3333,
+        &#34;RearSlitWidth&#34;: 0.3421,
+        &#34;RearSlitGradient&#34;: 0.0034,
+        &#34;RearRMS&#34;: 0.0012,
+        &#34;RearThickness&#34;: 0.3884,
+        &#34;RearBridgeWidth&#34;: 0,
+        &#34;RearBridgePitch&#34;: 0
+    },
+    &#34;12a&#34;: {
+        &#34;FrontPitch&#34;: 0.108817,
+        &#34;FrontOrient&#34;: 129.883,
+        &#34;FrontPhase&#34;: 0.059,
+        &#34;FrontSlitWidth&#34;: 0.0795,
+        &#34;FrontSlitGradient&#34;: 0.0014,
+        &#34;FrontRMS&#34;: 0.001,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: 0.044,
+        &#34;FrontBridgePitch&#34;: 1.180036,
+        &#34;RearPitch&#34;: 0.108394,
+        &#34;RearOrient&#34;: 130.131,
+        &#34;RearPhase&#34;: 0.0542,
+        &#34;RearSlitWidth&#34;: 0.0813,
+        &#34;RearSlitGradient&#34;: 0.0003,
+        &#34;RearRMS&#34;: 0.001,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: 0.0462,
+        &#34;RearBridgePitch&#34;: 1.180239
+    },
+    &#34;12b&#34;: {
+        &#34;FrontPitch&#34;: 0.108825,
+        &#34;FrontOrient&#34;: 129.879,
+        &#34;FrontPhase&#34;: 0.0032,
+        &#34;FrontSlitWidth&#34;: 0.0835,
+        &#34;FrontSlitGradient&#34;: 0.0008,
+        &#34;FrontRMS&#34;: 0.001,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.108406,
+        &#34;RearOrient&#34;: 130.131,
+        &#34;RearPhase&#34;: 0.1026,
+        &#34;RearSlitWidth&#34;: 0.081,
+        &#34;RearSlitGradient&#34;: 0.0005,
+        &#34;RearRMS&#34;: 0.001,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    },
+    &#34;13a&#34;: {
+        &#34;FrontPitch&#34;: 0.113998,
+        &#34;FrontOrient&#34;: 90.143,
+        &#34;FrontPhase&#34;: 0.0533,
+        &#34;FrontSlitWidth&#34;: 0.0919,
+        &#34;FrontSlitGradient&#34;: 0.0019,
+        &#34;FrontRMS&#34;: 0.0009,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.113995,
+        &#34;RearOrient&#34;: 89.865,
+        &#34;RearPhase&#34;: 0.0362,
+        &#34;RearSlitWidth&#34;: 0.0915,
+        &#34;RearSlitGradient&#34;: 0.0007,
+        &#34;RearRMS&#34;: 0.0008,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    },
+    &#34;13b&#34;: {
+        &#34;FrontPitch&#34;: 0.114008,
+        &#34;FrontOrient&#34;: 90.137,
+        &#34;FrontPhase&#34;: 0.0121,
+        &#34;FrontSlitWidth&#34;: 0.0867,
+        &#34;FrontSlitGradient&#34;: 0.0008,
+        &#34;FrontRMS&#34;: 0.0008,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.114015,
+        &#34;RearOrient&#34;: 89.862,
+        &#34;RearPhase&#34;: 0.0658,
+        &#34;RearSlitWidth&#34;: 0.0833,
+        &#34;RearSlitGradient&#34;: 0.0009,
+        &#34;RearRMS&#34;: 0.0009,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    },
+    &#34;14c&#34;: {
+        &#34;FrontPitch&#34;: 0.674276,
+        &#34;FrontOrient&#34;: 107.955,
+        &#34;FrontPhase&#34;: 0.0477,
+        &#34;FrontSlitWidth&#34;: 0.3377,
+        &#34;FrontSlitGradient&#34;: 0.0006,
+        &#34;FrontRMS&#34;: 0.0016,
+        &#34;FrontThickness&#34;: 0.4024,
+        &#34;FrontBridgeWidth&#34;: 0,
+        &#34;FrontBridgePitch&#34;: 0,
+        &#34;RearPitch&#34;: 0.657124,
+        &#34;RearOrient&#34;: 112.013,
+        &#34;RearPhase&#34;: 0.2675,
+        &#34;RearSlitWidth&#34;: 0.3455,
+        &#34;RearSlitGradient&#34;: 0.0031,
+        &#34;RearRMS&#34;: 0.0013,
+        &#34;RearThickness&#34;: 0.3977,
+        &#34;RearBridgeWidth&#34;: 0,
+        &#34;RearBridgePitch&#34;: 0
+    },
+    &#34;17a&#34;: {
+        &#34;FrontPitch&#34;: 0.108278,
+        &#34;FrontOrient&#34;: 9.995,
+        &#34;FrontPhase&#34;: 0.1656,
+        &#34;FrontSlitWidth&#34;: 0.0839,
+        &#34;FrontSlitGradient&#34;: 0.0007,
+        &#34;FrontRMS&#34;: 0.0012,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: 0.0544,
+        &#34;FrontBridgePitch&#34;: 1.130375,
+        &#34;RearPitch&#34;: 0.10894,
+        &#34;RearOrient&#34;: 10.031,
+        &#34;RearPhase&#34;: 0.1056,
+        &#34;RearSlitWidth&#34;: 0.0861,
+        &#34;RearSlitGradient&#34;: 0.0004,
+        &#34;RearRMS&#34;: 0.001,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: 0.0594,
+        &#34;RearBridgePitch&#34;: 1.129875
+    },
+    &#34;17b&#34;: {
+        &#34;FrontPitch&#34;: 0.108286,
+        &#34;FrontOrient&#34;: 9.99,
+        &#34;FrontPhase&#34;: 0.0569,
+        &#34;FrontSlitWidth&#34;: 0.0852,
+        &#34;FrontSlitGradient&#34;: 0.0008,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.108958,
+        &#34;RearOrient&#34;: 10.034,
+        &#34;RearPhase&#34;: 0.0523,
+        &#34;RearSlitWidth&#34;: 0.0845,
+        &#34;RearSlitGradient&#34;: 0.0005,
+        &#34;RearRMS&#34;: 0.0009,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    },
+    &#34;18a&#34;: {
+        &#34;FrontPitch&#34;: 0.113806,
+        &#34;FrontOrient&#34;: 29.957,
+        &#34;FrontPhase&#34;: 0.0366,
+        &#34;FrontSlitWidth&#34;: 0.0881,
+        &#34;FrontSlitGradient&#34;: 0.002,
+        &#34;FrontRMS&#34;: 0.0013,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: 0.0469,
+        &#34;FrontBridgePitch&#34;: 1.100317,
+        &#34;RearPitch&#34;: 0.114231,
+        &#34;RearOrient&#34;: 30.058,
+        &#34;RearPhase&#34;: 0.0923,
+        &#34;RearSlitWidth&#34;: 0.0954,
+        &#34;RearSlitGradient&#34;: 0.0007,
+        &#34;RearRMS&#34;: 0.0013,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: 0.0506,
+        &#34;RearBridgePitch&#34;: 1.100059
+    },
+    &#34;18b&#34;: {
+        &#34;FrontPitch&#34;: 0.113801,
+        &#34;FrontOrient&#34;: 29.954,
+        &#34;FrontPhase&#34;: 0.106,
+        &#34;FrontSlitWidth&#34;: 0.0929,
+        &#34;FrontSlitGradient&#34;: 0.0007,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.11422,
+        &#34;RearOrient&#34;: 30.063,
+        &#34;RearPhase&#34;: 0.0608,
+        &#34;RearSlitWidth&#34;: 0.0941,
+        &#34;RearSlitGradient&#34;: 0.0006,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    },
+    &#34;18c&#34;: {
+        &#34;FrontPitch&#34;: 0.113808,
+        &#34;FrontOrient&#34;: 29.956,
+        &#34;FrontPhase&#34;: 0.071,
+        &#34;FrontSlitWidth&#34;: 0.0929,
+        &#34;FrontSlitGradient&#34;: 0.0011,
+        &#34;FrontRMS&#34;: 0.0011,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.114238,
+        &#34;RearOrient&#34;: 30.06,
+        &#34;RearPhase&#34;: 0.0166,
+        &#34;RearSlitWidth&#34;: 0.0919,
+        &#34;RearSlitGradient&#34;: 0.0014,
+        &#34;RearRMS&#34;: 0.0011,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    },
+    &#34;19a&#34;: {
+        &#34;FrontPitch&#34;: 0.108729,
+        &#34;FrontOrient&#34;: 70.188,
+        &#34;FrontPhase&#34;: 0.0098,
+        &#34;FrontSlitWidth&#34;: 0.0833,
+        &#34;FrontSlitGradient&#34;: 0.0012,
+        &#34;FrontRMS&#34;: 0.0007,
+        &#34;FrontThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;FrontBridgeWidth&#34;: &#34;&#34;,
+        &#34;FrontBridgePitch&#34;: &#34;&#34;,
+        &#34;RearPitch&#34;: 0.108493,
+        &#34;RearOrient&#34;: 69.834,
+        &#34;RearPhase&#34;: 0.0257,
+        &#34;RearSlitWidth&#34;: 0.0814,
+        &#34;RearSlitGradient&#34;: 0.0009,
+        &#34;RearRMS&#34;: 0.0009,
+        &#34;RearThickness&#34;: &#34;Non-recov.&#34;,
+        &#34;RearBridgeWidth&#34;: &#34;&#34;,
+        &#34;RearBridgePitch&#34;: &#34;&#34;
+    }
+}
+detector_center_coords = {
+    &#34;1&#34;: {
+        &#34;x&#34;: -62.5,
+        &#34;y&#34;: 36.5
+    },
+    &#34;2&#34;: {
+        &#34;x&#34;: -62.5,
+        &#34;y&#34;: 13.5
+    },
+    &#34;3&#34;: {
+        &#34;x&#34;: -62.5,
+        &#34;y&#34;: -13.5
+    },
+    &#34;4&#34;: {
+        &#34;x&#34;: -62.5,
+        &#34;y&#34;: -36.5
+    },
+    &#34;5&#34;: {
+        &#34;x&#34;: -37.5,
+        &#34;y&#34;: 59.5
+    },
+    &#34;6&#34;: {
+        &#34;x&#34;: -37.5,
+        &#34;y&#34;: 36.5
+    },
+    &#34;7&#34;: {
+        &#34;x&#34;: -37.5,
+        &#34;y&#34;: 13.5
+    },
+    &#34;8&#34;: {
+        &#34;x&#34;: -37.5,
+        &#34;y&#34;: -13.5
+    },
+    &#34;9&#34;: {
+        &#34;x&#34;: -37.5,
+        &#34;y&#34;: -36.5
+    },
+    &#34;10&#34;: {
+        &#34;x&#34;: -37.5,
+        &#34;y&#34;: -59.5
+    },
+    &#34;11&#34;: {
+        &#34;x&#34;: -12.5,
+        &#34;y&#34;: 73.5
+    },
+    &#34;12&#34;: {
+        &#34;x&#34;: -12.5,
+        &#34;y&#34;: 50.5
+    },
+    &#34;13&#34;: {
+        &#34;x&#34;: -12.5,
+        &#34;y&#34;: 27.5
+    },
+    &#34;14&#34;: {
+        &#34;x&#34;: -12.5,
+        &#34;y&#34;: -27.5
+    },
+    &#34;15&#34;: {
+        &#34;x&#34;: -12.5,
+        &#34;y&#34;: -50.5
+    },
+    &#34;16&#34;: {
+        &#34;x&#34;: -12.5,
+        &#34;y&#34;: -73.5
+    },
+    &#34;17&#34;: {
+        &#34;x&#34;: 12.5,
+        &#34;y&#34;: 73.5
+    },
+    &#34;18&#34;: {
+        &#34;x&#34;: 12.5,
+        &#34;y&#34;: 50.5
+    },
+    &#34;19&#34;: {
+        &#34;x&#34;: 12.5,
+        &#34;y&#34;: 27.5
+    },
+    &#34;20&#34;: {
+        &#34;x&#34;: 12.5,
+        &#34;y&#34;: -27.5
+    },
+    &#34;21&#34;: {
+        &#34;x&#34;: 12.5,
+        &#34;y&#34;: -50.5
+    },
+    &#34;22&#34;: {
+        &#34;x&#34;: 12.5,
+        &#34;y&#34;: -73.5
+    },
+    &#34;23&#34;: {
+        &#34;x&#34;: 37.5,
+        &#34;y&#34;: 59.5
+    },
+    &#34;24&#34;: {
+        &#34;x&#34;: 37.5,
+        &#34;y&#34;: 36.5
+    },
+    &#34;25&#34;: {
+        &#34;x&#34;: 37.5,
+        &#34;y&#34;: 13.5
+    },
+    &#34;26&#34;: {
+        &#34;x&#34;: 37.5,
+        &#34;y&#34;: -13.5
+    },
+    &#34;27&#34;: {
+        &#34;x&#34;: 37.5,
+        &#34;y&#34;: -36.5
+    },
+    &#34;28&#34;: {
+        &#34;x&#34;: 37.5,
+        &#34;y&#34;: -59.5
+    },
+    &#34;29&#34;: {
+        &#34;x&#34;: 62.5,
+        &#34;y&#34;: 36.5
+    },
+    &#34;30&#34;: {
+        &#34;x&#34;: 62.5,
+        &#34;y&#34;: 13.5
+    },
+    &#34;31&#34;: {
+        &#34;x&#34;: 62.5,
+        &#34;y&#34;: -13.5
+    },
+    &#34;32&#34;: {
+        &#34;x&#34;: 62.5,
+        &#34;y&#34;: -36.5
+    }
+}
+cfl_hole_coords = {
+    &#39;outer&#39;: [(-14.3, -13.45), (-14.3, 13.45), (14.3, 13.45), (14.3, -13.45)],
+    &#39;top&#39;: [(-4.4, 3.45), (-4.4, 10.0), (4.4, 10.0), (4.4, 3.45)],
+    &#39;bottom&#39;: [(-4.4, -10.0), (-4.4, -3.45), (4.4, -3.45), (4.4, -10.0)],
+    &#39;left_top&#39;: [(-11.0, 3.45), (-11.0, 10.0), (-9.9, 10.0), (-9.9, 3.45)],
+    &#39;left_bottom&#39;: [(-11.0, -10.0), (-11.0, -3.45), (-9.9, -3.45),
+                    (-9.9, -10.0)],
+    &#39;right_top&#39;: [(9.9, 3.45), (9.9, 10.0), (11.0, 10.0), (11.0, 3.45)],
+    &#39;right_bottom&#39;: [(9.9, -10.0), (9.9, -3.45), (11.0, -3.45), (11.0, -10.0)]
+}
+
+r_front_detector = 550 + 47  # measured from CAD
+r_rear_detector = 47
+frame_vertices = {
+    &#39;front&#39;: [(-11, -10), (-11, 10), (11, 10), (11, -10), (-11, -10)],
+    &#39;rear&#39;: [(-6.5, -6.5), (-6.5, 6.5), (6.5, 6.5), (6.5, -6.5), (-6.5, -6.5)]
+}
+grid_dim = {&#39;front&#39;: (22, 20), &#39;rear&#39;: (13, 13)}  # grid dimemsions
+grid_z = {
+    &#39;det&#39;: 0,
+    &#39;rear&#39;: r_rear_detector,
+    &#39;front&#39;: r_front_detector
+}  # grid z coordinates
+
+bkg_hole_coords = {}
+
+ebin_low_edges = np.array([
+    0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32,
+    36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, math.inf
+])
+ebins = np.vstack((ebin_low_edges[0:-1], ebin_low_edges[1:])).T
+detector_ids_in_trigger_accumulators = np.array([[1, 2], [6, 7], [5, 11], [12, 13], [14, 15],
+                                                [10, 16], [8, 9], [3, 4], [
+                                                    31, 32], [26, 27],
+                                                 [22, 28], [20, 21], [18, 19], [
+                                                     17, 23], [24, 25],
+                                                 [29, 30]])-1
+# detector ids of in trigger accounumator
+detector_group_map = np.array([
+    0, 0, 7, 7, 2, 1, 1, 6, 6, 5, 2, 3, 3, 4, 4, 5, 13, 12, 12, 11, 11, 10, 13,
+    14, 14, 9, 9, 10, 15, 15, 8, 8
+])
+
+detector_pairs = {
+    0: 1,
+    5: 6,
+    4: 10,
+    11: 12,
+    13: 14,
+    9: 15,
+    7: 8,
+    2: 3,
+    30: 31,
+    25: 26,
+    21: 27,
+    19: 20,
+    17: 18,
+    16: 22,
+    23: 24,
+    28: 29,
+    1: 0,
+    6: 5,
+    10: 4,
+    12: 11,
+    14: 13,
+    15: 9,
+    8: 7,
+    3: 2,
+    31: 30,
+    26: 25,
+    27: 21,
+    20: 19,
+    18: 17,
+    22: 16,
+    24: 23,
+    29: 28
+}
+
+QL_LC_energy_slicers = [slice(1, 7), slice(
+    7, 12), slice(12, 17), slice(17, 23), slice(23, 28)]
+# energy slicer
+DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
+                   [8, 9], [3, 4], [31, 32], [26, 27], [22, 28], [20, 21],
+                   [18, 19], [17, 23], [24, 25], [29, 30]]
+DET_SIBLINGS = {
+    0: 1,
+    1: 0,
+    5: 6,
+    6: 5,
+    4: 10,
+    10: 4,
+    11: 12,
+    12: 11,
+    13: 14,
+    14: 13,
+    9: 15,
+    15: 9,
+    7: 8,
+    8: 7,
+    2: 3,
+    3: 2,
+    30: 31,
+    31: 30,
+    25: 26,
+    26: 25,
+    21: 27,
+    27: 21,
+    19: 20,
+    20: 19,
+    17: 18,
+    18: 17,
+    16: 22,
+    22: 16,
+    23: 24,
+    24: 23,
+    28: 29,
+    29: 28
+}
+
+det_id_to_trig_idx={0: 0,
+ 1: 0,
+ 2: 7,
+ 3: 7,
+ 4: 2,
+ 5: 1,
+ 6: 1,
+ 7: 6,
+ 8: 6,
+ 9: 5,
+ 10: 2,
+ 11: 3,
+ 12: 3,
+ 13: 4,
+ 14: 4,
+ 15: 5,
+ 16: 13,
+ 17: 12,
+ 18: 12,
+ 19: 11,
+ 20: 11,
+ 21: 10,
+ 22: 13,
+ 23: 14,
+ 24: 14,
+ 25: 9,
+ 26: 9,
+ 27: 10,
+ 28: 15,
+ 29: 15,
+ 30: 8,
+ 31: 8}
+
+def detector_id_to_trigger_index(i):
+    return det_id_to_trig_idx[i]
+
+def get_detector_in_same_group(idx):
+    &#34;&#34;&#34;Get detector index in the same group
+    Args:
+        idx: int
+            detector id, detector id range: [0,31]
+    Returns
+        idx: int
+            ID of the detector in the same group
+    &#34;&#34;&#34;
+    return detector_pairs.get(idx, None)
+
+
+def get_trigger_index(idx: int):
+    w = np.where(detector_ids_in_trigger_accumulators == idx)
+    return w[0][0]
+
+
+def get_trigger_acc_detector_ids():
+    return detector_ids_in_trigger_accumulators
+
+
+def get_sci_ebins(a, b):
+    low = np.where(ebin_low_edges == a)[0][0]
+    up = np.where(ebin_low_edges == b)[0][0]-1
+
+    return (low, up)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="stixdcpy.instrument.detector_id_to_trigger_index"><code class="name flex">
+<span>def <span class="ident">detector_id_to_trigger_index</span></span>(<span>i)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def detector_id_to_trigger_index(i):
+    return det_id_to_trig_idx[i]</code></pre>
+</details>
+</dd>
+<dt id="stixdcpy.instrument.get_detector_in_same_group"><code class="name flex">
+<span>def <span class="ident">get_detector_in_same_group</span></span>(<span>idx)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get detector index in the same group</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>idx</code></strong></dt>
+<dd>int
+detector id, detector id range: [0,31]</dd>
+</dl>
+<p>Returns
+idx: int
+ID of the detector in the same group</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_detector_in_same_group(idx):
+    &#34;&#34;&#34;Get detector index in the same group
+    Args:
+        idx: int
+            detector id, detector id range: [0,31]
+    Returns
+        idx: int
+            ID of the detector in the same group
+    &#34;&#34;&#34;
+    return detector_pairs.get(idx, None)</code></pre>
+</details>
+</dd>
+<dt id="stixdcpy.instrument.get_sci_ebins"><code class="name flex">
+<span>def <span class="ident">get_sci_ebins</span></span>(<span>a, b)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sci_ebins(a, b):
+    low = np.where(ebin_low_edges == a)[0][0]
+    up = np.where(ebin_low_edges == b)[0][0]-1
+
+    return (low, up)</code></pre>
+</details>
+</dd>
+<dt id="stixdcpy.instrument.get_trigger_acc_detector_ids"><code class="name flex">
+<span>def <span class="ident">get_trigger_acc_detector_ids</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_trigger_acc_detector_ids():
+    return detector_ids_in_trigger_accumulators</code></pre>
+</details>
+</dd>
+<dt id="stixdcpy.instrument.get_trigger_index"><code class="name flex">
+<span>def <span class="ident">get_trigger_index</span></span>(<span>idx: int)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_trigger_index(idx: int):
+    w = np.where(detector_ids_in_trigger_accumulators == idx)
+    return w[0][0]</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="stixdcpy" href="index.html">stixdcpy</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="stixdcpy.instrument.detector_id_to_trigger_index" href="#stixdcpy.instrument.detector_id_to_trigger_index">detector_id_to_trigger_index</a></code></li>
+<li><code><a title="stixdcpy.instrument.get_detector_in_same_group" href="#stixdcpy.instrument.get_detector_in_same_group">get_detector_in_same_group</a></code></li>
+<li><code><a title="stixdcpy.instrument.get_sci_ebins" href="#stixdcpy.instrument.get_sci_ebins">get_sci_ebins</a></code></li>
+<li><code><a title="stixdcpy.instrument.get_trigger_acc_detector_ids" href="#stixdcpy.instrument.get_trigger_acc_detector_ids">get_trigger_acc_detector_ids</a></code></li>
+<li><code><a title="stixdcpy.instrument.get_trigger_index" href="#stixdcpy.instrument.get_trigger_index">get_trigger_index</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

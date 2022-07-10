@@ -1,6 +1,5 @@
 # What is stixdcpy? 
-
-stixdcpy allows you to query and download data which are available at [STIX data center](https://pub023.cs.technik.fhnw.ch/) , include
+stixdcpy is a python package that facilitates access and analysis of STIX data. It provides APIs to query and download data from STIX data center (https://datacenter.stix.i4ds.net/) and s a set of tools for visualizing data and performing common analysis tasks.  With stixdcpy, users can query and download the following types of data from STIX data center:
 
 - Quick-look light curves
 - Housekeeping data
@@ -9,16 +8,32 @@ stixdcpy allows you to query and download data which are available at [STIX data
 - Auxilary data
 - STIX solar flare list
 
-It also provides modules for use to preview the data. 
-Note that data downloaded with stixdcpy are not validated. They should not be used for publication purpose. 
-If you need validated data, please visit solar orbiter data archive or contact us.
+
 
 # Installation
-```sh 
-pip3 install stixdcpy
 
-
+!pip install stixdcpy
+# Or install from stixdcpy github repository
+#!pip install git+https://github.com/drhlxiao/stixdcpy.git
+!pip install numpy matplotlib pandas astropy joblib
+# Citing stixdcpy
+```sh
+@software{hualin_xiao_2022_6408689,
+  author       = {Hualin Xiao},
+  title        = {stixdcpy - a python package for accessing and analyzing STIX data},
+  month        = apr,
+  year         = 2022,
+  publisher    = {Zenodo},
+  version      = {v1.0},
+  doi          = {10.5281/zenodo.6408689},
+  url          = {https://doi.org/10.5281/zenodo.6408689}
+}
 ```
-# stixdcpy tutorial
-https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb
+# Tutorial and documentation
 
+- [Tutorial](https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb)
+- [Try stixdcpy on Google Colab](https://colab.research.google.com/drive/17fQfbWjL0s0TpblbPL1Ysy_zFXj40FBf?usp=sharing)
+- [Documentation](https://drhlxiao.github.io/stixdcpy/)
+
+# Reporting Issues and Contributing
+Open an issue on GitHub to report a problem. Pull requests welcome.

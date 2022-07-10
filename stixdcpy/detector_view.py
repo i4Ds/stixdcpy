@@ -4,22 +4,28 @@
 # date: Dec 17, 2021
 import numpy as np
 from matplotlib import pyplot as plt
+
+
 class DetectorView(object):
     CANVAS_W = 1005
     CANVAS_H = 1105
-    VIEW_W=int(3*CANVAS_W)
-    VIEW_H=int(3*CANVAS_H)
-    VIEWBOX=f'0  0 {VIEW_W} {VIEW_H}'
+    VIEW_W = int(3 * CANVAS_W)
+    VIEW_H = int(3 * CANVAS_H)
+    VIEWBOX = f'0  0 {VIEW_W} {VIEW_H}'
     RFRAME = 450
     RASPECT = 70
-    P0 = np.array([CANVAS_W / 2., CANVAS_H -RFRAME - 5])
-    WHITE='rgb(255,255,255)'
-    
-    def __init__(self, pixel_counts=np.zeros(384), cmap='viridis', colorbar=False, logscale=False):
+    P0 = np.array([CANVAS_W / 2., CANVAS_H - RFRAME - 5])
+    WHITE = 'rgb(255,255,255)'
+
+    def __init__(self,
+                 pixel_counts=np.zeros(384),
+                 cmap='viridis',
+                 colorbar=False,
+                 logscale=False):
         """
          Plot STIX detector
          Parameters
-          pixel_counts: 1d np.array
+          pixel_counts: 1x384 np.array or a 32x12 np.array
             
             counts in 384 pixels
           cmap:  str, optional
@@ -28,31 +34,43 @@ class DetectorView(object):
             Plot colobar if it is True 
          Returns
            python object
-
         """
-        self.cmap_name=cmap
-        self.pixel_counts=pixel_counts
-        col=(np.array(plt.get_cmap(cmap).colors)*256).astype(int)
-        self.color_map=[f'rgb({x[0]},{x[1]},{x[2]})'  for x in col]
-        self.color_x=np.linspace(0,1,len(self.color_map))
 
-        self.colors=[self.WHITE]*384
+        self.cmap_name = cmap
+        pixel_counts = pixel_counts.flatten()
+        self.pixel_counts = pixel_counts
+        col = (np.array(plt.get_cmap(cmap).colors) * 256).astype(int)
+        self.color_map = [f'rgb({x[0]},{x[1]},{x[2]})' for x in col]
+        self.color_x = np.linspace(0, 1, len(self.color_map))
 
-        self.vis_counts=pixel_counts if not logscale else np.log(pixel_counts, where=np.array(pixel_counts)>0, out=np.zeros_like(pixel_counts))
-        if np.max(self.vis_counts)>0:
-            max_val=np.max(self.vis_counts)
-            min_val=np.min(self.vis_counts)
-            if max_val>min_val:
-                nx=(self.vis_counts-min_val)/(max_val-min_val)
-                self.colors=np.array([self.color_map[np.argmin(np.abs(y-self.color_x))] for y in nx])
-        self.svg=self.create_detector_svg(colorbar)
+        self.colors = [self.WHITE] * 384
+
+        self.vis_counts = pixel_counts if not logscale else np.log(
+            pixel_counts,
+            where=np.array(pixel_counts) > 0,
+            out=np.zeros_like(pixel_counts))
+        if np.max(self.vis_counts) > 0:
+            max_val = np.max(self.vis_counts)
+            min_val = np.min(self.vis_counts)
+            if max_val > min_val:
+                nx = (self.vis_counts - min_val) / (max_val - min_val)
+                self.colors = np.array([
+                    self.color_map[np.argmin(np.abs(y - self.color_x))]
+                    for y in nx
+                ])
+        self.svg = self.create_detector_svg(colorbar)
+        self.html = f'<div style="width:400px;height:400px;">{self.svg}</html>'
+
+    def get_html(self):
+        return self.html
 
     def get_svg(self):
         """
         get svg string
         """
         return self.svg
-    def save(self,filename):
+
+    def save(self, filename):
         """
             save detector view to a svg file
         Parameters:
@@ -62,23 +80,26 @@ class DetectorView(object):
         """
         with open(filename, 'w') as f:
             f.write(self.svg)
-    def plot_in_notebook(self):
+
+    def display(self):
         """
          Plot detector in nootbook
         """
-        from IPython.display import SVG
-        SVG(self.svg)
-  
+        try:
+            from IPython.display import SVG
+        except ImportError:
+            print('IPython not installed. Can not display the detector view')
+            return
+        return SVG(self.svg)
 
-    def create_color_bar(self, x0, y0, width, height):
+    def _create_color_bar(self, x0, y0, width, height):
         path = (
             '<rect x="{x0}" y="{y0}" width="{width}" height="{height}"'
             'style="fill:rgb(250,250,250); stroke-width:0;stroke:rgb(0,0,255)" />'
-        ).format(
-            x0=x0, y0=y0, width=width, height=height)
+        ).format(x0=x0, y0=y0, width=width, height=height)
         num = len(self.color_map)
         dl = width / num
-        max_value=np.max(self.pixel_counts)
+        max_value = np.max(self.pixel_counts)
         for i, col in enumerate(self.color_map):
             x = dl * i + x0
             y = y0
@@ -92,7 +113,6 @@ class DetectorView(object):
                 x, y, max_value * i / num_ticks)
 
         return path
-
 
     def create_detector_svg(self, colorbar=True):
         positions = [[135, 412.5], [135, 527.5], [135, 662.5], [135, 777.5],
@@ -119,25 +139,23 @@ class DetectorView(object):
          cx="{x0}"
          cy="{y0}"
          r="{r_aspect}" />
-          '''.format(
-            cw=self.CANVAS_W,
-            ch=self.CANVAS_H,
-          view_box=self.VIEWBOX,
-            x0=self.P0[0],
-            y0=self.P0[1],
-            y_min=self.P0[1] - self.RFRAME,
-            r_frame=self.RFRAME,
-            r_aspect=self.RASPECT,
-            y_max=self.P0[1] + self.RFRAME,
-            x_min=self.P0[0] - self.RFRAME,
-            x_max=self.P0[0] + self.RFRAME)
+          '''.format(cw=self.CANVAS_W,
+                     ch=self.CANVAS_H,
+                     view_box=self.VIEWBOX,
+                     x0=self.P0[0],
+                     y0=self.P0[1],
+                     y_min=self.P0[1] - self.RFRAME,
+                     r_frame=self.RFRAME,
+                     r_aspect=self.RASPECT,
+                     y_max=self.P0[1] + self.RFRAME,
+                     x_min=self.P0[0] - self.RFRAME,
+                     x_max=self.P0[0] + self.RFRAME)
 
         svg_end = '   </svg>'
 
-
         color_bar = ''
         if colorbar:
-            color_bar = self.create_color_bar( 10, 100, 1000, 30)
+            color_bar = self._create_color_bar(10, 100, 1000, 30)
         template = svg_start + color_bar + '{}' + svg_end
         items = []
         for i, pos in enumerate(positions):
@@ -146,8 +164,8 @@ class DetectorView(object):
 
         return template.format('\n'.join(items))
 
-
-    def create_one_detector_svg(self,detector_id=0,
+    def create_one_detector_svg(self,
+                                detector_id=0,
                                 start=(0, 0),
                                 svg_template=''):
         """ data is a 32*12 array """
@@ -198,36 +216,39 @@ class DetectorView(object):
             start = big_p0_top + np.array([i * pitch_x, 0])
             path = 'M {} {} {}'.format(start[0], start[1], big_pixel_top)
             pid = 'id-{}-{}'.format(detector_id, i)
-            pid=detector_id * 12 + i
-            counts=self.pixel_counts[pid]
+            pid = detector_id * 12 + i
+            counts = self.pixel_counts[pid]
             fill_color = self.colors[pid]
 
-            container.append(pixel_template.format(pid, fill_color, path, counts))
+            container.append(
+                pixel_template.format(pid, fill_color, path, counts))
 
         for i in range(0, 4):
             start = big_p0_bottom + np.array([i * pitch_x, 0])
             path = 'M {} {} {}'.format(start[0], start[1], big_pixel_bottom)
             pid = 'id-{}-{}'.format(detector_id, i + 4)
-            pid=detector_id * 12 + i+4
-            counts=self.pixel_counts[pid]
+            pid = detector_id * 12 + i + 4
+            counts = self.pixel_counts[pid]
             fill_color = self.colors[pid]
 
-            container.append(pixel_template.format(pid, fill_color, path,counts))
+            container.append(
+                pixel_template.format(pid, fill_color, path, counts))
 
         for i in range(0, 4):
             start = small_p0 + np.array([i * pitch_x, 0])
             path = 'M {} {} {}'.format(start[0], start[1], small_pixel_path)
             pid = 'id-{}-{}'.format(detector_id, i + 8)
-            pid=detector_id * 12 + i+8
-            counts=self.pixel_counts[pid]
+            pid = detector_id * 12 + i + 8
+            counts = self.pixel_counts[pid]
             fill_color = self.colors[pid]
-            container.append(pixel_template.format(pid, fill_color, path,counts))
+            container.append(
+                pixel_template.format(pid, fill_color, path, counts))
         group = '<g> {} </g>'.format('\n'.join(container))
         return svg_template.format(group)
 
 
 if __name__ == '__main__':
     with open('detector.svg', 'w') as f:
-        data=np.arange(384)
-        det=DetectorView(data)
+        data = np.arange(384)
+        det = DetectorView(data)
         f.write(det.get_svg())

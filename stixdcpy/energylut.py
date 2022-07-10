@@ -62,6 +62,12 @@ class EnergyLUT(sio.IO):
         return self.data['data']
 
     def get_calibration_data(self):
+        """Get calibration data
+
+        Returns:
+            result: dict, or None
+                Calibration data python dictionary if success or None if failed 
+        """
         try:
             return self.data['data']['calibration']
         except Exception as e:
@@ -76,6 +82,15 @@ class EnergyLUT(sio.IO):
             return None
 
     def get_pixel_true_ebins(self, pixel):
+        """Get the real energy bin ranges for the given pixel
+
+        Args:
+            pixel (int): pixel ID ranging from 0...383
+
+        Returns:
+            ebins: numpy.array
+                Lower and upper bounds of 32 energy bins
+        """
         true_ebins = np.array(self.data['data']['true_energy_bin_edges'])
         pixel_ebins = true_ebins[:, pixel]  # 33 x 384 retrieve the column
         ebins = np.column_stack((pixel_ebins[:-1], pixel_ebins[1:]))
@@ -84,13 +99,15 @@ class EnergyLUT(sio.IO):
     def get_pixel_ebins_transmissions(self):
         """
         Get transmission for pixels at a given time
-        Arguments
+        Args: 
             None
         Returns:
             A numpy array with a shape of 32 x12 x 32.  The three dimensions indicate detector, pixel, and transmission for 32 energy channels.
             The transmission for the last energy bin set to 0
             """
-        true_ebins = np.array(self.data['data']['true_energy_bin_edges'])  # an 2d array: 33 x 384
+        true_ebins = np.array(
+            self.data['data']
+            ['true_energy_bin_edges'])  # an 2d array: 33 x 384
         trans = np.zeros((32, 12, 32))
         for i in range(32):
             for j in range(12):
@@ -100,7 +117,10 @@ class EnergyLUT(sio.IO):
                 ebins[0][0] = np.finfo(float).eps
                 ebins[31][1] = 300
 
-                trans[i][j] = self.tran.get_detector_transmission(i, ebins, attenuator=False)
-        trans[:, :, 31] = 0  # set the transmission for the last energy bin to 0
-        trans[:,:,0]=0 # set the transmission for the first energy bin to 0
+                trans[i][j] = self.tran.get_detector_transmission(
+                    i, ebins, attenuator=False)
+        trans[:, :,
+              31] = 0  # set the transmission for the last energy bin to 0
+        trans[:, :,
+              0] = 0  # set the transmission for the first energy bin to 0
         return trans
