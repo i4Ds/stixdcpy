@@ -174,7 +174,7 @@ class ScienceData(sio.IO):
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
     @classmethod
-    def from_sdc(cls, request_id):
+    def from_sdc(cls, request_id, ltc=False):
         '''
         download science data file from stix data center
         Parameters
@@ -189,7 +189,7 @@ class ScienceData(sio.IO):
         '''
         request_id = request_id
         fname = freq.fetch_bulk_science_by_request_id(request_id)
-        return cls(fname, request_id)
+        return cls(fname, request_id, ltc)
 
     @classmethod
     def from_fits(cls, filename):
