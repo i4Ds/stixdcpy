@@ -31,7 +31,7 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 ```
 # Tutorial and documentation
 
-- [Tutorial] (https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb)
+- [Tutorial](https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb)
 - [Try stixdcpy on Google Colab](https://colab.research.google.com/drive/17fQfbWjL0s0TpblbPL1Ysy_zFXj40FBf?usp=sharing)
 - [Documentation](https://drhlxiao.github.io/stixdcpy/)
 
