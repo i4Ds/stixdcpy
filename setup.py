@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='stixdcpy',
-    description='STIX data center python tools',
-    version='1.0.2',
+    description='STIX data center APIs and data analysis tools',
+    version='2.0',
     author='Hualin Xiao',
     author_email='hualin.xiao@fhnw.ch',
     long_description=open('README.md').read(),

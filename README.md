@@ -11,12 +11,12 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 
 
 # Installation
-```sh 
-pip install git+https://github.com/drhlxiao/stixdcpy.git
 
-```
+!pip install stixdcpy
+# Or install from stixdcpy github repository
+#!pip install git+https://github.com/drhlxiao/stixdcpy.git
+!pip install numpy matplotlib pandas astropy joblib
 # Citing stixdcpy
-If you use stixdcpy in your work, please use the following citation,
 ```sh
 @software{hualin_xiao_2022_6408689,
   author       = {Hualin Xiao},
