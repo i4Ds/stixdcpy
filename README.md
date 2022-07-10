@@ -11,6 +11,7 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 
 
 # Installation
+Install from pypi
 ```sh
 pip install stixdcpy
 ```
