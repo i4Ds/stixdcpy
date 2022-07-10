@@ -12,7 +12,7 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 
 # Installation
 ```sh 
-pip install git+https://github.com/drhlxiao/stixdcpy.git@analysis
+pip install git+https://github.com/drhlxiao/stixdcpy.git
 
 ```
 # Citing stixdcpy
