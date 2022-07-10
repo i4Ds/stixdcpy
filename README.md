@@ -15,12 +15,14 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 pip install stixdcpy
 ```
 # Or install from stixdcpy github repository
+
 ```sh
 pip install git+https://github.com/drhlxiao/stixdcpy.git
 ```
 ```sh
 pip install numpy matplotlib pandas astropy joblib
 ```
+
 # Tutorial and documentation
 
 - [Tutorial](https://github.com/drhlxiao/stixdcpy/blob/master/examples/tutorial.ipynb)
