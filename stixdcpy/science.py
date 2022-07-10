@@ -260,12 +260,12 @@ class ScienceL1(ScienceData):
     """
     Tools to analyze L1 science data
     """
-    def __init__(self, fname, request_id):
+    def __init__(self, fname, request_id, ltc=False):
         super().__init__(fname, request_id)
         self.data_type = 'ScienceL1'
         self.pixel_count_rates = None
         self.correct_pixel_count_rates = None
-        self.read_fits()
+        self.read_fits(light_time_correction=ltc)
         self.make_spectra()
 
     def make_spectra(self, pixel_counts=None):
@@ -285,7 +285,7 @@ class ScienceL1(ScienceData):
         self.pixel_total_counts = np.sum(self.pixel_counts, axis=(0, 3))
 
 
-    def correct_dead_time(self ):
+    def correct_dead_time(self):
         """ dead time correction
         Returns:
           corrected_counts: tuple
@@ -295,8 +295,51 @@ class ScienceL1(ScienceData):
               photon_in: np.array
               live_ratio: np.array
         """
-        self.corrected=LiveTimeCorrection.correct(self.triggers, self.pixel_counts, self.timedel)
+
+        def correct(triggers, counts_arr, time_bins):
+            """ Live time correction
+            Args
+                triggers: ndarray
+                    triggers in the spectrogram
+                counts_arr:ndarray
+                    counts in the spectrogram
+                time_bins: ndarray
+                    time_bins in the spectrogram
+            Returns
+            live_time_ratio: ndarray
+                live time ratio of detectors
+            count_rate:
+                corrected count rate
+            photons_in:
+                rate of photons illuminating the detector group
+
+            """
+
+            fpga_tau = 10.1e-6
+            asic_tau = 2.63e-6
+            beta= 0.94
+            trig_tau = fpga_tau + asic_tau
+
+            time_bins = time_bins[:, None]
+            photons_in = triggers / (time_bins - trig_tau * triggers)
+            #photon rate calculated using triggers
+
+            live_ratio= np.zeros((time_bins.size, 32))
+            time_bins = time_bins[:, :, None, None]
+
+            count_rate = counts_arr / time_bins
+            # print(counts_arr.shape)
+            for det in range(32):
+                trig_idx = inst.detector_id_to_trigger_index(det)
+                nin = photons_in[:, trig_idx]
+                live_ratio[:, det] = np.exp(
+                    -beta* nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
+            corrected_rate=count_rate/live_ratio[:, :, None, None]
+            return  {'corrected_rates': corrected_rate, 'count_rate': count_rate, 'photons_in': photons_in, 'live_ratio':live_ratio}
+        self.corrected=correct(self.triggers, self.pixel_counts, self.timedel)
         return self.corrected
+
+
 
     def peek(self,
              plots=['spg', 'lc', 'spec', 'tbin', 'qllc'],
@@ -389,65 +432,6 @@ class ScienceL1(ScienceData):
         return ax0, ax1, ax2, ax3
 
 
-class Spectrogram(ScienceData):
-    def __init__(self, fname, request_id):
-        super().__init__(fname,request_id)
-        self.data_type = 'Spectrogram'
-
-        self.read_fits()
-
-        self.spectrum = np.sum(self.counts, axis=0)
-
-    def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
-        """
-            preivew Science data
-        Arguments:
-        ax0: matplotlib axe 
-        ax0: matplotlib axe 
-        """
-        if not self.hdul:
-            logger.error(f'Data not loaded. ')
-            return None
-
-        #((ax0, ax1), (ax2, ax3))=axs
-        if not any([ax0, ax1, ax2, ax3]):
-            _, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(8, 6))
-
-        if ax0:
-            X, Y = np.meshgrid(self.time,
-                               self.hdul['ENERGIES'].data['channel'])
-            im = ax0.pcolormesh(X, Y, np.transpose(
-                self.counts))  #pixel summed energy spectrum
-            ax0.set_yticks(self.hdul['ENERGIES'].data['channel'][::2])
-            ax0.set_yticklabels(self.energy_bin_names[::2])
-            fig = plt.gcf()
-            cbar = fig.colorbar(im, ax=ax0)
-            cbar.set_label('Counts')
-            ax0.set_title('Spectrogram')
-            ax0.set_ylabel('Energy range(keV')
-            ax0.set_xlabel(f"Seconds since {self.T0}s ")
-        if ax1:
-            #convert to 2d
-            ax1.plot(self.time, self.count_rates)
-            ax1.set_yscale('log')
-            ax1.set_ylabel('Counts / sec')
-            ax1.set_xlabel(f"Seconds since {self.T0}s ")
-        if ax2:
-            ax2.plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
-            ax2.set_xscale('log')
-            ax2.set_yscale('log')
-            ax2.set_xlabel('Energy (keV)')
-            ax2.set_ylabel('Counts')
-        if ax3:
-            ax3.plot(self.time, self.timedel)
-            ax3.set_xlabel(f"Seconds since {self.T0}s ")
-            ax3.set_ylabel('Integration time (sec)')
-        plt.suptitle(f'L4 request #{self.request_id}')
-        plt.tight_layout()
-        return fig, ((ax0, ax1), (ax2, ax3))
-
-
-
 class BackgroundSubtraction(object):
     def __init__(self, l1sig: ScienceL1, l1bkg: ScienceL1):
         """
@@ -462,9 +446,7 @@ class BackgroundSubtraction(object):
 
         dmask = self.l1bkg.energy_bin_mask - self.l1sig.energy_bin_mask
         if np.any(dmask < 0):
-            logger.error(
-                'Background subtraction failed due to the background energy range does not cover the signal energy range  '
-            )
+            ValueError('Inconsistent energy bins')
             return
 
         #mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inverse_energy_bin_mask
@@ -548,58 +530,62 @@ class BackgroundSubtraction(object):
         return bkg_sub_spectra, bkg_sub_spectra_err
 
 
-class LiveTimeCorrection(object):
-    """
-    #counts is np.array   time_bins, detector, pixel, energy bins
-    trigger_rates=l1data['triggers'][1:,:]/l1data['timedel'][:-1,None]
-    # delta time is off by 1 time bin due a bug in the
-    out=np.copy(trigger_rates)
-    tau=11e-6
-    live_time=1 - tau*trig
-    photo_in=trig/(live_time)
-	"""
-    @staticmethod
-    def correct(triggers, counts_arr, time_bins):
-        """ Live time correction
-        Args
-            triggers: ndarray
-                triggers in the spectrogram
-            counts_arr:ndarray
-                counts in the spectrogram
-            time_bins: ndarray
-                time_bins in the spectrogram
-        Returns
-        live_time_ratio: ndarray
-            live time ratio of detectors
-        count_rate:
-            corrected count rate
-        photons_in:
-            rate of photons illuminating the detector group
+class Spectrogram(ScienceData):
+    def __init__(self, fname, request_id, ltc=False):
+        super().__init__(fname,request_id)
+        self.data_type = 'Spectrogram'
 
+        self.read_fits(light_time_correction=ltc)
+
+        self.spectrum = np.sum(self.counts, axis=0)
+
+    def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
+            preivew Science data
+        Arguments:
+        ax0: matplotlib axe 
+        ax0: matplotlib axe 
+        """
+        if not self.hdul:
+            logger.error(f'Data not loaded. ')
+            return None
 
-        fpga_tau = 10.1e-6
-        asic_tau = 2.63e-6
-        beta= 0.94
-        trig_tau = fpga_tau + asic_tau
+        #((ax0, ax1), (ax2, ax3))=axs
+        if not any([ax0, ax1, ax2, ax3]):
+            _, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(8, 6))
 
-        time_bins = time_bins[:, None]
-        photons_in = triggers / (time_bins - trig_tau * triggers)
-        #photon rate calculated using triggers
+        if ax0:
+            X, Y = np.meshgrid(self.time,
+                               self.hdul['ENERGIES'].data['channel'])
+            im = ax0.pcolormesh(X, Y, np.transpose(
+                self.counts))  #pixel summed energy spectrum
+            ax0.set_yticks(self.hdul['ENERGIES'].data['channel'][::2])
+            ax0.set_yticklabels(self.energy_bin_names[::2])
+            fig = plt.gcf()
+            cbar = fig.colorbar(im, ax=ax0)
+            cbar.set_label('Counts')
+            ax0.set_title('Spectrogram')
+            ax0.set_ylabel('Energy range(keV')
+            ax0.set_xlabel(f"Seconds since {self.T0}s ")
+        if ax1:
+            #convert to 2d
+            ax1.plot(self.time, self.count_rates)
+            ax1.set_yscale('log')
+            ax1.set_ylabel('Counts / sec')
+            ax1.set_xlabel(f"Seconds since {self.T0}s ")
+        if ax2:
+            ax2.plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
+            ax2.set_xscale('log')
+            ax2.set_yscale('log')
+            ax2.set_xlabel('Energy (keV)')
+            ax2.set_ylabel('Counts')
+        if ax3:
+            ax3.plot(self.time, self.timedel)
+            ax3.set_xlabel(f"Seconds since {self.T0}s ")
+            ax3.set_ylabel('Integration time (sec)')
+        plt.suptitle(f'L4 request #{self.request_id}')
+        plt.tight_layout()
+        return fig, ((ax0, ax1), (ax2, ax3))
 
-        live_ratio= np.zeros((time_bins.size, 32))
-        time_bins = time_bins[:, :, None, None]
-
-        count_rate = counts_arr / time_bins
-        # print(counts_arr.shape)
-        for det in range(32):
-            trig_idx = inst.detector_id_to_trigger_index(det)
-            nin = photons_in[:, trig_idx]
-            live_ratio[:, det] = np.exp(
-                -beta* nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
-        corrected_rate=count_rate/live_ratio[:, :, None, None]
-        return  {'corrected_rates': corrected_rate, 'count_rate': count_rate, 'photons_in': photons_in, 'live_ratio':live_ratio}
 
 
-class TransmissionCorrection(object):
-    pass

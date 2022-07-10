@@ -40,22 +40,22 @@ Date: Sep. 1, 2021</p>
 &#34;&#34;&#34;
 
 import hashlib
-
 import numpy as np
 import pandas as pd
 import pprint
 from pathlib import Path, PurePath
 from dateutil import parser as dtparser
-
 import requests
 from astropy.io import fits
 from tqdm import tqdm
+import logging
+logger = logging.getLogger(__name__)
 
 DOWNLOAD_PATH = Path.cwd() / &#39;downloads&#39;
 DOWNLOAD_PATH.mkdir(parents=False, exist_ok=True)
-HOST = &#39;https://datacenter.stix.i4ds.net&#39;
-#HOST=&#39;http://localhost:5000&#39;
-URLS_POST = {
+#HOST = &#39;https://datacenter.stix.i4ds.net&#39;
+HOST=&#39;http://localhost:5000&#39;
+ENDPOINTS = {
     &#39;LC&#39;: f&#39;{HOST}/api/request/ql/lightcurves&#39;,
     &#39;HK&#39;: f&#39;{HOST}/api/request/housekeeping&#39;,
     &#39;HK2&#39;: f&#39;{HOST}/api/request/hk2&#39;,
@@ -66,6 +66,7 @@ URLS_POST = {
     &#39;TRANSMISSION&#39;: f&#39;{HOST}/api/request/transmission&#39;,
     &#39;FLARE_LIST&#39;: f&#39;{HOST}/api/request/flare-list&#39;,
     &#39;STIX_POINTING&#39;: f&#39;{HOST}/api/request/stixfov&#39;,
+    &#39;FITS&#39;: f&#39;{HOST}/api/query/fits&#39;,
     &#39;CFL_SOLVER&#39;: f&#39;{HOST}/api/request/solve/cfl&#39;
 }
 
@@ -76,6 +77,9 @@ FITS_TYPES = {
 
 
 class FitsQueryResult(object):
+    &#34;&#34;&#34;
+        FITS query result manager 
+    &#34;&#34;&#34;
     def __init__(self, resp):
         self.hdu_objects = []
         self.result = resp
@@ -95,38 +99,68 @@ class FitsQueryResult(object):
 
     def __len__(self):
         return len(self.result)
-
-    def pprint(self):
-        pprint.pprint(self.result)
-
     def to_pandas(self):
+        &#34;&#34;&#34;
+        Convert FitsQueryResult to pandas dataframe
+        Returns:
+            pandas data frame
+        &#34;&#34;&#34;
         return pd.DataFrame(self.result)
 
     def open_fits(self):
+        &#34;&#34;&#34;
+         Open all the FITS files 
+        
+        Returns:
+            hdu_objcts:  list
+                A list of HDU objects
+
+        &#34;&#34;&#34;
         self.hdu_objects = []
         for filename in self.downloaded_fits_files:
             self.hdu_objects.append(fits.open(filename))
         return self.hdu_objects
 
     def fits_info(self):
+        &#34;&#34;&#34;
+        Print out information of the loaded specified FITS files
+        &#34;&#34;&#34;
         for hdu in self.hdu_objects:
-            print(hdu.info())
+            logger.info(hdu.info())
 
     def get_fits_ids(self):
+        &#34;&#34;&#34;
+        Get FITS file IDs
+        Return
+        ids: list
+            FITS file ids
+        &#34;&#34;&#34;
         return [row[&#39;fits_id&#39;] for row in self.result]
 
     def fetch(self):
+        &#34;&#34;&#34;
+        Download fits files from STIX data center
+        FITS files will be stored in the folder download/ in the current directory
+        
+        Returns:
+
+        fits_filenames:  list
+            List of downloaded FITS filenames
+        
+
+        &#34;&#34;&#34;
         if self.result:
             self.downloaded_fits_files = FitsQuery.fetch(self.result)
             return self.downloaded_fits_files
         else:
-            print(&#39;WARNING: Nothing to be downloaded from stix data center!&#39;)
+            logger.warning(&#39;WARNING: Nothing to be downloaded from stix data center!&#39;)
 
 
 class FitsQuery(object):
     &#34;&#34;&#34;
-    Request FITS format data from STIX data center
+    Query or Fetch FITS products from STIX data center
     &#34;&#34;&#34;
+
     def __init__(self):
         self.fits_file_list = []
 
@@ -135,7 +169,7 @@ class FitsQuery(object):
         &#34;&#34;&#34;Download a file from the link and save the file to a temporary file.
            Downloading progress will be shown in a progress bar
 
-        Args:
+        Parameters:
             url (str): URL
             desc (str): description to be shown on the progress bar
 
@@ -146,7 +180,7 @@ class FitsQuery(object):
         resp = requests.get(url, stream=stream)
         content_type = resp.headers.get(&#39;content-type&#39;)
         if content_type != &#39;binary/x-fits&#39;:
-            print(&#39;ERROR:&#39;, resp.content)
+            logger.error(resp.content)
             return None
 
         folder = DOWNLOAD_PATH
@@ -159,7 +193,7 @@ class FitsQuery(object):
         filename = PurePath(folder, fname)
         file_path = Path(filename)
         if file_path.is_file():
-            print(f&#39;Found the data in local storage. Filename: {filename} ...&#39;)
+            logger.info(f&#39;Found the data in local storage. Filename: {filename} ...&#39;)
             return str(file_path)
         f = open(filename, &#39;wb&#39;)
         chunk_size = 1024
@@ -179,28 +213,56 @@ class FitsQuery(object):
         return name
 
     @staticmethod
-    def query(start_utc, stop_utc, product_type=&#39;lc&#39;):
+    def query(begin_utc, end_utc, product_type=&#39;lc&#39;, filter=None):
+        &#34;&#34;&#34;Query FITS products from STIX data center
+
+        Args:
+            start_utc (str): start time
+            stop_utc (str): end time
+            product_type (str, optional): 
+            FITS product type. Defaults to &#39;lc&#39;.
+
+
+        Returns:
+            results: FitsQueryResult
+                file result object
+        &#34;&#34;&#34;
         if product_type not in FITS_TYPES:
             raise TypeError(
                 f&#39;Invalid product type! product_type can be one of {str(FITS_TYPES)}&#39;
             )
-        url = f&#39;{HOST}/query/fits/{start_utc}/{stop_utc}/{product_type}&#39;
-        r = requests.get(url).json()
-        res = []
+        form = {&#39;start_utc&#39;: begin_utc, &#39;end_utc&#39;: end_utc, &#39;type&#39;:product_type, &#39;filter&#39;:str(filter)}
+        url = ENDPOINTS[&#39;FITS&#39;]
+        res=[]
+        r=JSONRequest.post(url, form)
         if isinstance(r, list):
             res = r
         elif &#39;error&#39; in r:
-            print(r[&#39;error&#39;])
+            logger.error(r[&#39;error&#39;])
         return FitsQueryResult(res)
 
     @staticmethod
     def fetch_bulk_science_by_request_id(request_id):
         url = f&#39;{HOST}/download/fits/bsd/{request_id}&#39;
-        fname = FitsQuery.wget(url, f&#39;Downloading STIX Science data #{request_id}&#39;)
+        fname = FitsQuery.wget(url,
+                               f&#39;Downloading STIX Science data #{request_id}&#39;)
         return fname
 
     @staticmethod
     def fetch(query_results):
+        &#34;&#34;&#34;
+        Download FITS files
+        Arguments
+        ----
+        query_results: FitsQueryResult 
+                FitsQueryResult object
+
+        Returns
+        -------
+        filenames:  list
+            A list of fits filenames 
+
+        &#34;&#34;&#34;
         fits_ids = []
         if isinstance(query_results, FitsQueryResult):
             fits_ids = query_results.get_fits_ids()
@@ -234,7 +296,7 @@ class FitsQuery(object):
     @staticmethod
     def get_fits(fits_id, progress_bar=True):
         &#34;&#34;&#34;Download FITS data products from STIX data center.
-        Args:
+        Parameters:
             fits_id: FITS file ID
             progress_bar: show the progress bar if it is true
 
@@ -271,7 +333,7 @@ class JSONRequest(object):
     def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
         &#34;&#34;&#34; Request light curve from STIX data center
 
-        Args:
+        Parameters:
             begin_utc:  str
                 Observation start time
             end_utc: str
@@ -284,14 +346,14 @@ class JSONRequest(object):
 
         &#34;&#34;&#34;
         form = {&#39;begin&#39;: begin_utc, &#39;ltc&#39;: ltc, &#39;end&#39;: end_utc}
-        url = URLS_POST[&#39;LC&#39;]
+        url = ENDPOINTS[&#39;LC&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
     def fetch_housekeeping(begin_utc: str, end_utc: str):
         &#34;&#34;&#34;Fetch housekeeping data from STIX data center
 
-        Args:
+        Parameters:
             begin_utc: Data start time
             end_utc: data end time
 
@@ -311,14 +373,14 @@ class JSONRequest(object):
             &#39;start_unix&#39;: start_unix,
             &#39;duration&#39;: duration,
         }
-        url = URLS_POST[&#39;HK&#39;]
+        url = ENDPOINTS[&#39;HK&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
     def solve_cfl(cfl_counts, cfl_counts_err, fluence, fluence_err):
         &#34;&#34;&#34;compute flare location using the online flare location solver
 
-        Args:
+        Parameters:
             cfl_counts: numpy array or list
                 counts recorded by the 12 CFL pixels
             cfl_counts_err:  numpy array or list
@@ -332,51 +394,62 @@ class JSONRequest(object):
                 CFL location, ephemeris and the chisquare map
 
         &#34;&#34;&#34;
-        form = {&#39;counts&#39;: cfl_counts, &#39;counts_err&#39;:cfl_counts_err,
-                &#39;fluence&#39;:fluence,&#39;fluence_err&#39;:fluence_err}
-        url = URLS_POST[&#39;CFL_SOLVER&#39;]
+        form = {
+            &#39;counts&#39;: cfl_counts,
+            &#39;counts_err&#39;: cfl_counts_err,
+            &#39;fluence&#39;: fluence,
+            &#39;fluence_err&#39;: fluence_err
+        }
+        url = ENDPOINTS[&#39;CFL_SOLVER&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
     def fetch_elut(utc):
         &#34;&#34;&#34;Download ELUT from STIX data center
-        Args:
+        Parameters:
             utc: Time
         Returns: dict
             object: a diction string containing elut information
         &#34;&#34;&#34;
         form = {&#39;utc&#39;: utc}
-        url = URLS_POST[&#39;ELUT&#39;]
+        url = ENDPOINTS[&#39;ELUT&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
-    def request_ephemeris(start_utc: str, end_utc: str, steps=1):
-        return JSONRequest.post(URLS_POST[&#39;EPHEMERIS&#39;], {
-            &#39;start_utc&#39;: start_utc,
+    def request_ephemeris(begin_utc: str, end_utc: str, steps=1):
+        return JSONRequest.post(ENDPOINTS[&#39;EPHEMERIS&#39;], {
+            &#39;start_utc&#39;: begin_utc,
             &#39;end_utc&#39;: end_utc,
             &#39;steps&#39;: steps
         })
+
     @staticmethod
     def request_pointing(utc: str):
-        return JSONRequest.post(URLS_POST[&#39;STIX_POINTING&#39;], {
+        return JSONRequest.post(ENDPOINTS[&#39;STIX_POINTING&#39;], {
             &#39;utc&#39;: utc,
         })
+
     @staticmethod
-    def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame=&#39;SOLO_SRF&#39;, ref_frame=&#39;SOLO_SUN_RTN&#39;):
-        form={
-            &#39;start_utc&#39;: start_utc,
+    def request_attitude(begin_utc: str,
+                         end_utc: str,
+                         steps=1,
+                         instrument_frame=&#39;SOLO_SRF&#39;,
+                         ref_frame=&#39;SOLO_SUN_RTN&#39;):
+        form = {
+            &#39;start_utc&#39;: begin_utc,
             &#39;end_utc&#39;: end_utc,
             &#39;steps&#39;: steps,
-            &#39;frame1&#39;:instrument_frame,
-            &#39;frame2&#39;:ref_frame
+            &#39;frame1&#39;: instrument_frame,
+            &#39;frame2&#39;: ref_frame
         }
-        ret=JSONRequest.post(URLS_POST[&#39;ATTITUDE&#39;], form)
+        ret = JSONRequest.post(ENDPOINTS[&#39;ATTITUDE&#39;], form)
         return ret
+
     @staticmethod
     def fetch_science_data(_id: int):
         &#34;&#34;&#34;fetch science data from stix data center
 
-        Args:
+        Parameters:
             _id: int
                 science data unique ID, which can be found on STIX data center bulk science data web page
 
@@ -386,16 +459,17 @@ class JSONRequest(object):
                 science data received from data center if success or None if failed
 
         &#34;&#34;&#34;
-        return JSONRequest.post(URLS_POST[&#39;SCIENCE&#39;], {
+        return JSONRequest.post(ENDPOINTS[&#39;SCIENCE&#39;], {
             &#39;id&#39;: _id,
         })
 
     @staticmethod
-    def fetch_flare_list(start_utc: str, end_utc: str, sort: str = &#39;time&#39;):
+    def fetch_flare_list(begin_utc: str, end_utc: str, sort: str = &#39;time&#39;):
         &#34;&#34;&#34; query and download flare list from stix data center
 
-        Args:
-            start_utc: str
+        Parameters:
+        ------
+            begin_utc: str
                 flare start UTC
             end_utc: str
                 flare end UTC
@@ -404,12 +478,13 @@ class JSONRequest(object):
 
 
         Returns:
+        -----
             flare_list: dict or None
                 flare list if success or None if failed.
 
         &#34;&#34;&#34;
-        return JSONRequest.post(URLS_POST[&#39;FLARE_LIST&#39;], {
-            &#39;start_utc&#39;: start_utc,
+        return JSONRequest.post(ENDPOINTS[&#39;FLARE_LIST&#39;], {
+            &#39;start_utc&#39;: begin_utc,
             &#39;end_utc&#39;: end_utc,
             &#39;sort&#39;: sort
         })</code></pre>
@@ -428,15 +503,16 @@ class JSONRequest(object):
 <span>class <span class="ident">FitsQuery</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Request FITS format data from STIX data center</p></div>
+<div class="desc"><p>Query or Fetch FITS products from STIX data center</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FitsQuery(object):
     &#34;&#34;&#34;
-    Request FITS format data from STIX data center
+    Query or Fetch FITS products from STIX data center
     &#34;&#34;&#34;
+
     def __init__(self):
         self.fits_file_list = []
 
@@ -445,7 +521,7 @@ class JSONRequest(object):
         &#34;&#34;&#34;Download a file from the link and save the file to a temporary file.
            Downloading progress will be shown in a progress bar
 
-        Args:
+        Parameters:
             url (str): URL
             desc (str): description to be shown on the progress bar
 
@@ -456,7 +532,7 @@ class JSONRequest(object):
         resp = requests.get(url, stream=stream)
         content_type = resp.headers.get(&#39;content-type&#39;)
         if content_type != &#39;binary/x-fits&#39;:
-            print(&#39;ERROR:&#39;, resp.content)
+            logger.error(resp.content)
             return None
 
         folder = DOWNLOAD_PATH
@@ -469,7 +545,7 @@ class JSONRequest(object):
         filename = PurePath(folder, fname)
         file_path = Path(filename)
         if file_path.is_file():
-            print(f&#39;Found the data in local storage. Filename: {filename} ...&#39;)
+            logger.info(f&#39;Found the data in local storage. Filename: {filename} ...&#39;)
             return str(file_path)
         f = open(filename, &#39;wb&#39;)
         chunk_size = 1024
@@ -489,28 +565,56 @@ class JSONRequest(object):
         return name
 
     @staticmethod
-    def query(start_utc, stop_utc, product_type=&#39;lc&#39;):
+    def query(begin_utc, end_utc, product_type=&#39;lc&#39;, filter=None):
+        &#34;&#34;&#34;Query FITS products from STIX data center
+
+        Args:
+            start_utc (str): start time
+            stop_utc (str): end time
+            product_type (str, optional): 
+            FITS product type. Defaults to &#39;lc&#39;.
+
+
+        Returns:
+            results: FitsQueryResult
+                file result object
+        &#34;&#34;&#34;
         if product_type not in FITS_TYPES:
             raise TypeError(
                 f&#39;Invalid product type! product_type can be one of {str(FITS_TYPES)}&#39;
             )
-        url = f&#39;{HOST}/query/fits/{start_utc}/{stop_utc}/{product_type}&#39;
-        r = requests.get(url).json()
-        res = []
+        form = {&#39;start_utc&#39;: begin_utc, &#39;end_utc&#39;: end_utc, &#39;type&#39;:product_type, &#39;filter&#39;:str(filter)}
+        url = ENDPOINTS[&#39;FITS&#39;]
+        res=[]
+        r=JSONRequest.post(url, form)
         if isinstance(r, list):
             res = r
         elif &#39;error&#39; in r:
-            print(r[&#39;error&#39;])
+            logger.error(r[&#39;error&#39;])
         return FitsQueryResult(res)
 
     @staticmethod
     def fetch_bulk_science_by_request_id(request_id):
         url = f&#39;{HOST}/download/fits/bsd/{request_id}&#39;
-        fname = FitsQuery.wget(url, f&#39;Downloading STIX Science data #{request_id}&#39;)
+        fname = FitsQuery.wget(url,
+                               f&#39;Downloading STIX Science data #{request_id}&#39;)
         return fname
 
     @staticmethod
     def fetch(query_results):
+        &#34;&#34;&#34;
+        Download FITS files
+        Arguments
+        ----
+        query_results: FitsQueryResult 
+                FitsQueryResult object
+
+        Returns
+        -------
+        filenames:  list
+            A list of fits filenames 
+
+        &#34;&#34;&#34;
         fits_ids = []
         if isinstance(query_results, FitsQueryResult):
             fits_ids = query_results.get_fits_ids()
@@ -544,7 +648,7 @@ class JSONRequest(object):
     @staticmethod
     def get_fits(fits_id, progress_bar=True):
         &#34;&#34;&#34;Download FITS data products from STIX data center.
-        Args:
+        Parameters:
             fits_id: FITS file ID
             progress_bar: show the progress bar if it is true
 
@@ -570,13 +674,37 @@ class JSONRequest(object):
 <span>def <span class="ident">fetch</span></span>(<span>query_results)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Download FITS files
+Arguments</p>
+<hr>
+<dl>
+<dt><strong><code>query_results</code></strong> :&ensp;<code><a title="stixdcpy.net.FitsQueryResult" href="#stixdcpy.net.FitsQueryResult">FitsQueryResult</a> </code></dt>
+<dd>FitsQueryResult object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>filenames</code></strong> :&ensp;<code> list</code></dt>
+<dd>A list of fits filenames</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def fetch(query_results):
+    &#34;&#34;&#34;
+    Download FITS files
+    Arguments
+    ----
+    query_results: FitsQueryResult 
+            FitsQueryResult object
+
+    Returns
+    -------
+    filenames:  list
+        A list of fits filenames 
+
+    &#34;&#34;&#34;
     fits_ids = []
     if isinstance(query_results, FitsQueryResult):
         fits_ids = query_results.get_fits_ids()
@@ -620,7 +748,8 @@ def fetch(query_results):
 <pre><code class="python">@staticmethod
 def fetch_bulk_science_by_request_id(request_id):
     url = f&#39;{HOST}/download/fits/bsd/{request_id}&#39;
-    fname = FitsQuery.wget(url, f&#39;Downloading STIX Science data #{request_id}&#39;)
+    fname = FitsQuery.wget(url,
+                           f&#39;Downloading STIX Science data #{request_id}&#39;)
     return fname</code></pre>
 </details>
 </dd>
@@ -647,13 +776,9 @@ def fetch_continuous_data(start_utc, end_utc, data_type):
 </code></dt>
 <dd>
 <div class="desc"><p>Download FITS data products from STIX data center.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>fits_id</code></strong></dt>
-<dd>FITS file ID</dd>
-<dt><strong><code>progress_bar</code></strong></dt>
-<dd>show the progress bar if it is true</dd>
-</dl>
+<h2 id="parameters">Parameters</h2>
+<p>fits_id: FITS file ID
+progress_bar: show the progress bar if it is true</p>
 <h2 id="returns">Returns</h2>
 <p>A FITS hdulist object if success;
 None if failed</p></div>
@@ -664,7 +789,7 @@ None if failed</p></div>
 <pre><code class="python">@staticmethod
 def get_fits(fits_id, progress_bar=True):
     &#34;&#34;&#34;Download FITS data products from STIX data center.
-    Args:
+    Parameters:
         fits_id: FITS file ID
         progress_bar: show the progress bar if it is true
 
@@ -678,27 +803,57 @@ def get_fits(fits_id, progress_bar=True):
 </details>
 </dd>
 <dt id="stixdcpy.net.FitsQuery.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>start_utc, stop_utc, product_type='lc')</span>
+<span>def <span class="ident">query</span></span>(<span>begin_utc, end_utc, product_type='lc', filter=None)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Query FITS products from STIX data center</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>start_utc</code></strong> :&ensp;<code>str</code></dt>
+<dd>start time</dd>
+<dt><strong><code>stop_utc</code></strong> :&ensp;<code>str</code></dt>
+<dd>end time</dd>
+<dt><strong><code>product_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>FITS product type. Defaults to 'lc'.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>results</code></dt>
+<dd>FitsQueryResult
+file result object</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def query(start_utc, stop_utc, product_type=&#39;lc&#39;):
+def query(begin_utc, end_utc, product_type=&#39;lc&#39;, filter=None):
+    &#34;&#34;&#34;Query FITS products from STIX data center
+
+    Args:
+        start_utc (str): start time
+        stop_utc (str): end time
+        product_type (str, optional): 
+        FITS product type. Defaults to &#39;lc&#39;.
+
+
+    Returns:
+        results: FitsQueryResult
+            file result object
+    &#34;&#34;&#34;
     if product_type not in FITS_TYPES:
         raise TypeError(
             f&#39;Invalid product type! product_type can be one of {str(FITS_TYPES)}&#39;
         )
-    url = f&#39;{HOST}/query/fits/{start_utc}/{stop_utc}/{product_type}&#39;
-    r = requests.get(url).json()
-    res = []
+    form = {&#39;start_utc&#39;: begin_utc, &#39;end_utc&#39;: end_utc, &#39;type&#39;:product_type, &#39;filter&#39;:str(filter)}
+    url = ENDPOINTS[&#39;FITS&#39;]
+    res=[]
+    r=JSONRequest.post(url, form)
     if isinstance(r, list):
         res = r
     elif &#39;error&#39; in r:
-        print(r[&#39;error&#39;])
+        logger.error(r[&#39;error&#39;])
     return FitsQueryResult(res)</code></pre>
 </details>
 </dd>
@@ -708,13 +863,9 @@ def query(start_utc, stop_utc, product_type=&#39;lc&#39;):
 <dd>
 <div class="desc"><p>Download a file from the link and save the file to a temporary file.
 Downloading progress will be shown in a progress bar</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
-<dd>URL</dd>
-<dt><strong><code>desc</code></strong> :&ensp;<code>str</code></dt>
-<dd>description to be shown on the progress bar</dd>
-</dl>
+<h2 id="parameters">Parameters</h2>
+<p>url (str): URL
+desc (str): description to be shown on the progress bar</p>
 <h2 id="returns">Returns</h2>
 <p>temporary filename</p></div>
 <details class="source">
@@ -726,7 +877,7 @@ def wget(url: str, desc: str, progress_bar=True):
     &#34;&#34;&#34;Download a file from the link and save the file to a temporary file.
        Downloading progress will be shown in a progress bar
 
-    Args:
+    Parameters:
         url (str): URL
         desc (str): description to be shown on the progress bar
 
@@ -737,7 +888,7 @@ def wget(url: str, desc: str, progress_bar=True):
     resp = requests.get(url, stream=stream)
     content_type = resp.headers.get(&#39;content-type&#39;)
     if content_type != &#39;binary/x-fits&#39;:
-        print(&#39;ERROR:&#39;, resp.content)
+        logger.error(resp.content)
         return None
 
     folder = DOWNLOAD_PATH
@@ -750,7 +901,7 @@ def wget(url: str, desc: str, progress_bar=True):
     filename = PurePath(folder, fname)
     file_path = Path(filename)
     if file_path.is_file():
-        print(f&#39;Found the data in local storage. Filename: {filename} ...&#39;)
+        logger.info(f&#39;Found the data in local storage. Filename: {filename} ...&#39;)
         return str(file_path)
     f = open(filename, &#39;wb&#39;)
     chunk_size = 1024
@@ -777,12 +928,15 @@ def wget(url: str, desc: str, progress_bar=True):
 <span>(</span><span>resp)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>FITS query result manager</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FitsQueryResult(object):
+    &#34;&#34;&#34;
+        FITS query result manager 
+    &#34;&#34;&#34;
     def __init__(self, resp):
         self.hdu_objects = []
         self.result = resp
@@ -802,32 +956,61 @@ def wget(url: str, desc: str, progress_bar=True):
 
     def __len__(self):
         return len(self.result)
-
-    def pprint(self):
-        pprint.pprint(self.result)
-
     def to_pandas(self):
+        &#34;&#34;&#34;
+        Convert FitsQueryResult to pandas dataframe
+        Returns:
+            pandas data frame
+        &#34;&#34;&#34;
         return pd.DataFrame(self.result)
 
     def open_fits(self):
+        &#34;&#34;&#34;
+         Open all the FITS files 
+        
+        Returns:
+            hdu_objcts:  list
+                A list of HDU objects
+
+        &#34;&#34;&#34;
         self.hdu_objects = []
         for filename in self.downloaded_fits_files:
             self.hdu_objects.append(fits.open(filename))
         return self.hdu_objects
 
     def fits_info(self):
+        &#34;&#34;&#34;
+        Print out information of the loaded specified FITS files
+        &#34;&#34;&#34;
         for hdu in self.hdu_objects:
-            print(hdu.info())
+            logger.info(hdu.info())
 
     def get_fits_ids(self):
+        &#34;&#34;&#34;
+        Get FITS file IDs
+        Return
+        ids: list
+            FITS file ids
+        &#34;&#34;&#34;
         return [row[&#39;fits_id&#39;] for row in self.result]
 
     def fetch(self):
+        &#34;&#34;&#34;
+        Download fits files from STIX data center
+        FITS files will be stored in the folder download/ in the current directory
+        
+        Returns:
+
+        fits_filenames:  list
+            List of downloaded FITS filenames
+        
+
+        &#34;&#34;&#34;
         if self.result:
             self.downloaded_fits_files = FitsQuery.fetch(self.result)
             return self.downloaded_fits_files
         else:
-            print(&#39;WARNING: Nothing to be downloaded from stix data center!&#39;)</code></pre>
+            logger.warning(&#39;WARNING: Nothing to be downloaded from stix data center!&#39;)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -835,43 +1018,71 @@ def wget(url: str, desc: str, progress_bar=True):
 <span>def <span class="ident">fetch</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Download fits files from STIX data center
+FITS files will be stored in the folder download/ in the current directory</p>
+<p>Returns:</p>
+<p>fits_filenames:
+list
+List of downloaded FITS filenames</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fetch(self):
+    &#34;&#34;&#34;
+    Download fits files from STIX data center
+    FITS files will be stored in the folder download/ in the current directory
+    
+    Returns:
+
+    fits_filenames:  list
+        List of downloaded FITS filenames
+    
+
+    &#34;&#34;&#34;
     if self.result:
         self.downloaded_fits_files = FitsQuery.fetch(self.result)
         return self.downloaded_fits_files
     else:
-        print(&#39;WARNING: Nothing to be downloaded from stix data center!&#39;)</code></pre>
+        logger.warning(&#39;WARNING: Nothing to be downloaded from stix data center!&#39;)</code></pre>
 </details>
 </dd>
 <dt id="stixdcpy.net.FitsQueryResult.fits_info"><code class="name flex">
 <span>def <span class="ident">fits_info</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Print out information of the loaded specified FITS files</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fits_info(self):
+    &#34;&#34;&#34;
+    Print out information of the loaded specified FITS files
+    &#34;&#34;&#34;
     for hdu in self.hdu_objects:
-        print(hdu.info())</code></pre>
+        logger.info(hdu.info())</code></pre>
 </details>
 </dd>
 <dt id="stixdcpy.net.FitsQueryResult.get_fits_ids"><code class="name flex">
 <span>def <span class="ident">get_fits_ids</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get FITS file IDs
+Return
+ids: list
+FITS file ids</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_fits_ids(self):
+    &#34;&#34;&#34;
+    Get FITS file IDs
+    Return
+    ids: list
+        FITS file ids
+    &#34;&#34;&#34;
     return [row[&#39;fits_id&#39;] for row in self.result]</code></pre>
 </details>
 </dd>
@@ -879,41 +1090,49 @@ def wget(url: str, desc: str, progress_bar=True):
 <span>def <span class="ident">open_fits</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Open all the FITS files </p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>hdu_objcts</code></dt>
+<dd>list
+A list of HDU objects</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def open_fits(self):
+    &#34;&#34;&#34;
+     Open all the FITS files 
+    
+    Returns:
+        hdu_objcts:  list
+            A list of HDU objects
+
+    &#34;&#34;&#34;
     self.hdu_objects = []
     for filename in self.downloaded_fits_files:
         self.hdu_objects.append(fits.open(filename))
     return self.hdu_objects</code></pre>
 </details>
 </dd>
-<dt id="stixdcpy.net.FitsQueryResult.pprint"><code class="name flex">
-<span>def <span class="ident">pprint</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pprint(self):
-    pprint.pprint(self.result)</code></pre>
-</details>
-</dd>
 <dt id="stixdcpy.net.FitsQueryResult.to_pandas"><code class="name flex">
 <span>def <span class="ident">to_pandas</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Convert FitsQueryResult to pandas dataframe</p>
+<h2 id="returns">Returns</h2>
+<p>pandas data frame</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_pandas(self):
+    &#34;&#34;&#34;
+    Convert FitsQueryResult to pandas dataframe
+    Returns:
+        pandas data frame
+    &#34;&#34;&#34;
     return pd.DataFrame(self.result)</code></pre>
 </details>
 </dd>
@@ -944,7 +1163,7 @@ def wget(url: str, desc: str, progress_bar=True):
     def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
         &#34;&#34;&#34; Request light curve from STIX data center
 
-        Args:
+        Parameters:
             begin_utc:  str
                 Observation start time
             end_utc: str
@@ -957,14 +1176,14 @@ def wget(url: str, desc: str, progress_bar=True):
 
         &#34;&#34;&#34;
         form = {&#39;begin&#39;: begin_utc, &#39;ltc&#39;: ltc, &#39;end&#39;: end_utc}
-        url = URLS_POST[&#39;LC&#39;]
+        url = ENDPOINTS[&#39;LC&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
     def fetch_housekeeping(begin_utc: str, end_utc: str):
         &#34;&#34;&#34;Fetch housekeeping data from STIX data center
 
-        Args:
+        Parameters:
             begin_utc: Data start time
             end_utc: data end time
 
@@ -984,14 +1203,14 @@ def wget(url: str, desc: str, progress_bar=True):
             &#39;start_unix&#39;: start_unix,
             &#39;duration&#39;: duration,
         }
-        url = URLS_POST[&#39;HK&#39;]
+        url = ENDPOINTS[&#39;HK&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
     def solve_cfl(cfl_counts, cfl_counts_err, fluence, fluence_err):
         &#34;&#34;&#34;compute flare location using the online flare location solver
 
-        Args:
+        Parameters:
             cfl_counts: numpy array or list
                 counts recorded by the 12 CFL pixels
             cfl_counts_err:  numpy array or list
@@ -1005,51 +1224,62 @@ def wget(url: str, desc: str, progress_bar=True):
                 CFL location, ephemeris and the chisquare map
 
         &#34;&#34;&#34;
-        form = {&#39;counts&#39;: cfl_counts, &#39;counts_err&#39;:cfl_counts_err,
-                &#39;fluence&#39;:fluence,&#39;fluence_err&#39;:fluence_err}
-        url = URLS_POST[&#39;CFL_SOLVER&#39;]
+        form = {
+            &#39;counts&#39;: cfl_counts,
+            &#39;counts_err&#39;: cfl_counts_err,
+            &#39;fluence&#39;: fluence,
+            &#39;fluence_err&#39;: fluence_err
+        }
+        url = ENDPOINTS[&#39;CFL_SOLVER&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
     def fetch_elut(utc):
         &#34;&#34;&#34;Download ELUT from STIX data center
-        Args:
+        Parameters:
             utc: Time
         Returns: dict
             object: a diction string containing elut information
         &#34;&#34;&#34;
         form = {&#39;utc&#39;: utc}
-        url = URLS_POST[&#39;ELUT&#39;]
+        url = ENDPOINTS[&#39;ELUT&#39;]
         return JSONRequest.post(url, form)
 
     @staticmethod
-    def request_ephemeris(start_utc: str, end_utc: str, steps=1):
-        return JSONRequest.post(URLS_POST[&#39;EPHEMERIS&#39;], {
-            &#39;start_utc&#39;: start_utc,
+    def request_ephemeris(begin_utc: str, end_utc: str, steps=1):
+        return JSONRequest.post(ENDPOINTS[&#39;EPHEMERIS&#39;], {
+            &#39;start_utc&#39;: begin_utc,
             &#39;end_utc&#39;: end_utc,
             &#39;steps&#39;: steps
         })
+
     @staticmethod
     def request_pointing(utc: str):
-        return JSONRequest.post(URLS_POST[&#39;STIX_POINTING&#39;], {
+        return JSONRequest.post(ENDPOINTS[&#39;STIX_POINTING&#39;], {
             &#39;utc&#39;: utc,
         })
+
     @staticmethod
-    def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame=&#39;SOLO_SRF&#39;, ref_frame=&#39;SOLO_SUN_RTN&#39;):
-        form={
-            &#39;start_utc&#39;: start_utc,
+    def request_attitude(begin_utc: str,
+                         end_utc: str,
+                         steps=1,
+                         instrument_frame=&#39;SOLO_SRF&#39;,
+                         ref_frame=&#39;SOLO_SUN_RTN&#39;):
+        form = {
+            &#39;start_utc&#39;: begin_utc,
             &#39;end_utc&#39;: end_utc,
             &#39;steps&#39;: steps,
-            &#39;frame1&#39;:instrument_frame,
-            &#39;frame2&#39;:ref_frame
+            &#39;frame1&#39;: instrument_frame,
+            &#39;frame2&#39;: ref_frame
         }
-        ret=JSONRequest.post(URLS_POST[&#39;ATTITUDE&#39;], form)
+        ret = JSONRequest.post(ENDPOINTS[&#39;ATTITUDE&#39;], form)
         return ret
+
     @staticmethod
     def fetch_science_data(_id: int):
         &#34;&#34;&#34;fetch science data from stix data center
 
-        Args:
+        Parameters:
             _id: int
                 science data unique ID, which can be found on STIX data center bulk science data web page
 
@@ -1059,16 +1289,17 @@ def wget(url: str, desc: str, progress_bar=True):
                 science data received from data center if success or None if failed
 
         &#34;&#34;&#34;
-        return JSONRequest.post(URLS_POST[&#39;SCIENCE&#39;], {
+        return JSONRequest.post(ENDPOINTS[&#39;SCIENCE&#39;], {
             &#39;id&#39;: _id,
         })
 
     @staticmethod
-    def fetch_flare_list(start_utc: str, end_utc: str, sort: str = &#39;time&#39;):
+    def fetch_flare_list(begin_utc: str, end_utc: str, sort: str = &#39;time&#39;):
         &#34;&#34;&#34; query and download flare list from stix data center
 
-        Args:
-            start_utc: str
+        Parameters:
+        ------
+            begin_utc: str
                 flare start UTC
             end_utc: str
                 flare end UTC
@@ -1077,12 +1308,13 @@ def wget(url: str, desc: str, progress_bar=True):
 
 
         Returns:
+        -----
             flare_list: dict or None
                 flare list if success or None if failed.
 
         &#34;&#34;&#34;
-        return JSONRequest.post(URLS_POST[&#39;FLARE_LIST&#39;], {
-            &#39;start_utc&#39;: start_utc,
+        return JSONRequest.post(ENDPOINTS[&#39;FLARE_LIST&#39;], {
+            &#39;start_utc&#39;: begin_utc,
             &#39;end_utc&#39;: end_utc,
             &#39;sort&#39;: sort
         })</code></pre>
@@ -1094,12 +1326,9 @@ def wget(url: str, desc: str, progress_bar=True):
 </code></dt>
 <dd>
 <div class="desc"><p>Download ELUT from STIX data center</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>utc</code></strong></dt>
-<dd>Time</dd>
-</dl>
-<p>Returns: dict
+<h2 id="parameters">Parameters</h2>
+<p>utc: Time
+Returns: dict
 object: a diction string containing elut information</p></div>
 <details class="source">
 <summary>
@@ -1108,49 +1337,44 @@ object: a diction string containing elut information</p></div>
 <pre><code class="python">@staticmethod
 def fetch_elut(utc):
     &#34;&#34;&#34;Download ELUT from STIX data center
-    Args:
+    Parameters:
         utc: Time
     Returns: dict
         object: a diction string containing elut information
     &#34;&#34;&#34;
     form = {&#39;utc&#39;: utc}
-    url = URLS_POST[&#39;ELUT&#39;]
+    url = ENDPOINTS[&#39;ELUT&#39;]
     return JSONRequest.post(url, form)</code></pre>
 </details>
 </dd>
 <dt id="stixdcpy.net.JSONRequest.fetch_flare_list"><code class="name flex">
-<span>def <span class="ident">fetch_flare_list</span></span>(<span>start_utc: str, end_utc: str, sort: str = 'time')</span>
+<span>def <span class="ident">fetch_flare_list</span></span>(<span>begin_utc: str, end_utc: str, sort: str = 'time')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>query and download flare list from stix data center</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>start_utc</code></strong></dt>
-<dd>str
-flare start UTC</dd>
-<dt><strong><code>end_utc</code></strong></dt>
-<dd>str
-flare end UTC</dd>
-<dt><strong><code>sort</code></strong></dt>
-<dd>str
-key to sort flares. It can be one of ['goes','time', 'LC0','LC1','LC2','LC3','LC4], LCi here means the i-th QL light curve</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>flare_list</code></dt>
-<dd>dict or None
-flare list if success or None if failed.</dd>
-</dl></div>
+<h2 id="parameters">Parameters:</h2>
+<pre><code>begin_utc: str
+    flare start UTC
+end_utc: str
+    flare end UTC
+sort: str
+    key to sort flares. It can be one of ['goes','time', 'LC0','LC1','LC2','LC3','LC4], LCi here means the i-th QL light curve
+</code></pre>
+<h2 id="returns">Returns:</h2>
+<pre><code>flare_list: dict or None
+    flare list if success or None if failed.
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def fetch_flare_list(start_utc: str, end_utc: str, sort: str = &#39;time&#39;):
+def fetch_flare_list(begin_utc: str, end_utc: str, sort: str = &#39;time&#39;):
     &#34;&#34;&#34; query and download flare list from stix data center
 
-    Args:
-        start_utc: str
+    Parameters:
+    ------
+        begin_utc: str
             flare start UTC
         end_utc: str
             flare end UTC
@@ -1159,12 +1383,13 @@ def fetch_flare_list(start_utc: str, end_utc: str, sort: str = &#39;time&#39;):
 
 
     Returns:
+    -----
         flare_list: dict or None
             flare list if success or None if failed.
 
     &#34;&#34;&#34;
-    return JSONRequest.post(URLS_POST[&#39;FLARE_LIST&#39;], {
-        &#39;start_utc&#39;: start_utc,
+    return JSONRequest.post(ENDPOINTS[&#39;FLARE_LIST&#39;], {
+        &#39;start_utc&#39;: begin_utc,
         &#39;end_utc&#39;: end_utc,
         &#39;sort&#39;: sort
     })</code></pre>
@@ -1175,13 +1400,9 @@ def fetch_flare_list(start_utc: str, end_utc: str, sort: str = &#39;time&#39;):
 </code></dt>
 <dd>
 <div class="desc"><p>Fetch housekeeping data from STIX data center</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>begin_utc</code></strong></dt>
-<dd>Data start time</dd>
-<dt><strong><code>end_utc</code></strong></dt>
-<dd>data end time</dd>
-</dl>
+<h2 id="parameters">Parameters</h2>
+<p>begin_utc: Data start time
+end_utc: data end time</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>result</code></dt>
@@ -1196,7 +1417,7 @@ def fetch_flare_list(start_utc: str, end_utc: str, sort: str = &#39;time&#39;):
 def fetch_housekeeping(begin_utc: str, end_utc: str):
     &#34;&#34;&#34;Fetch housekeeping data from STIX data center
 
-    Args:
+    Parameters:
         begin_utc: Data start time
         end_utc: data end time
 
@@ -1216,7 +1437,7 @@ def fetch_housekeeping(begin_utc: str, end_utc: str):
         &#39;start_unix&#39;: start_unix,
         &#39;duration&#39;: duration,
     }
-    url = URLS_POST[&#39;HK&#39;]
+    url = ENDPOINTS[&#39;HK&#39;]
     return JSONRequest.post(url, form)</code></pre>
 </details>
 </dd>
@@ -1225,19 +1446,15 @@ def fetch_housekeeping(begin_utc: str, end_utc: str):
 </code></dt>
 <dd>
 <div class="desc"><p>Request light curve from STIX data center</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>begin_utc</code></strong></dt>
-<dd>str
-Observation start time</dd>
-<dt><strong><code>end_utc</code></strong></dt>
-<dd>str
-Observation end time</dd>
-<dt><strong><code>ltc</code></strong></dt>
-<dd>bool, optional
+<h2 id="parameters">Parameters</h2>
+<p>begin_utc:
+str
+Observation start time
+end_utc: str
+Observation end time
+ltc: bool, optional
 Light time correction enabling flag.
-Do light time correction if True</dd>
-</dl>
+Do light time correction if True</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>lightcurve</code></dt>
@@ -1252,7 +1469,7 @@ A python dictionary containing light curve data</dd>
 def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
     &#34;&#34;&#34; Request light curve from STIX data center
 
-    Args:
+    Parameters:
         begin_utc:  str
             Observation start time
         end_utc: str
@@ -1265,7 +1482,7 @@ def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
 
     &#34;&#34;&#34;
     form = {&#39;begin&#39;: begin_utc, &#39;ltc&#39;: ltc, &#39;end&#39;: end_utc}
-    url = URLS_POST[&#39;LC&#39;]
+    url = ENDPOINTS[&#39;LC&#39;]
     return JSONRequest.post(url, form)</code></pre>
 </details>
 </dd>
@@ -1274,12 +1491,9 @@ def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
 </code></dt>
 <dd>
 <div class="desc"><p>fetch science data from stix data center</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>_id</code></strong></dt>
-<dd>int
-science data unique ID, which can be found on STIX data center bulk science data web page</dd>
-</dl>
+<h2 id="parameters">Parameters</h2>
+<p>_id: int
+science data unique ID, which can be found on STIX data center bulk science data web page</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>science_data</code></dt>
@@ -1294,7 +1508,7 @@ science data received from data center if success or None if failed</dd>
 def fetch_science_data(_id: int):
     &#34;&#34;&#34;fetch science data from stix data center
 
-    Args:
+    Parameters:
         _id: int
             science data unique ID, which can be found on STIX data center bulk science data web page
 
@@ -1304,7 +1518,7 @@ def fetch_science_data(_id: int):
             science data received from data center if success or None if failed
 
     &#34;&#34;&#34;
-    return JSONRequest.post(URLS_POST[&#39;SCIENCE&#39;], {
+    return JSONRequest.post(ENDPOINTS[&#39;SCIENCE&#39;], {
         &#39;id&#39;: _id,
     })</code></pre>
 </details>
@@ -1330,7 +1544,7 @@ def post(url, form):
 </details>
 </dd>
 <dt id="stixdcpy.net.JSONRequest.request_attitude"><code class="name flex">
-<span>def <span class="ident">request_attitude</span></span>(<span>start_utc: str, end_utc: str, steps=1, instrument_frame='SOLO_SRF', ref_frame='SOLO_SUN_RTN')</span>
+<span>def <span class="ident">request_attitude</span></span>(<span>begin_utc: str, end_utc: str, steps=1, instrument_frame='SOLO_SRF', ref_frame='SOLO_SUN_RTN')</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1339,20 +1553,24 @@ def post(url, form):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame=&#39;SOLO_SRF&#39;, ref_frame=&#39;SOLO_SUN_RTN&#39;):
-    form={
-        &#39;start_utc&#39;: start_utc,
+def request_attitude(begin_utc: str,
+                     end_utc: str,
+                     steps=1,
+                     instrument_frame=&#39;SOLO_SRF&#39;,
+                     ref_frame=&#39;SOLO_SUN_RTN&#39;):
+    form = {
+        &#39;start_utc&#39;: begin_utc,
         &#39;end_utc&#39;: end_utc,
         &#39;steps&#39;: steps,
-        &#39;frame1&#39;:instrument_frame,
-        &#39;frame2&#39;:ref_frame
+        &#39;frame1&#39;: instrument_frame,
+        &#39;frame2&#39;: ref_frame
     }
-    ret=JSONRequest.post(URLS_POST[&#39;ATTITUDE&#39;], form)
+    ret = JSONRequest.post(ENDPOINTS[&#39;ATTITUDE&#39;], form)
     return ret</code></pre>
 </details>
 </dd>
 <dt id="stixdcpy.net.JSONRequest.request_ephemeris"><code class="name flex">
-<span>def <span class="ident">request_ephemeris</span></span>(<span>start_utc: str, end_utc: str, steps=1)</span>
+<span>def <span class="ident">request_ephemeris</span></span>(<span>begin_utc: str, end_utc: str, steps=1)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1361,9 +1579,9 @@ def request_attitude(start_utc: str, end_utc: str,  steps=1, instrument_frame=&#
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def request_ephemeris(start_utc: str, end_utc: str, steps=1):
-    return JSONRequest.post(URLS_POST[&#39;EPHEMERIS&#39;], {
-        &#39;start_utc&#39;: start_utc,
+def request_ephemeris(begin_utc: str, end_utc: str, steps=1):
+    return JSONRequest.post(ENDPOINTS[&#39;EPHEMERIS&#39;], {
+        &#39;start_utc&#39;: begin_utc,
         &#39;end_utc&#39;: end_utc,
         &#39;steps&#39;: steps
     })</code></pre>
@@ -1380,7 +1598,7 @@ def request_ephemeris(start_utc: str, end_utc: str, steps=1):
 </summary>
 <pre><code class="python">@staticmethod
 def request_pointing(utc: str):
-    return JSONRequest.post(URLS_POST[&#39;STIX_POINTING&#39;], {
+    return JSONRequest.post(ENDPOINTS[&#39;STIX_POINTING&#39;], {
         &#39;utc&#39;: utc,
     })</code></pre>
 </details>
@@ -1390,24 +1608,19 @@ def request_pointing(utc: str):
 </code></dt>
 <dd>
 <div class="desc"><p>compute flare location using the online flare location solver</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>cfl_counts</code></strong></dt>
-<dd>numpy array or list
-counts recorded by the 12 CFL pixels</dd>
-<dt><strong><code>cfl_counts_err</code></strong></dt>
-<dd>numpy array or list
+<h2 id="parameters">Parameters</h2>
+<p>cfl_counts: numpy array or list
+counts recorded by the 12 CFL pixels
+cfl_counts_err:
+numpy array or list
 standard deviations of
-the counts recorded by the 12 CFL pixels</dd>
-<dt><strong><code>fluence</code></strong></dt>
-<dd>float
+the counts recorded by the 12 CFL pixels
+fluence: float
 X-ray fluence in units of
 counts/mm2,
-calculated using counts recorded by other detectors</dd>
-<dt><strong><code>fluence_err</code></strong></dt>
-<dd>float
-Errors in fluence in counts/mm2 units</dd>
-</dl>
+calculated using counts recorded by other detectors
+fluence_err: float
+Errors in fluence in counts/mm2 units</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>location</code></dt>
@@ -1422,7 +1635,7 @@ CFL location, ephemeris and the chisquare map</dd>
 def solve_cfl(cfl_counts, cfl_counts_err, fluence, fluence_err):
     &#34;&#34;&#34;compute flare location using the online flare location solver
 
-    Args:
+    Parameters:
         cfl_counts: numpy array or list
             counts recorded by the 12 CFL pixels
         cfl_counts_err:  numpy array or list
@@ -1436,9 +1649,13 @@ def solve_cfl(cfl_counts, cfl_counts_err, fluence, fluence_err):
             CFL location, ephemeris and the chisquare map
 
     &#34;&#34;&#34;
-    form = {&#39;counts&#39;: cfl_counts, &#39;counts_err&#39;:cfl_counts_err,
-            &#39;fluence&#39;:fluence,&#39;fluence_err&#39;:fluence_err}
-    url = URLS_POST[&#39;CFL_SOLVER&#39;]
+    form = {
+        &#39;counts&#39;: cfl_counts,
+        &#39;counts_err&#39;: cfl_counts_err,
+        &#39;fluence&#39;: fluence,
+        &#39;fluence_err&#39;: fluence_err
+    }
+    url = ENDPOINTS[&#39;CFL_SOLVER&#39;]
     return JSONRequest.post(url, form)</code></pre>
 </details>
 </dd>
@@ -1473,12 +1690,11 @@ def solve_cfl(cfl_counts, cfl_counts_err, fluence, fluence_err):
 </li>
 <li>
 <h4><code><a title="stixdcpy.net.FitsQueryResult" href="#stixdcpy.net.FitsQueryResult">FitsQueryResult</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="stixdcpy.net.FitsQueryResult.fetch" href="#stixdcpy.net.FitsQueryResult.fetch">fetch</a></code></li>
 <li><code><a title="stixdcpy.net.FitsQueryResult.fits_info" href="#stixdcpy.net.FitsQueryResult.fits_info">fits_info</a></code></li>
 <li><code><a title="stixdcpy.net.FitsQueryResult.get_fits_ids" href="#stixdcpy.net.FitsQueryResult.get_fits_ids">get_fits_ids</a></code></li>
 <li><code><a title="stixdcpy.net.FitsQueryResult.open_fits" href="#stixdcpy.net.FitsQueryResult.open_fits">open_fits</a></code></li>
-<li><code><a title="stixdcpy.net.FitsQueryResult.pprint" href="#stixdcpy.net.FitsQueryResult.pprint">pprint</a></code></li>
 <li><code><a title="stixdcpy.net.FitsQueryResult.to_pandas" href="#stixdcpy.net.FitsQueryResult.to_pandas">to_pandas</a></code></li>
 </ul>
 </li>
