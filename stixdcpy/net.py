@@ -7,6 +7,7 @@
 """
 
 import hashlib
+import simplejson
 import numpy as np
 import pandas as pd
 import pprint
@@ -308,7 +309,11 @@ class JSONRequest(object):
     @staticmethod
     def post(url, form):
         response = requests.post(url, data=form)
-        data = response.json()
+        try:
+            data = response.json()
+        except simplejson.errors.JSONDecodeError:
+            logger.error("An error occurred on the server side. Please contact us.")
+            return None
         if 'error' in data:
             logger.error(data['error'])
             return None
