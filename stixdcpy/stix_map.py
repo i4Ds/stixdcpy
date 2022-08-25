@@ -26,8 +26,8 @@ def plot(stix_map, fig=None, ax=None, grid=111, title='', descr='',
 
     Parameters
     -----------------------------
-        stix_map:  sunpy.map
-            stix image loaded into sunpy.map
+        stix_map:  sunpy.map or image filename
+            stix image loaded into sunpy.map or image filename
         fig: matplot figure, optional
             figure to plot the image on, if none creates a new figure
         ax:  (matplotlib.axes.Axes)
@@ -54,6 +54,10 @@ def plot(stix_map, fig=None, ax=None, grid=111, title='', descr='',
         ax: matplotlib axe
 
     """
+    if isinstance(stix_map, str):
+        stix_map=sunpy.map.Map(stix_map)
+    elif not isinstance(stix_map, sunpy.map.mapbase.GenericMap):
+        raise TypeError('Invalid image type')
     if not fig:
         fig=plt.figure()
     if not ax:
@@ -111,13 +115,13 @@ def set_range(ax, m, boundbox):
     ax.set_ylim(ylims_pixel)
     ax.set_aspect('equal')
 
-def animate(filenames, fig=None, plot=True):
+def animate(filenames, fig=None, interval=500):
     seq = sunpy.map.Map(filenames, sequence=True, sortby='date')
     ims=[]
     fig=plt.figure() if fig is None else fig
     ax = fig.add_subplot(111, projection=seq[0])
-    fc=ax.get_facecolor()
     plot(seq[0], fig, ax, title=seq[0].meta['date-obs'])
+    fc=ax.get_facecolor()
 
 
     xylims=[get_range(s)  for s in seq]
@@ -135,7 +139,6 @@ def animate(filenames, fig=None, plot=True):
         set_range(ax, m, xylim)
         return m
       
-    ani = FuncAnimation(fig, update, frames=len(seq), interval=500)
-    if plot:
-        plt.show()
+    ani = FuncAnimation(fig, update, frames=len(seq), interval=interval)
+    return ani
         

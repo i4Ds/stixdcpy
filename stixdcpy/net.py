@@ -198,7 +198,7 @@ class FitsQuery(object):
         return name
 
     @staticmethod
-    def query(begin_utc, end_utc, product_type='lc', filter=None, path='.'):
+    def query(begin_utc, end_utc, product_type='lc', level='L1A', filter=None, path='.'):
         """Query FITS products from STIX data center
 
         Args:
@@ -220,6 +220,7 @@ class FitsQuery(object):
             'start_utc': begin_utc,
             'end_utc': end_utc,
             'product_type': product_type,
+            'level': level,
             'filter': str(filter)
         }
         url = ENDPOINTS['FITS']
