@@ -1,4 +1,4 @@
-# What is stixdcpy
+# stixdcpy
 stixdcpy is a python package that facilitates access and analysis of STIX data. It provides APIs to query and download data from STIX data center (https://datacenter.stix.i4ds.net/) and s a set of tools for visualizing data and performing common analysis tasks.  With stixdcpy, users can query and download the following types of data from STIX data center:
 
 - Quick-look light curves
