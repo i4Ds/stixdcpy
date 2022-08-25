@@ -38,10 +38,6 @@ ENDPOINTS = {
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl'
 }
 
-FITS_TYPES = {
-    'l0', 'l1', 'l2', 'l3', 'spec', 'qlspec', 'asp', 'aspect', 'lc', 'bkg',
-    'var', 'ffl', 'cal', 'hkmin', 'hkmax'
-}
 
 
 class FitsQueryResult(object):
@@ -212,10 +208,6 @@ class FitsQuery(object):
             results: FitsQueryResult
                 file result object
         """
-        if product_type not in FITS_TYPES:
-            raise TypeError(
-                f'Invalid product type! product_type can be one of {str(FITS_TYPES)}'
-            )
         form = {
             'start_utc': begin_utc,
             'end_utc': end_utc,
