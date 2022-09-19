@@ -4,7 +4,6 @@
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
 """
-import datetime
 import numpy as np
 from astropy.io import fits
 from matplotlib import pyplot as plt
@@ -12,12 +11,15 @@ from stixdcpy import time as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import FitsQuery as freq
+from stixdcpy import net as net
 from stixdcpy import instrument as inst
 from pathlib import PurePath
 
 
+BETA = 0.94
 FPGA_TAU = 10.1e-6
 ASIC_TAU = 2.63e-6
+TRIG_TAU = FPGA_TAU + ASIC_TAU
 DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
                    [8, 9], [3, 4], [31, 32], [26, 27], [22, 28], [20, 21],
                    [18, 19], [17, 23], [24, 25], [29, 30]]
@@ -74,6 +76,7 @@ class ScienceData(sio.IO):
         self.time_shift_applied = 0
         self.hdul = fits.open(fname)
         self.energies = []
+        self.corrected = None
         #self.read_data()
     @property
     def url(self):
@@ -81,6 +84,10 @@ class ScienceData(sio.IO):
             self.request_id, list) else self.request_id[0]
         link = f'{net.HOST}/view/list/bsd/uid/{req_id}'
         return f'<a href="{link}">{link}</a>'
+
+    @property
+    def trigger_error(self):
+        return error_computation(self.hdul['data'].data['triggers_err'], self.triggers)
 
     def read_fits(self, light_time_correction=True):
         """
@@ -137,6 +144,7 @@ class ScienceData(sio.IO):
             for a, b in zip(self.energies['e_low'], self.energies['e_high'])
         ]
         self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
+        self.inverse_energy_bin_mask = 1 - self.energy_bin_mask
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
         self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
@@ -174,7 +182,7 @@ class ScienceData(sio.IO):
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
     @classmethod
-    def from_sdc(cls, request_id, ltc=False):
+    def from_sdc(cls, request_id):
         '''
         download science data file from stix data center
         Parameters
@@ -189,7 +197,7 @@ class ScienceData(sio.IO):
         '''
         request_id = request_id
         fname = freq.fetch_bulk_science_by_request_id(request_id)
-        return cls(fname, request_id, ltc)
+        return cls(fname, request_id)
 
     @classmethod
     def from_fits(cls, filename):
@@ -284,6 +292,9 @@ class ScienceL1(ScienceData):
 
         self.pixel_total_counts = np.sum(self.pixel_counts, axis=(0, 3))
 
+    @property
+    def pixel_counts_error(self):
+        return error_computation(self.hdul['data'].data['counts_err'], self.pixel_counts)
 
     def correct_dead_time(self):
         """ dead time correction
@@ -312,16 +323,10 @@ class ScienceL1(ScienceData):
                 corrected count rate
             photons_in:
                 rate of photons illuminating the detector group
-
             """
 
-            fpga_tau = 10.1e-6
-            asic_tau = 2.63e-6
-            beta= 0.94
-            trig_tau = fpga_tau + asic_tau
-
             time_bins = time_bins[:, None]
-            photons_in = triggers / (time_bins - trig_tau * triggers)
+            photons_in = triggers / (time_bins - TRIG_TAU * triggers)
             #photon rate calculated using triggers
 
             live_ratio= np.zeros((time_bins.size, 32))
@@ -333,10 +338,23 @@ class ScienceL1(ScienceData):
                 trig_idx = inst.detector_id_to_trigger_index(det)
                 nin = photons_in[:, trig_idx]
                 live_ratio[:, det] = np.exp(
-                    -beta* nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
-            corrected_rate=count_rate/live_ratio[:, :, None, None]
-            return  {'corrected_rates': corrected_rate, 'count_rate': count_rate, 'photons_in': photons_in, 'live_ratio':live_ratio}
-        self.corrected=correct(self.triggers, self.pixel_counts, self.timedel)
+                    -BETA * nin * ASIC_TAU * 1e-6) / (1 + nin * TRIG_TAU)
+            corrected_rate=count_rate / live_ratio[:, :, None, None]
+            return  {
+                'corrected_rates': corrected_rate,
+                'count_rate': count_rate,
+                'photons_in': photons_in,
+                'live_ratio':live_ratio
+            }
+
+        self.corrected = correct(self.triggers, self.pixel_counts, self.timedel)
+
+        # approximate the live ratio error like Ewan does
+        above = correct(
+            self.triggers + self.trigger_error, self.pixel_counts, self.timedel)
+        below = correct(
+            self.triggers - self.trigger_error, self.pixel_counts, self.timedel)
+        self.corrected['live_error'] = np.abs(above['live_ratio'] - below['live_ratio']) / 2
         return self.corrected
 
 
@@ -456,8 +474,8 @@ class BackgroundSubtraction(object):
             for int_time in self.l1sig.timedel
         ])
         # set counts beyond the signal energy range to 0
-        self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts
-                                  ) * self.l1sig.inverse_energy_bin_mask
+        self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts)
+        self.subtracted_counts *= self.l1sig.inverse_energy_bin_mask
 
         # Dead time correction needs to be included in the future
         self.subtracted_counts_err = np.sqrt(
@@ -468,8 +486,8 @@ class BackgroundSubtraction(object):
 
     def peek(self):
         fig, axs = plt.subplots(2, 2)
-        self.l1sig.peek(axs[0, 0])
-        self.l1bkg.peek(axs[0, 1])
+        self.l1sig.peek(ax0=axs[0, 0])
+        self.l1bkg.peek(ax0=axs[0, 1])
         X, Y = np.meshgrid(self.l1sig.time,
                            np.arange(self.l1sig.min_ebin, self.l1sig.max_ebin))
         im = axs[1, 0].pcolormesh(
@@ -534,10 +552,12 @@ class Spectrogram(ScienceData):
     def __init__(self, fname, request_id, ltc=False):
         super().__init__(fname,request_id)
         self.data_type = 'Spectrogram'
-
         self.read_fits(light_time_correction=ltc)
-
         self.spectrum = np.sum(self.counts, axis=0)
+
+    @property
+    def counts_error(self):
+        return error_computation(self.hdul['data'].data['counts_err'], self.counts)
 
     def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
@@ -587,5 +607,52 @@ class Spectrogram(ScienceData):
         plt.tight_layout()
         return fig, ((ax0, ax1), (ax2, ax3))
 
+    def correct_dead_time(self) -> dict:
+        """ dead time correction
+            returns dict, where
+                count_rate --> counts / timedel
+                corrected_rate --> count_rate / live_time_ratios
+                photons_in --> estimate of photons incident on detector, calculated from triggers
+                live_ratio --> livetime at each time bin
+                live_error --> estimate of error on live_ratio
+        """
+        def correct(triggers, counts_arr, time_bins,  num_detectors):
+            ''' correct dead time using triggers '''
+            tau_conv_const = 1e-6
+            BETA = 0.94
 
+            photons_in = triggers / (time_bins * num_detectors - TRIG_TAU * triggers)
+            # photon rate approximated using triggers
 
+            count_rate = counts_arr / time_bins[:, None]
+            nin = photons_in
+
+            live_ratio = np.exp(-BETA * nin * ASIC_TAU * tau_conv_const)
+            live_ratio /= (1 + nin * TRIG_TAU)
+            corrected_rate = count_rate / live_ratio[:, None]
+            return  {
+                'corrected_rate': corrected_rate,
+                'count_rate': count_rate,
+                'photons_in': photons_in,
+                'live_ratio': live_ratio
+            }
+
+        num_detectors = self.hdul[1].data['detector_mask'].sum()
+        self.corrected = correct(self.triggers, self.counts, self.timedel, num_detectors)
+
+        # approximate the live ratio error like Ewan does
+        above = correct(
+            self.triggers + self.trigger_error, self.counts, self.timedel, num_detectors)
+        below = correct(
+            self.triggers - self.trigger_error, self.counts, self.timedel, num_detectors)
+        self.corrected['live_error'] = np.abs(above['live_ratio'] - below['live_ratio']) / 2
+
+        return self.corrected
+
+def error_computation(given_error: np.ndarray, quantity: np.ndarray) -> np.ndarray:
+        ''' combine the error from the FITS and Poisson as in IDL '''
+        # try/except handles time bin shift
+        try:
+            return np.sqrt(given_error**2 + quantity)
+        except ValueError:
+            return np.sqrt(given_error[1:]**2 + quantity)
