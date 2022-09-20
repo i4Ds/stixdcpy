@@ -335,7 +335,8 @@ class ScienceL1(ScienceData):
                 live_ratio[:, det] = np.exp(
                     -beta* nin * asic_tau * 1e-6) / (1 + nin * trig_tau)
             corrected_rate=count_rate/live_ratio[:, :, None, None]
-            return  {'corrected_rates': corrected_rate, 'count_rate': count_rate, 'photons_in': photons_in, 'live_ratio':live_ratio}
+            return  {'corrected_rates': corrected_rate, 
+                    'count_rate': count_rate, 'photons_in': photons_in, 'live_ratio':live_ratio}
         self.corrected=correct(self.triggers, self.pixel_counts, self.timedel)
         return self.corrected
 
