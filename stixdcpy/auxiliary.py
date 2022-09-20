@@ -117,7 +117,7 @@ class Ephemeris(sio.IO):
         return ax
 
 
-class STIXPointing(Ephemeris):
+class Pointing(Ephemeris):
     def __init__(self, utc, data):
         self.utc = utc
         self.data = data
