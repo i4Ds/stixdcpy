@@ -1,8 +1,5 @@
 #!/usr/bin/python
 """
-    This script provides APIs to retrieve energy  calibration data from STIX data center  ,and some tools to display the data
-    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
-    Date: Sep. 1, 2021
 
 """
 from pprint import pprint

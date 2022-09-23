@@ -1,10 +1,4 @@
 #!/usr/bin/python
-"""
-    This module provides APIs to retrieve Quick-look data from STIX data center  ,and some tools to display the data
-    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
-    Date: Sep. 1, 2021
-
-"""
 import numpy as np
 import pandas as pd
 from matplotlib import patches

@@ -1,7 +1,4 @@
 #!/usr/bin/python3
-#create STIX detector view plot
-# Author: Hualin Xiao
-# date: Dec 17, 2021
 import numpy as np
 from matplotlib import pyplot as plt
 
