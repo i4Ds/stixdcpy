@@ -1,8 +1,6 @@
 #!/usr/bin/python
 """
     This module provides APIs to retrieve Housekeeping data from STIX data center  ,and some tools to display the data
-    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
-    Date: Sep. 1, 2021
 
 """
 import pandas as pd

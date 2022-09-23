@@ -4,15 +4,7 @@ import numpy as np
 import pandas as pd
 
 from stixdcpy.logger import logger
-'''
-    Methods in this module allow to save/load  objects to/from  npy  files
-
-    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
-    Date: Sep. 1, 2021
-
-'''
 ALLOWED_EXTENSIONS = ['.pickle', '.npy', '.h5', '.fits']
-
 
 class IO(object):
     """
