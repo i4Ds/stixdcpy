@@ -714,9 +714,13 @@ def open_spec_fits(filename):
         energy = hdul[3].copy() if hdul[3].name == 'ENERGIES' else hdul[4].copy()
     return primary_header, control, data, energy
        
-def fits_time_to_datetime(primary_header, data_table, factor = 1):
+def fits_time_to_datetime(*args, factor = 1):
     """Convert times as stored in FITS files into datetimes
-    Inputs:
+    Inputs (either the filename or the header and data table are accepted):
+    
+    fitsfilename : str
+        The FITS file whose times to convert
+    
     primary_header : astropy.io.fits.primary_HDU.header
         The header to be modified
         
@@ -729,6 +733,11 @@ def fits_time_to_datetime(primary_header, data_table, factor = 1):
     Returns:
         spectime: astropy.time.Time
     """
+    if isinstance(args[0], str):
+        primary_header, _, data, _ = open_spec_fits(args[0])
+        data_table = data.data
+    else:
+        primary_header, data_table = args
     time_bin_center=data_table['time']
     duration = data_table['timedel']
     start_time = dt.strptime(primary_header['DATE_BEG'],"%Y-%m-%dT%H:%M:%S.%f")
