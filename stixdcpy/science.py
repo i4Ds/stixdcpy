@@ -19,51 +19,11 @@ from pathlib import PurePath
 from datetime import datetime as dt
 from datetime import timedelta as td
 
-
 BETA = 0.94
 FPGA_TAU = 10.1e-6
 ASIC_TAU = 2.63e-6
 TRIG_TAU = FPGA_TAU + ASIC_TAU
-DETECTOR_GROUPS = [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16],
-                   [8, 9], [3, 4], [31, 32], [26, 27], [22, 28], [20, 21],
-                   [18, 19], [17, 23], [24, 25], [29, 30]]
-DET_SIBLINGS = {
-    0: 1,
-    1: 0,
-    5: 6,
-    6: 5,
-    4: 10,
-    10: 4,
-    11: 12,
-    12: 11,
-    13: 14,
-    14: 13,
-    9: 15,
-    15: 9,
-    7: 8,
-    8: 7,
-    2: 3,
-    3: 2,
-    30: 31,
-    31: 30,
-    25: 26,
-    26: 25,
-    21: 27,
-    27: 21,
-    19: 20,
-    20: 19,
-    17: 18,
-    18: 17,
-    16: 22,
-    22: 16,
-    23: 24,
-    24: 23,
-    28: 29,
-    29: 28
-}
-
-# detector sibling index
-
+#STIX detector parameters
 
 
 class ScienceData(sio.IO):
@@ -71,6 +31,7 @@ class ScienceData(sio.IO):
       Retrieve science data from stix data center or load fits file from local storage
 
     """
+
     def __init__(self, fname=None, request_id=None):
         self.fname = fname
         self.data_type = None
@@ -91,7 +52,8 @@ class ScienceData(sio.IO):
 
     @property
     def trigger_error(self):
-        return error_computation(self.hdul['data'].data['triggers_err'], self.triggers)
+        return error_computation(self.hdul['data'].data['triggers_err'],
+                                 self.triggers)
 
     def read_fits(self, light_time_correction=True):
         """
@@ -272,6 +234,7 @@ class ScienceL1(ScienceData):
     """
     Tools to analyze L1 science data
     """
+
     def __init__(self, fname, request_id, ltc=False):
         super().__init__(fname, request_id)
         self.data_type = 'ScienceL1'
@@ -298,7 +261,8 @@ class ScienceL1(ScienceData):
 
     @property
     def pixel_counts_error(self):
-        return error_computation(self.hdul['data'].data['counts_err'], self.pixel_counts)
+        return error_computation(self.hdul['data'].data['counts_err'],
+                                 self.pixel_counts)
 
     def correct_dead_time(self):
         """ dead time correction
@@ -333,7 +297,7 @@ class ScienceL1(ScienceData):
             photons_in = triggers / (time_bins - TRIG_TAU * triggers)
             #photon rate calculated using triggers
 
-            live_ratio= np.zeros((time_bins.size, 32))
+            live_ratio = np.zeros((time_bins.size, 32))
             time_bins = time_bins[:, :, None, None]
 
             count_rate = counts_arr / time_bins
@@ -343,25 +307,25 @@ class ScienceL1(ScienceData):
                 nin = photons_in[:, trig_idx]
                 live_ratio[:, det] = np.exp(
                     -BETA * nin * ASIC_TAU * 1e-6) / (1 + nin * TRIG_TAU)
-            corrected_rate=count_rate / live_ratio[:, :, None, None]
-            return  {
+            corrected_rate = count_rate / live_ratio[:, :, None, None]
+            return {
                 'corrected_rates': corrected_rate,
                 'count_rate': count_rate,
                 'photons_in': photons_in,
-                'live_ratio':live_ratio
+                'live_ratio': live_ratio
             }
 
-        self.corrected = correct(self.triggers, self.pixel_counts, self.timedel)
+        self.corrected = correct(self.triggers, self.pixel_counts,
+                                 self.timedel)
 
         # approximate the live ratio error like Ewan does
-        above = correct(
-            self.triggers + self.trigger_error, self.pixel_counts, self.timedel)
-        below = correct(
-            self.triggers - self.trigger_error, self.pixel_counts, self.timedel)
-        self.corrected['live_error'] = np.abs(above['live_ratio'] - below['live_ratio']) / 2
+        above = correct(self.triggers + self.trigger_error, self.pixel_counts,
+                        self.timedel)
+        below = correct(self.triggers - self.trigger_error, self.pixel_counts,
+                        self.timedel)
+        self.corrected['live_error'] = np.abs(above['live_ratio'] -
+                                              below['live_ratio']) / 2
         return self.corrected
-
-
 
     def peek(self,
              plots=['spg', 'lc', 'spec', 'tbin', 'qllc'],
@@ -455,6 +419,7 @@ class ScienceL1(ScienceData):
 
 
 class BackgroundSubtraction(object):
+
     def __init__(self, l1sig: ScienceL1, l1bkg: ScienceL1):
         """
                    do background subtraction
@@ -553,15 +518,17 @@ class BackgroundSubtraction(object):
 
 
 class Spectrogram(ScienceData):
+
     def __init__(self, fname, request_id, ltc=False):
-        super().__init__(fname,request_id)
+        super().__init__(fname, request_id)
         self.data_type = 'Spectrogram'
         self.read_fits(light_time_correction=ltc)
         self.spectrum = np.sum(self.counts, axis=0)
 
     @property
     def counts_error(self):
-        return error_computation(self.hdul['data'].data['counts_err'], self.counts)
+        return error_computation(self.hdul['data'].data['counts_err'],
+                                 self.counts)
 
     def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
         """
@@ -620,12 +587,13 @@ class Spectrogram(ScienceData):
                 live_ratio --> livetime at each time bin
                 live_error --> estimate of error on live_ratio
         """
-        def correct(triggers, counts_arr, time_bins,  num_detectors):
+
+        def correct(triggers, counts_arr, time_bins, num_detectors):
             ''' correct dead time using triggers '''
             tau_conv_const = 1e-6
-            BETA = 0.94
 
-            photons_in = triggers / (time_bins * num_detectors - TRIG_TAU * triggers)
+            photons_in = triggers / (time_bins * num_detectors -
+                                     TRIG_TAU * triggers)
             # photon rate approximated using triggers
 
             count_rate = counts_arr / time_bins[:, None]
@@ -634,7 +602,7 @@ class Spectrogram(ScienceData):
             live_ratio = np.exp(-BETA * nin * ASIC_TAU * tau_conv_const)
             live_ratio /= (1 + nin * TRIG_TAU)
             corrected_rate = count_rate / live_ratio[:, None]
-            return  {
+            return {
                 'corrected_rate': corrected_rate,
                 'count_rate': count_rate,
                 'photons_in': photons_in,
@@ -642,25 +610,30 @@ class Spectrogram(ScienceData):
             }
 
         num_detectors = self.hdul[1].data['detector_mask'].sum()
-        self.corrected = correct(self.triggers, self.counts, self.timedel, num_detectors)
+        self.corrected = correct(self.triggers, self.counts, self.timedel,
+                                 num_detectors)
 
         # approximate the live ratio error like Ewan does
-        above = correct(
-            self.triggers + self.trigger_error, self.counts, self.timedel, num_detectors)
-        below = correct(
-            self.triggers - self.trigger_error, self.counts, self.timedel, num_detectors)
-        self.corrected['live_error'] = np.abs(above['live_ratio'] - below['live_ratio']) / 2
+        above = correct(self.triggers + self.trigger_error, self.counts,
+                        self.timedel, num_detectors)
+        below = correct(self.triggers - self.trigger_error, self.counts,
+                        self.timedel, num_detectors)
+        self.corrected['live_error'] = np.abs(above['live_ratio'] -
+                                              below['live_ratio']) / 2
 
         return self.corrected
 
-def error_computation(given_error: np.ndarray, quantity: np.ndarray) -> np.ndarray:
-        ''' combine the error from the FITS and Poisson as in IDL '''
-        # try/except handles time bin shift
-        try:
-            return np.sqrt(given_error**2 + quantity)
-        except ValueError:
-            return np.sqrt(given_error[1:]**2 + quantity)
-            
+
+def error_computation(given_error: np.ndarray,
+                      quantity: np.ndarray) -> np.ndarray:
+    ''' combine the error from the FITS and Poisson as in IDL '''
+    # try/except handles time bin shift
+    try:
+        return np.sqrt(given_error**2 + quantity)
+    except ValueError:
+        return np.sqrt(given_error[1:]**2 + quantity)
+
+
 def fits_time_corrections(primary_header, tstart, tend):
     """Calculates the correct values for the FITS header keywords that deal with times
     
@@ -681,29 +654,34 @@ def fits_time_corrections(primary_header, tstart, tend):
     date_obs = Time(tstart).isot
     date_beg = date_obs
     date_end = Time(tend).isot
-    date_avg = Time(Time(tstart).mjd + (Time(tend).mjd - Time(tstart).mjd)/2., format = 'mjd').isot #average the date
+    date_avg = Time(Time(tstart).mjd +
+                    (Time(tend).mjd - Time(tstart).mjd) / 2.,
+                    format='mjd').isot  #average the date
     dateref = date_obs
 
-    date_ear = Time(Time(tstart).datetime + td(seconds = primary_header['EAR_TDEL'])).isot
-    date_sun = Time(Time(tstart).datetime - td(seconds = primary_header['SUN_TIME'])).isot
+    date_ear = Time(
+        Time(tstart).datetime + td(seconds=primary_header['EAR_TDEL'])).isot
+    date_sun = Time(
+        Time(tstart).datetime - td(seconds=primary_header['SUN_TIME'])).isot
 
     #OBT_BEG =
     #OBT_END = #what are these?
 
     #OBT_BEG = '0703714990:39319'
     #OBT_END = '0703736898:43389'
-    primary_header.set('DATE',creation_date)
-    primary_header.set('DATE_OBS',date_obs)
-    primary_header.set('DATE_BEG',date_beg)
-    primary_header.set('DATE_END',date_end)
-    primary_header.set('DATE_AVG',date_avg)
-    primary_header.set('DATEREF',dateref)
-    primary_header.set('DATE_EAR',date_ear)
-    primary_header.set('DATE_SUN',date_sun)
+    primary_header.set('DATE', creation_date)
+    primary_header.set('DATE_OBS', date_obs)
+    primary_header.set('DATE_BEG', date_beg)
+    primary_header.set('DATE_END', date_end)
+    primary_header.set('DATE_AVG', date_avg)
+    primary_header.set('DATEREF', dateref)
+    primary_header.set('DATE_EAR', date_ear)
+    primary_header.set('DATE_SUN', date_sun)
     primary_header.set('MJDREF', Time(tstart).mjd)
     # Note that MJDREF in these files is NOT 1979-01-01 but rather the observation start time! Affects time calculation later, but further processing of the file corrects this
 
     return primary_header
+
 
 def open_spec_fits(filename):
     """Open a L1, L1A, or L4 FITS file and return the HDUs"""
@@ -711,10 +689,12 @@ def open_spec_fits(filename):
         primary_header = hdul[0].header.copy()
         control = hdul[1].copy()
         data = hdul[2].copy()
-        energy = hdul[3].copy() if hdul[3].name == 'ENERGIES' else hdul[4].copy()
+        energy = hdul[3].copy(
+        ) if hdul[3].name == 'ENERGIES' else hdul[4].copy()
     return primary_header, control, data, energy
-       
-def fits_time_to_datetime(*args, factor = 1):
+
+
+def fits_time_to_datetime(*args, factor=1):
     """Convert times as stored in FITS files into datetimes
     Inputs (either the filename or the header and data table are accepted):
     
@@ -738,13 +718,18 @@ def fits_time_to_datetime(*args, factor = 1):
         data_table = data.data
     else:
         primary_header, data_table = args
-    time_bin_center=data_table['time']
+    time_bin_center = data_table['time']
     duration = data_table['timedel']
-    start_time = dt.strptime(primary_header['DATE_BEG'],"%Y-%m-%dT%H:%M:%S.%f")
-    spectime = Time([start_time + td(seconds = bc/factor - d/(2.*factor)) for bc,d in zip(time_bin_center, duration)])
+    start_time = dt.strptime(primary_header['DATE_BEG'],
+                             "%Y-%m-%dT%H:%M:%S.%f")
+    spectime = Time([
+        start_time + td(seconds=bc / factor - d / (2. * factor))
+        for bc, d in zip(time_bin_center, duration)
+    ])
     return spectime
 
-def time_select_indices(tstart, tend, primary_header, data_table, factor = 1.):
+
+def time_select_indices(tstart, tend, primary_header, data_table, factor=1.):
     """Find the indices to use in order to select data between a certain start and end time
     
     Inputs:
@@ -770,23 +755,26 @@ def time_select_indices(tstart, tend, primary_header, data_table, factor = 1.):
         End index of time interval
     """
 
-    spectime = fits_time_to_datetime(primary_header, data_table, factor = factor).mjd
-    
+    spectime = fits_time_to_datetime(primary_header, data_table,
+                                     factor=factor).mjd
+
     if tstart:
-      tstart_mjd = Time(tstart).mjd
+        tstart_mjd = Time(tstart).mjd
     else:
-      tstart_mjd = spectime[0]
+        tstart_mjd = spectime[0]
     if tend:
-      tend_mjd = Time(tend).mjd
+        tend_mjd = Time(tend).mjd
     else:
-      tend_mjd = spectime[-1]
+        tend_mjd = spectime[-1]
 
     #get indices for tstart and tend
-    tselect = np.where(np.logical_and(spectime > tstart_mjd, spectime <= tend_mjd))[0]
-    idx0, idx1 = tselect[0],tselect[-1] #first and last indices
+    tselect = np.where(
+        np.logical_and(spectime > tstart_mjd, spectime <= tend_mjd))[0]
+    idx0, idx1 = tselect[0], tselect[-1]  #first and last indices
     return idx0, idx1
 
-def spec_fits_crop(fitsfile, tstart,tend, outfilename = None):
+
+def spec_fits_crop(fitsfile, tstart, tend, outfilename=None):
     """ Crop a STIX science data product (L1A, L1, or L4) to contain only the data within a given time interval. Create a new FITS file containing this data. The new file will be of the same processing level as the input file.
     
     Inputs:
@@ -809,24 +797,27 @@ def spec_fits_crop(fitsfile, tstart,tend, outfilename = None):
     primary_header, control, data, energy = open_spec_fits(fitsfile)
 
     #get indices for tstart and tend
-    idx0, idx1 = time_select_indices(tstart, tend, primary_header, data.data) #first and last indices
+    idx0, idx1 = time_select_indices(tstart, tend, primary_header,
+                                     data.data)  #first and last indices
 
     #crop data table
     count_names = data.data.names
     table_data = []
     for n in count_names:
-      if data.data[n].ndim >1:
-        new_data = data.data[n][idx0:idx1,:]
-      else:
-        if n == 'time': #this has to be done differently since it is relative to timezero
-          timevec = fits_time_to_datetime(primary_header, data.data).mjd #- Time(primary_header['DATE_BEG']).mjd
-          timevec -= timevec[idx0] #relative to new start time
-          new_data = timevec[idx0:idx1]*86400
+        if data.data[n].ndim > 1:
+            new_data = data.data[n][idx0:idx1, :]
         else:
-          new_data = data.data[n][idx0:idx1]
-      table_data.append(new_data)
+            if n == 'time':  #this has to be done differently since it is relative to timezero
+                timevec = fits_time_to_datetime(
+                    primary_header,
+                    data.data).mjd  #- Time(primary_header['DATE_BEG']).mjd
+                timevec -= timevec[idx0]  #relative to new start time
+                new_data = timevec[idx0:idx1] * 86400
+            else:
+                new_data = data.data[n][idx0:idx1]
+        table_data.append(new_data)
     #count_table = Table([data.data[n][idx0:idx1,:] if data.data[n].ndim >1 else data.data[n][idx0:idx1] for n in count_names], names = count_names)
-    count_HDU = fits.BinTableHDU(data = Table(table_data, names = count_names))
+    count_HDU = fits.BinTableHDU(data=Table(table_data, names=count_names))
 
     #insert other keywords into counts header (do datasum and checksum later)
     count_HDU.header.set('EXTNAME', 'DATA', 'extension name')
@@ -834,17 +825,24 @@ def spec_fits_crop(fitsfile, tstart,tend, outfilename = None):
     #correct keywords in primary header
     primary_header = fits_time_corrections(primary_header, tstart, tend)
     if not outfilename:
-      outfilename = f"{fitsfile[:-5]}_{Time(tstart).datetime:%H%M%S}_{Time(tend).datetime:%H%M%S}.fits"
-    primary_header.set('FILENAME', outfilename[outfilename.rfind('/')+1:])
-    primary_HDU = fits.PrimaryHDU(header = primary_header)
+        outfilename = f"{fitsfile[:-5]}_{Time(tstart).datetime:%H%M%S}_{Time(tend).datetime:%H%M%S}.fits"
+    primary_header.set('FILENAME', outfilename[outfilename.rfind('/') + 1:])
+    primary_HDU = fits.PrimaryHDU(header=primary_header)
 
     hdul = fits.HDUList([primary_HDU, control, count_HDU, energy])
     hdul.writeto(outfilename)
 
     return outfilename
-    
-def spec_fits_concatenate(fitsfile1, fitsfile2, tstart = None,tend = None, outfilename = None):
-    """ Concatenate two STIX science data product (L1A, L1, or L4) files. Option to select only the data within a given time interval. Create a new FITS file containing this data. The new file will be of the same processing level as the input file. In case of overlapping time ranges, keep the data from the first file within this range (in an ideal case the data will anyway be identical)
+
+
+def spec_fits_concatenate(fitsfile1,
+                          fitsfile2,
+                          tstart=None,
+                          tend=None,
+                          outfilename=None):
+    """ Concatenate two STIX science data product (L1A, L1, or L4) files. Option to select only the 
+        data within a given time interval. Create a new FITS file containing this data. The new file will be of the same processing level as the input file. 
+        In case of overlapping time ranges, keep the data from the first file within this range (in an ideal case the data will anyway be identical)
     
     Inputs:
     fitsfile1 : str
@@ -866,57 +864,77 @@ def spec_fits_concatenate(fitsfile1, fitsfile2, tstart = None,tend = None, outfi
         outfilename : str
         Name of output FITS file"""
 
-    primary_header1, control1, data1, energy1= open_spec_fits(fitsfile1)
+    primary_header1, control1, data1, energy1 = open_spec_fits(fitsfile1)
     primary_header2, control2, data2, energy2 = open_spec_fits(fitsfile2)
 
     #check that energy tables are the same. If not, there is an error
     for n in energy1.data.names:
         if not np.allclose(energy1.data[n], energy2.data[n]):
-            raise ValueError(f"Values for {n} in energy table are different in {fitsfile1} and {fitsfile2}!")
+            raise ValueError(
+                f"Values for {n} in energy table are different in {fitsfile1} and {fitsfile2}!"
+            )
 
     #check that detector, pixel, and energy masks masks are the same
-    for n in ['pixel_masks','detector_masks','pixel_mask','detector_mask','energy_bin_mask']:
-      if n in control1.data.names:
-          if not np.allclose(control1.data[n], control2.data[n]):
-              raise ValueError(f"Values for {n} in control table are different in {fitsfile1} and {fitsfile2}!")
+    for n in [
+            'pixel_masks', 'detector_masks', 'pixel_mask', 'detector_mask',
+            'energy_bin_mask'
+    ]:
+        if n in control1.data.names:
+            if not np.allclose(control1.data[n], control2.data[n]):
+                raise ValueError(
+                    f"Values for {n} in control table are different in {fitsfile1} and {fitsfile2}!"
+                )
 
     #get indices for tstart and tend - assuming tstart is in first file and tend in second.
     # test what happens if they are not..
-    idx0, idx2 = 0, None #index of start time in file 1, end time in file 2
+    idx0, idx2 = 0, None  #index of start time in file 1, end time in file 2
     if tstart:
-      idx0, _ = time_select_indices(tstart, tend, primary_header1, data1.data) #first index
+        idx0, _ = time_select_indices(tstart, tend, primary_header1,
+                                      data1.data)  #first index
     else:
-      tstart = primary_header1['DATE_BEG']
+        tstart = primary_header1['DATE_BEG']
 
-    tend1 = primary_header1['DATE_END'] #end time of first file in case there is ovelap
+    tend1 = primary_header1[
+        'DATE_END']  #end time of first file in case there is ovelap
     if not tend:
-      tend = primary_header2['DATE_END']
-    idx1, idx2 = time_select_indices(tend1, tend, primary_header2, data2.data) # start time in file 2, end time in file 2
+        tend = primary_header2['DATE_END']
+    idx1, idx2 = time_select_indices(
+        tend1, tend, primary_header2,
+        data2.data)  # start time in file 2, end time in file 2
 
     #check that spectrograms are consecutive in time, ie that time1[-1] + timedel1[-1] == time2[0] within some tolerance
     # no longer accurate if using 2 indices for second data table?
-    spec_time_gap = fits_time_to_datetime(primary_header2, data2.data).datetime[0] - fits_time_to_datetime(primary_header1, data1.data).datetime[-1]
+    spec_time_gap = fits_time_to_datetime(
+        primary_header2, data2.data).datetime[0] - fits_time_to_datetime(
+            primary_header1, data1.data).datetime[-1]
     if spec_time_gap.total_seconds() > data1.data['timedel'][-1]:
-      warnings.warn(f"Gap of {spec_time_gap.total_seconds() - data1.data['timedel'][-1]:.3f}s between spectrogram files {fitsfile1} and {fitsfile2}")
+        warnings.warn(
+            f"Gap of {spec_time_gap.total_seconds() - data1.data['timedel'][-1]:.3f}s between spectrogram files {fitsfile1} and {fitsfile2}"
+        )
 
     #concatenate data tables
     count_names = data1.data.names
     table_data = []
     for n in count_names:
-      if data1.data[n].ndim >1:
-        new_data = np.concatenate([data1.data[n][idx0:,:], data2.data[n][idx1:idx2,:]])
-      else:
-        if n == 'time': #this has to be done differently since it is relative to timezero
-          timevec1 = fits_time_to_datetime(primary_header1, data1.data).mjd
-          new_start_time = timevec1[idx0]
-          timevec1 -= new_start_time #relative to new start time
-          timevec2 = fits_time_to_datetime(primary_header2, data2.data).mjd - new_start_time
-          new_data = np.concatenate([timevec1[idx0:]*86400, timevec2[idx1:idx2]*86400])
+        if data1.data[n].ndim > 1:
+            new_data = np.concatenate(
+                [data1.data[n][idx0:, :], data2.data[n][idx1:idx2, :]])
         else:
-          new_data = np.concatenate([data1.data[n][idx0:], data2.data[n][idx1:idx2]])
-      table_data.append(new_data)
+            if n == 'time':  #this has to be done differently since it is relative to timezero
+                timevec1 = fits_time_to_datetime(primary_header1,
+                                                 data1.data).mjd
+                new_start_time = timevec1[idx0]
+                timevec1 -= new_start_time  #relative to new start time
+                timevec2 = fits_time_to_datetime(
+                    primary_header2, data2.data).mjd - new_start_time
+                new_data = np.concatenate(
+                    [timevec1[idx0:] * 86400, timevec2[idx1:idx2] * 86400])
+            else:
+                new_data = np.concatenate(
+                    [data1.data[n][idx0:], data2.data[n][idx1:idx2]])
+        table_data.append(new_data)
 
-    count_HDU = fits.BinTableHDU(data = Table(table_data, names = count_names))
+    count_HDU = fits.BinTableHDU(data=Table(table_data, names=count_names))
 
     #insert other keywords into counts header (do datasum and checksum later)
     count_HDU.header.set('EXTNAME', 'DATA', 'extension name')
@@ -924,9 +942,9 @@ def spec_fits_concatenate(fitsfile1, fitsfile2, tstart = None,tend = None, outfi
     #correct keywords in primary header
     primary_header1 = fits_time_corrections(primary_header1, tstart, tend)
     if not outfilename:
-      outfilename = f"{fitsfile1[:-5]}_{Time(tstart).datetime:%H%M%S}_{Time(tend).datetime:%H%M%S}.fits"
-    primary_header1.set('FILENAME', outfilename[outfilename.rfind('/')+1:])
-    primary_HDU = fits.PrimaryHDU(header = primary_header1)
+        outfilename = f"{fitsfile1[:-5]}_{Time(tstart).datetime:%H%M%S}_{Time(tend).datetime:%H%M%S}.fits"
+    primary_header1.set('FILENAME', outfilename[outfilename.rfind('/') + 1:])
+    primary_HDU = fits.PrimaryHDU(header=primary_header1)
 
     hdul = fits.HDUList([primary_HDU, control1, count_HDU, energy1])
     hdul.writeto(outfilename)

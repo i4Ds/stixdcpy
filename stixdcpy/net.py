@@ -35,7 +35,8 @@ ENDPOINTS = {
     'STIX_POINTING': f'{HOST}/api/request/stixfov',
     'FITS': f'{HOST}/api/query/fits',
     'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
-    'CFL_SOLVER': f'{HOST}/api/request/solve/cfl'
+    'CFL_SOLVER': f'{HOST}/api/request/solve/cfl',
+    'SPECTROGRAMS': f'{HOST}/request/bsd/spectrograms'
 }
 
 
@@ -174,7 +175,7 @@ class FitsQuery(object):
         file_path = Path(filename)
         if file_path.is_file():
             logger.info(
-                f'Found the data in local storage. Filename: {filename} ...')
+                f'Found the data in the local storage. Filename: {filename} ...')
             return str(file_path)
         f = open(filename, 'wb')
         chunk_size = 1024
@@ -525,4 +526,24 @@ class JSONRequest(object):
             'start_utc': begin_utc,
             'end_utc': end_utc,
             'sort': sort
+        })
+    @staticmethod
+    def fetch_spectrogram(begin_utc: str, end_utc: str):
+        """ download spectrogram data from stix data center
+
+        Parameters:
+        ------
+            begin_utc: str
+                start UTC
+            end_utc: str
+                end UTC
+        Returns:
+        -----
+            spectrogram: dict 
+                A dictionary containing spectrogram data or error message
+
+        """
+        return JSONRequest.post(ENDPOINTS['SPECTROGRAMS'], {
+            'begin': begin_utc,
+            'end': end_utc
         })

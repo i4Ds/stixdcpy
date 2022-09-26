@@ -1,6 +1,6 @@
 import math
-
 import numpy as np
+
 
 nominal_grid_parameters = {
     "1": {
@@ -1334,7 +1334,7 @@ detector_center_coords = {
         "y": -36.5
     }
 }
-cfl_hole_coords = {
+cfl_aperture_coords = {
     'outer': [(-14.3, -13.45), (-14.3, 13.45), (14.3, 13.45), (14.3, -13.45)],
     'top': [(-4.4, 3.45), (-4.4, 10.0), (4.4, 10.0), (4.4, 3.45)],
     'bottom': [(-4.4, -10.0), (-4.4, -3.45), (4.4, -3.45), (4.4, -10.0)],
@@ -1358,13 +1358,13 @@ grid_z = {
     'front': r_front_detector
 }  # grid z coordinates
 
-bkg_hole_coords = {}
 
 ebin_low_edges = np.array([
     0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32,
     36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, math.inf
 ])
 ebins = np.vstack((ebin_low_edges[0:-1], ebin_low_edges[1:])).T
+
 detector_ids_in_trigger_accumulators = np.array(
     [[1, 2], [6, 7], [5, 11], [12, 13], [14, 15], [10, 16], [8, 9], [3, 4],
      [31, 32], [26, 27], [22, 28], [20, 21], [18, 19], [17, 23], [24, 25],
@@ -1456,7 +1456,7 @@ DET_SIBLINGS = {
     29: 28
 }
 
-det_id_to_trig_idx = {
+DET_ID_TO_TRIG_INDEX= {
     0: 0,
     1: 0,
     2: 7,
@@ -1493,7 +1493,7 @@ det_id_to_trig_idx = {
 
 
 def detector_id_to_trigger_index(i):
-    return det_id_to_trig_idx[i]
+    return DET_ID_TO_TRIG_INDEX[i]
 
 
 def get_detector_in_same_group(idx):
@@ -1522,3 +1522,15 @@ def get_sci_ebins(a, b):
     up = np.where(ebin_low_edges == b)[0][0] - 1
 
     return (low, up)
+
+def get_spectrogram_energy_bins(elow, ehigh, eunit):
+    """
+    get spectrogram energy bands of science bins
+    """
+    eunit += 1
+    nbins=int((ehigh-elow+1)/eunit)
+ 
+    ebins=[  (ebin_low_edges[int(elow+i*eunit)], ebin_low_edges[int(elow+(i+1)*eunit)])  for i in range(nbins)]
+
+    return ebins
+
