@@ -34,7 +34,7 @@ Open an issue on GitHub to report a problem. Pull requests welcome.
 
 
 If you use the stixdcpy in your research and publications, we would definitely appreciate an appropriate acknowledgment and citation! We suggest the following BibTex:
-
+```latex
 @software{hualin_xiao_2022_7180433,
   author       = {Hualin Xiao and
                   Säm Krucker and
@@ -49,3 +49,4 @@ If you use the stixdcpy in your research and publications, we would definitely a
   doi          = {10.5281/zenodo.7180433},
   url          = {https://doi.org/10.5281/zenodo.7180433}
 }
+```
