@@ -6,7 +6,7 @@
 
 """
 import datetime
-
+import matplotlib.dates as mdates
 from matplotlib import pyplot as plt
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
@@ -93,6 +93,12 @@ class LightCurves(QuickLook):
 
         xlabel = f'UTC + {dlt:.2f} (4 sec time bins)' if light_time_corrected else 'UTC (4 sec time bins)'
         ax.set_xlabel(xlabel)
+        
+        locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+
         ax.set_ylabel('Counts')
         ax.legend(loc=legend_loc)
         ax.set_yscale('log')
