@@ -1,8 +1,0 @@
-LICENSE.md
-README.md
-setup.py
-stixdcpy/stixdcpy.egg-info/PKG-INFO
-stixdcpy/stixdcpy.egg-info/SOURCES.txt
-stixdcpy/stixdcpy.egg-info/dependency_links.txt
-stixdcpy/stixdcpy.egg-info/requires.txt
-stixdcpy/stixdcpy.egg-info/top_level.txt
