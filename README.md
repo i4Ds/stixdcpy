@@ -32,7 +32,7 @@ pip install numpy matplotlib pandas astropy joblib
 # Reporting Issues and Contributing
 Open an issue on GitHub to report a problem. Pull requests welcome.
 
-
+#  Cite this work
 If you use the stixdcpy in your research and publications, we would definitely appreciate an appropriate acknowledgment and citation! We suggest the following BibTex:
 ```latex
 @software{hualin_xiao_2022_7180433,
