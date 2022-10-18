@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import pprint
 from pathlib import Path, PurePath
+from datetime import datetime
 from dateutil import parser as dtparser
 import requests
 from astropy.io import fits
@@ -306,7 +307,7 @@ class JSONRequest(object):
         try:
             data = response.json()
         except simplejson.errors.JSONDecodeError:
-            logger.error("An error occurred on the server side. Please contact us.")
+            logger.error("An error occurred on the server side.")
             return None
         if 'error' in data:
             logger.error(data['error'])
@@ -314,13 +315,13 @@ class JSONRequest(object):
         return data
 
     @staticmethod
-    def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
+    def fetch_light_curves(begin_utc, end_utc , ltc: bool):
         """ Request light curve from STIX data center
 
         Parameters:
-            begin_utc:  str
+            begin_utc:  str or datetime
                 Observation start time
-            end_utc: str
+            end_utc: str or datetime
                 Observation end time
             ltc: bool, optional
                 Light time correction enabling flag.   Do light time correction if True
@@ -329,7 +330,11 @@ class JSONRequest(object):
                 A python dictionary containing light curve data
 
         """
-        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc}
+        if isinstance(begin_utc, datetime):
+            begin_utc = begin_utc.isoformat()
+        if isinstance(end_utc, datetime):
+            end_utc = end_utc.isoformat()
+        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 2}
         url = ENDPOINTS['LC']
         return JSONRequest.post(url, form)
 
