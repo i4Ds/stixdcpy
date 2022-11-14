@@ -6,6 +6,7 @@
 import pandas as pd
 from astropy.io import fits
 from matplotlib import pyplot as plt
+import matplotlib.dates as mdates
 
 from stixdcpy import io as sio
 from stixdcpy import time as sdt
@@ -73,4 +74,8 @@ class Housekeeping(sio.IO):
             _, ax = plt.subplots()
         ax.plot(self.data['datetime'], self.data['eng_values']['NIX00081'])
         ax.set_title(self.data['names']['NIX00081'])
+        locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
         return ax

@@ -10,6 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
+import matplotlib.dates as mdates
 
 
 class QuickLook(sio.IO):
@@ -95,5 +96,10 @@ class LightCurves(QuickLook):
         ax.set_xlabel(xlabel)
         ax.set_ylabel('Counts')
         ax.legend(loc=legend_loc)
+        locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+
         ax.set_yscale('log')
         return ax
