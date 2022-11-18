@@ -30,7 +30,8 @@ ENDPOINTS = {
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'ATTITUDE': f'{HOST}/api/request/solo/attitude',
-    'SCIENCE': f'{HOST}/api/request/science-data/id',
+    'SCIENCE_DATA': f'{HOST}/api/request/science-data/id',
+    'SCIENCE': f'{HOST}/api/query/science',
     'TRANSMISSION': f'{HOST}/api/request/transmission',
     'FLARE_LIST': f'{HOST}/api/request/flare-list',
     'STIX_POINTING': f'{HOST}/api/request/stixfov',
@@ -307,7 +308,7 @@ class JSONRequest(object):
         try:
             data = response.json()
         except simplejson.errors.JSONDecodeError:
-            logger.error("An error occurred on the server side.")
+            logger.error("An error occurred on the server.")
             return None
         if 'error' in data:
             logger.error(data['error'])
@@ -503,7 +504,7 @@ class JSONRequest(object):
                 science data received from data center if success or None if failed
 
         """
-        return JSONRequest.post(ENDPOINTS['SCIENCE'], {
+        return JSONRequest.post(ENDPOINTS['SCIENCE_DATA'], {
             'id': _id,
         })
 
@@ -552,3 +553,29 @@ class JSONRequest(object):
             'begin': begin_utc,
             'end': end_utc
         })
+
+    @staticmethod
+    def query_science(begin_utc:str, end_utc:str, request_type="all"):
+        """ Search for science data 
+        Parameters
+        ----
+            begin_utc: str
+              Begin time
+            end_utc: str
+              End time
+            request_type: {'xray-rpd', 'xray-cpd', 'xray-scpd', 'xray-spec', 'all'}, optional 
+              science request type. If it is not given, it returns all requests with observation time intersecting  the given time range. 
+              
+        Returns:
+        -------
+        dict:  A list of science request metadata 
+        """
+        return JSONRequest.post(ENDPOINTS['SCIENCE'], {
+            'start': begin_utc,
+            'end': end_utc,
+            'request_type':request_type
+        })
+
+
+
+

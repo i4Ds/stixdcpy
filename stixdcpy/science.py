@@ -147,6 +147,7 @@ class ScienceData(sio.IO):
 
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
+
     @classmethod
     def from_sdc(cls, request_id):
         '''
