@@ -214,7 +214,7 @@ class ScienceData(sio.IO):
             if filename is None:
                 basename = self.hdul['PRIMARY'].header['FILENAME']
                 filename = PurePath(net.DOWNLOAD_PATH, basename)
-            self.hdul.writeto(filename)
+            self.hdul.writeto(filename, overwrite=True)
             return filename
         except Exception as e:
             logger.error(e)
@@ -831,7 +831,7 @@ def spec_fits_crop(fitsfile, tstart, tend, outfilename=None):
     primary_HDU = fits.PrimaryHDU(header=primary_header)
 
     hdul = fits.HDUList([primary_HDU, control, count_HDU, energy])
-    hdul.writeto(outfilename)
+    hdul.writeto(outfilename, overwrite=True)
 
     return outfilename
 
@@ -948,6 +948,6 @@ def spec_fits_concatenate(fitsfile1,
     primary_HDU = fits.PrimaryHDU(header=primary_header1)
 
     hdul = fits.HDUList([primary_HDU, control1, count_HDU, energy1])
-    hdul.writeto(outfilename)
+    hdul.writeto(outfilename, overwrite=True)
 
     return outfilename
