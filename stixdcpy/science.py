@@ -149,13 +149,15 @@ class ScienceData(sio.IO):
 
 
     @classmethod
-    def from_sdc(cls, request_id):
+    def from_sdc(cls, request_id, level='L1A'):
         '''
         download science data file from stix data center
         Parameters
         ------
         request_id :  int
             bulk science data request unique ID; Unique IDs can be found on the science data web page  at stix data center
+        level:  str
+            ground processing level. Options: L1, L1A, L2 or any. Default value is L1A
 
 
         Returns
@@ -163,7 +165,7 @@ class ScienceData(sio.IO):
             science data class object
         '''
         request_id = request_id
-        fname = freq.fetch_bulk_science_by_request_id(request_id)
+        fname = freq.fetch_bulk_science_by_request_id(request_id, level)
         return cls(fname, request_id)
 
     @classmethod

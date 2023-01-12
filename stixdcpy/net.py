@@ -226,8 +226,8 @@ class FitsQuery(object):
         return FitsQueryResult(res)
 
     @staticmethod
-    def fetch_bulk_science_by_request_id(request_id):
-        url = f'{HOST}/download/fits/bsd/{request_id}'
+    def fetch_bulk_science_by_request_id(request_id, level='L1A'):
+        url = f'{HOST}/download/fits/bsd/{request_id}/{level}'
         fname = FitsQuery.wget(url,
                                f'Downloading STIX Science data #{request_id}')
         return fname
