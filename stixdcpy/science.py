@@ -65,7 +65,12 @@ class ScienceData(sio.IO):
         """
 
         self.data = self.hdul['DATA'].data
-        self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        #self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        try:
+            # L1
+            self.T0_utc = self.hdul['PRIMARY'].header['DATE-BEG']
+        except KeyError:
+            self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         self.counts = self.data['counts']
 
         self.light_time_del = self.hdul['PRIMARY'].header['EAR_TDEL']
@@ -612,7 +617,11 @@ class Spectrogram(ScienceData):
                 'live_ratio': live_ratio
             }
 
-        num_detectors = self.hdul[1].data['detector_mask'].sum()
+        try:
+            num_detectors = self.hdul[1].data['detector_masks'].sum()
+        except KeyError:
+            num_detectors = self.hdul[1].data['detector_mask'].sum()
+
         self.corrected = correct(self.triggers, self.counts, self.timedel,
                                  num_detectors)
 
