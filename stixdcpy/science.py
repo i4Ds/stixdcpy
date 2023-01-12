@@ -164,7 +164,7 @@ class ScienceData(sio.IO):
         ------
             science data class object
         '''
-        request_id = request_id
+        #request_id = request_id
         fname = freq.fetch_bulk_science_by_request_id(request_id, level)
         return cls(fname, request_id)
 
