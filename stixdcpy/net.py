@@ -38,6 +38,7 @@ ENDPOINTS = {
     'FITS': f'{HOST}/api/query/fits',
     'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl',
+    'CAVEATS': f'{HOST}/api/operations/caveats',
     'SPECTROGRAMS': f'{HOST}/request/bsd/spectrograms'
 }
 
@@ -314,6 +315,29 @@ class JSONRequest(object):
             logger.error(data['error'])
             return None
         return data
+    @staticmethod
+    def fetch_caveats(begin_utc, end_utc):
+        """ Request light curve from STIX data center
+
+        Parameters:
+            begin_utc:  str or datetime
+                Observation start time
+            end_utc: str or datetime
+                Observation end time
+            ltc: bool, optional
+                Light time correction enabling flag.   Do light time correction if True
+        Returns:
+            lightcurve: dict
+                A python dictionary containing light curve data
+
+        """
+        if isinstance(begin_utc, datetime):
+            begin_utc = begin_utc.isoformat()
+        if isinstance(end_utc, datetime):
+            end_utc = end_utc.isoformat()
+        form = {'begin': begin_utc, 'end': end_utc}
+        url = ENDPOINTS['CAVEATS']
+        return JSONRequest.post(url, form)
 
     @staticmethod
     def fetch_light_curves(begin_utc, end_utc , ltc: bool):
