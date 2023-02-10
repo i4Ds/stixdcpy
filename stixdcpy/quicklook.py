@@ -5,11 +5,12 @@
     Date: Sep. 1, 2021
 
 """
-import datetime
-
+from datetime import datetime
+import numpy as np
 from matplotlib import pyplot as plt
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
+import matplotlib.dates as mdates
 
 
 class QuickLook(sio.IO):
@@ -22,19 +23,30 @@ class QuickLook(sio.IO):
 
 class LightCurves(QuickLook):
     def __init__(self, data):
-        if 'error' not in data:
-            self.data = data
-        else:
-            self.data = None
-
+        self.data = data
+        self.counts = []
+        self.time = []
+        self.energy_bins=[]
+        self.dlt = 0
+        self.rcr = []
+        self.triggers = []
+        if data is not None:
+            if 'error' not in data and 'counts' in data:
+                self.counts=np.array(data['counts'])
+                self.time = [datetime.utcfromtimestamp(t + data['start_unix']) for t in data['delta_time']]
+                self.triggers = np.array(data['triggers'])
+                self.rcr = np.array(data['rcr'])
+                self.dlt = data['DELTA_LIGHT_TIME']
+                self.light_time_corrected = data['IS_LIGHT_TIME_CORRECTED']
+                self.energy_bins = data['energy_bins']
     @classmethod
-    def from_sdc(cls, start_utc: str, end_utc: str, ltc=False):
+    def from_sdc(cls, start_utc, end_utc, ltc=False):
         """ fetch light curve data from STIX data center
 
         Args:
-            start_utc: str
+            start_utc: str or datetime
                 data start UTC
-            end_utc: str
+            end_utc: str or datetime
                 data end UTC
             ltc: bool
                 Light time correction flag. Do light time correction if it is True
@@ -46,10 +58,6 @@ class LightCurves(QuickLook):
 
         """
         data = jreq.fetch_light_curves(start_utc, end_utc, ltc)
-        if 'light_curves' in data:
-            # correct key name
-            data['counts'] = data['light_curves']
-            del data['light_curves']
         return cls(data)
 
     def __getattr__(self, name):
@@ -80,20 +88,18 @@ class LightCurves(QuickLook):
 
         if not ax:
             _, ax = plt.subplots()
-        dt = [
-            datetime.datetime.utcfromtimestamp(t)
-            for t in self.data['unix_time']
-        ]
         for i in range(5):
-            ax.plot(dt,
-                    self.data['counts'][str(i)],
-                    label=self.data['energy_bins']['names'][i])
-        dlt = self.data['DELTA_LIGHT_TIME']
-        light_time_corrected = self.data['IS_LIGHT_TIME_CORRECTED']
-
-        xlabel = f'UTC + {dlt:.2f} (4 sec time bins)' if light_time_corrected else 'UTC (4 sec time bins)'
+            ax.plot(self.time,
+                    self.counts[i, :],
+                    label=self.energy_bins['names'][i])
+        xlabel = f'UTC + {self.dlt:.2f} (4 sec time bins)' if self.light_time_corrected else 'UTC (4 sec time bins)'
         ax.set_xlabel(xlabel)
         ax.set_ylabel('Counts')
         ax.legend(loc=legend_loc)
+        locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+
         ax.set_yscale('log')
         return ax

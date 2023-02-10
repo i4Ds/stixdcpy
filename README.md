@@ -30,8 +30,6 @@ pip install numpy matplotlib pandas astropy joblib
 - [Documentation](https://drhlxiao.github.io/stixdcpy/)
 
 
-# Reporting Issues and Contributing
-Open an issue on GitHub to report a problem. Pull requests welcome.
 
 #  Cite this work
 If you use the stixdcpy in your research and publications, we would definitely appreciate an appropriate acknowledgment and citation! We suggest the following BibTex:
@@ -51,3 +49,5 @@ If you use the stixdcpy in your research and publications, we would definitely a
   url          = {https://doi.org/10.5281/zenodo.7180433}
 }
 ```
+# Reporting Issues and Contributing
+Open an issue on GitHub to report a problem. Pull requests welcome.

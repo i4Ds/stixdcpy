@@ -65,7 +65,12 @@ class ScienceData(sio.IO):
         """
 
         self.data = self.hdul['DATA'].data
-        self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        #self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        try:
+            # L1
+            self.T0_utc = self.hdul['PRIMARY'].header['DATE-BEG']
+        except KeyError:
+            self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         self.counts = self.data['counts']
 
         self.light_time_del = self.hdul['PRIMARY'].header['EAR_TDEL']
@@ -110,7 +115,7 @@ class ScienceData(sio.IO):
             for a, b in zip(self.energies['e_low'], self.energies['e_high'])
         ]
         self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
-        self.inverse_energy_bin_mask = 1 - self.energy_bin_mask
+        self.inversed_energy_bin_mask = 1 - self.energy_bin_mask
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
         self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
@@ -147,22 +152,25 @@ class ScienceData(sio.IO):
 
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
+
     @classmethod
-    def from_sdc(cls, request_id):
+    def from_sdc(cls, request_id, level='L1A'):
         '''
         download science data file from stix data center
         Parameters
         ------
         request_id :  int
             bulk science data request unique ID; Unique IDs can be found on the science data web page  at stix data center
+        level:  str
+            ground processing level. Options: L1, L1A, L2 or any. Default value is L1A
 
 
         Returns
         ------
             science data class object
         '''
-        request_id = request_id
-        fname = freq.fetch_bulk_science_by_request_id(request_id)
+        #request_id = request_id
+        fname = freq.fetch_bulk_science_by_request_id(request_id, level)
         return cls(fname, request_id)
 
     @classmethod
@@ -213,7 +221,7 @@ class ScienceData(sio.IO):
             if filename is None:
                 basename = self.hdul['PRIMARY'].header['FILENAME']
                 filename = PurePath(net.DOWNLOAD_PATH, basename)
-            self.hdul.writeto(filename)
+            self.hdul.writeto(filename, overwrite=True)
             return filename
         except Exception as e:
             logger.error(e)
@@ -436,7 +444,7 @@ class BackgroundSubtraction(object):
             ValueError('Inconsistent energy bins')
             return
 
-        #mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inverse_energy_bin_mask
+        #mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inversed_energy_bin_mask
 
         self.pixel_bkg_counts = np.array([
             int_time * self.l1bkg.mean_pixel_rate_spectra
@@ -444,12 +452,12 @@ class BackgroundSubtraction(object):
         ])
         # set counts beyond the signal energy range to 0
         self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts)
-        self.subtracted_counts *= self.l1sig.inverse_energy_bin_mask
+        self.subtracted_counts *= self.l1sig.inversed_energy_bin_mask
 
         # Dead time correction needs to be included in the future
         self.subtracted_counts_err = np.sqrt(
             self.l1sig.counts + np.array([int_time * self.l1bkg.mean_pixel_rate_spectra_err ** 2 for int_time in self.l1sig.timedel])) * \
-            self.l1sig.inverse_energy_bin_mask
+            self.l1sig.inversed_energy_bin_mask
         self.bkg_subtracted_spectrogram = np.sum(self.subtracted_counts,
                                                  axis=(1, 2))
 
@@ -609,7 +617,11 @@ class Spectrogram(ScienceData):
                 'live_ratio': live_ratio
             }
 
-        num_detectors = self.hdul[1].data['detector_mask'].sum()
+        try:
+            num_detectors = self.hdul[1].data['detector_masks'].sum()
+        except KeyError:
+            num_detectors = self.hdul[1].data['detector_mask'].sum()
+
         self.corrected = correct(self.triggers, self.counts, self.timedel,
                                  num_detectors)
 
@@ -830,7 +842,7 @@ def spec_fits_crop(fitsfile, tstart, tend, outfilename=None):
     primary_HDU = fits.PrimaryHDU(header=primary_header)
 
     hdul = fits.HDUList([primary_HDU, control, count_HDU, energy])
-    hdul.writeto(outfilename)
+    hdul.writeto(outfilename, overwrite=True)
 
     return outfilename
 
@@ -947,6 +959,6 @@ def spec_fits_concatenate(fitsfile1,
     primary_HDU = fits.PrimaryHDU(header=primary_header1)
 
     hdul = fits.HDUList([primary_HDU, control1, count_HDU, energy1])
-    hdul.writeto(outfilename)
+    hdul.writeto(outfilename, overwrite=True)
 
     return outfilename

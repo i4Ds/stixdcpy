@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import pprint
 from pathlib import Path, PurePath
+from datetime import datetime
 from dateutil import parser as dtparser
 import requests
 from astropy.io import fits
@@ -29,13 +30,15 @@ ENDPOINTS = {
     'ELUT': f'{HOST}/api/request/eluts',
     'EPHEMERIS': f'{HOST}/api/request/ephemeris',
     'ATTITUDE': f'{HOST}/api/request/solo/attitude',
-    'SCIENCE': f'{HOST}/api/request/science-data/id',
+    'SCIENCE_DATA': f'{HOST}/api/request/science-data/id',
+    'SCIENCE': f'{HOST}/api/query/science',
     'TRANSMISSION': f'{HOST}/api/request/transmission',
     'FLARE_LIST': f'{HOST}/api/request/flare-list',
     'STIX_POINTING': f'{HOST}/api/request/stixfov',
     'FITS': f'{HOST}/api/query/fits',
     'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl',
+    'CAVEATS': f'{HOST}/api/operations/caveats',
     'SPECTROGRAMS': f'{HOST}/request/bsd/spectrograms'
 }
 
@@ -224,8 +227,8 @@ class FitsQuery(object):
         return FitsQueryResult(res)
 
     @staticmethod
-    def fetch_bulk_science_by_request_id(request_id):
-        url = f'{HOST}/download/fits/bsd/{request_id}'
+    def fetch_bulk_science_by_request_id(request_id, level='L1A'):
+        url = f'{HOST}/download/fits/bsd/{request_id}/{level}'
         fname = FitsQuery.wget(url,
                                f'Downloading STIX Science data #{request_id}')
         return fname
@@ -306,21 +309,20 @@ class JSONRequest(object):
         try:
             data = response.json()
         except simplejson.errors.JSONDecodeError:
-            logger.error("An error occurred on the server side. Please contact us.")
+            logger.error("An error occurred on the server.")
             return None
         if 'error' in data:
             logger.error(data['error'])
             return None
         return data
-
     @staticmethod
-    def fetch_light_curves(begin_utc: str, end_utc: str, ltc: bool):
+    def fetch_caveats(begin_utc, end_utc):
         """ Request light curve from STIX data center
 
         Parameters:
-            begin_utc:  str
+            begin_utc:  str or datetime
                 Observation start time
-            end_utc: str
+            end_utc: str or datetime
                 Observation end time
             ltc: bool, optional
                 Light time correction enabling flag.   Do light time correction if True
@@ -329,7 +331,36 @@ class JSONRequest(object):
                 A python dictionary containing light curve data
 
         """
-        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc}
+        if isinstance(begin_utc, datetime):
+            begin_utc = begin_utc.isoformat()
+        if isinstance(end_utc, datetime):
+            end_utc = end_utc.isoformat()
+        form = {'begin': begin_utc, 'end': end_utc}
+        url = ENDPOINTS['CAVEATS']
+        data=JSONRequest.post(url, form)
+        return data['caveats']
+
+    @staticmethod
+    def fetch_light_curves(begin_utc, end_utc , ltc: bool):
+        """ Request light curve from STIX data center
+
+        Parameters:
+            begin_utc:  str or datetime
+                Observation start time
+            end_utc: str or datetime
+                Observation end time
+            ltc: bool, optional
+                Light time correction enabling flag.   Do light time correction if True
+        Returns:
+            lightcurve: dict
+                A python dictionary containing light curve data
+
+        """
+        if isinstance(begin_utc, datetime):
+            begin_utc = begin_utc.isoformat()
+        if isinstance(end_utc, datetime):
+            end_utc = end_utc.isoformat()
+        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 2}
         url = ENDPOINTS['LC']
         return JSONRequest.post(url, form)
 
@@ -498,7 +529,7 @@ class JSONRequest(object):
                 science data received from data center if success or None if failed
 
         """
-        return JSONRequest.post(ENDPOINTS['SCIENCE'], {
+        return JSONRequest.post(ENDPOINTS['SCIENCE_DATA'], {
             'id': _id,
         })
 
@@ -547,3 +578,29 @@ class JSONRequest(object):
             'begin': begin_utc,
             'end': end_utc
         })
+
+    @staticmethod
+    def query_science(begin_utc:str, end_utc:str, request_type="all"):
+        """ Search for science data 
+        Parameters
+        ----
+            begin_utc: str
+              Begin time
+            end_utc: str
+              End time
+            request_type: {'xray-rpd', 'xray-cpd', 'xray-scpd', 'xray-spec', 'all'}, optional 
+              science request type. If it is not given, it returns all requests with observation time intersecting  the given time range. 
+              
+        Returns:
+        -------
+        dict:  A list of science request metadata 
+        """
+        return JSONRequest.post(ENDPOINTS['SCIENCE'], {
+            'start': begin_utc,
+            'end': end_utc,
+            'request_type':request_type
+        })
+
+
+
+

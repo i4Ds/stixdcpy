@@ -65,6 +65,11 @@ class Spectrogram(object):
         spectrogram: Spectrogram
                 A class instance of Spectrogram
         """
+        if 'Z' not in start_utc:
+            start_utc+='Z'
+        if 'Z' not in end_utc:
+            end_utc+='Z'
+
         json_data = jreq.fetch_spectrogram(start_utc, end_utc)
         if not json_data:
             logger.warning('Failed to download the data from STIX data center')
@@ -79,6 +84,7 @@ class Spectrogram(object):
         E1, E2, Eunit, dmask, pmask = [], [], [], [], []
         utcs = []
         rcr = []
+        triggers=[]
         for req in json_data['data']:
             for gr in req['groups']:
                 E1.append(gr['E1'])
@@ -92,6 +98,7 @@ class Spectrogram(object):
                     if unix < last_unix or unix < begin or unix > end:
                         continue
                     spectrograms.append(sb[2])
+                    triggers.append(sb[1])
                     utcs.append(datetime.utcfromtimestamp(unix))
                     time_bins.append(sb[3])
 
@@ -106,8 +113,10 @@ class Spectrogram(object):
         data = {
             'datetime': utcs,
             'time_bin': time_bins,
+            'timedel': time_bins,
             'spectrogram': spectrograms,
             'time_bins': time_bins,
+            'triggers':triggers,
             'rcr': np.unique(rcr),
             'elow': np.unique(E1),
             'ehigh': np.unique(E2),
