@@ -9,7 +9,6 @@ import numpy as np
 from astropy.table.table import Table
 from roentgen.absorption.material import Compound, MassAttenuationCoefficient, Material
 
-#from stixcore.config.reader import read_energy_channels
 
 __all__ = ['Transmission']
 
