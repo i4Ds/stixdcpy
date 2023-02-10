@@ -113,6 +113,7 @@ class Spectrogram(object):
         data = {
             'datetime': utcs,
             'time_bin': time_bins,
+            'timedel': time_bins,
             'spectrogram': spectrograms,
             'time_bins': time_bins,
             'triggers':triggers,
