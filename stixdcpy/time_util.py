@@ -21,6 +21,10 @@ def format_datetime(dt):
 def now():
     return datetime.utcnow()
 
+def to_iso_format(t):
+    dt=utc2datetime(t)
+    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
 
 def get_now(dtype='unix'):
     utc_iso = datetime.utcnow().isoformat() + 'Z'
@@ -30,20 +34,17 @@ def get_now(dtype='unix'):
 
 
 def utc2unix(utc):
-    if isinstance(utc, str):
-        if not utc.endswith('Z'):
-            utc += 'Z'
-        try:
-            return dtparser.parse(utc).timestamp()
-        except:
-            return 0
-    elif isinstance(utc, int) or isinstance(utc, float):
+    if isinstance(utc, int) or isinstance(utc, float):
         return utc
-    else:
-        return 0
 
+    dt = utc2datetime(utc)
+    return dt.timestamp()
+    
 
 def utc2datetime(utc):
+    if isinstance(utc, datetime):
+        return utc
+
     if not utc.endswith('Z'):
         utc += 'Z'
     try:
@@ -51,20 +52,6 @@ def utc2datetime(utc):
     except:
         return None
 
-
-def unix2datetime(timestamp):
-    dt = None
-    if isinstance(timestamp, float):
-        dt = datetime.utcfromtimestamp(timestamp)
-    elif isinstance(timestamp, str):
-        try:
-            ts = float(timestamp)
-            dt = datetime.utcfromtimestamp(ts)
-        except ValueError:
-            dt = dtparser.parse(timestamp)
-    elif isinstance(timestamp, datetime.datetime):
-        dt = timestamp
-    return dt
 
 
 def datetime2unix(timestamp):
@@ -77,7 +64,7 @@ def datetime2unix(timestamp):
             dt = datetime.utcfromtimestamp(ts)
         except ValueError:
             dt = dtparser.parse(timestamp)
-    elif isinstance(timestamp, datetime.datetime):
+    elif isinstance(timestamp, datetime):
         dt = timestamp
     if dt:
         return dt.timestamp()
