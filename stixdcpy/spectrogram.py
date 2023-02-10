@@ -84,6 +84,7 @@ class Spectrogram(object):
         E1, E2, Eunit, dmask, pmask = [], [], [], [], []
         utcs = []
         rcr = []
+        triggers=[]
         for req in json_data['data']:
             for gr in req['groups']:
                 E1.append(gr['E1'])
@@ -97,6 +98,7 @@ class Spectrogram(object):
                     if unix < last_unix or unix < begin or unix > end:
                         continue
                     spectrograms.append(sb[2])
+                    triggers.append(sb[1])
                     utcs.append(datetime.utcfromtimestamp(unix))
                     time_bins.append(sb[3])
 
@@ -113,6 +115,7 @@ class Spectrogram(object):
             'time_bin': time_bins,
             'spectrogram': spectrograms,
             'time_bins': time_bins,
+            'triggers':triggers,
             'rcr': np.unique(rcr),
             'elow': np.unique(E1),
             'ehigh': np.unique(E2),
