@@ -65,6 +65,11 @@ class Spectrogram(object):
         spectrogram: Spectrogram
                 A class instance of Spectrogram
         """
+        if 'Z' not in start_utc:
+            start_utc+='Z'
+        if 'Z' not in end_utc:
+            end_utc+='Z'
+
         json_data = jreq.fetch_spectrogram(start_utc, end_utc)
         if not json_data:
             logger.warning('Failed to download the data from STIX data center')

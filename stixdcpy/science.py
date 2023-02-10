@@ -115,7 +115,7 @@ class ScienceData(sio.IO):
             for a, b in zip(self.energies['e_low'], self.energies['e_high'])
         ]
         self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
-        self.inverse_energy_bin_mask = 1 - self.energy_bin_mask
+        self.inversed_energy_bin_mask = 1 - self.energy_bin_mask
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
         self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
@@ -444,7 +444,7 @@ class BackgroundSubtraction(object):
             ValueError('Inconsistent energy bins')
             return
 
-        #mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inverse_energy_bin_mask
+        #mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inversed_energy_bin_mask
 
         self.pixel_bkg_counts = np.array([
             int_time * self.l1bkg.mean_pixel_rate_spectra
@@ -452,12 +452,12 @@ class BackgroundSubtraction(object):
         ])
         # set counts beyond the signal energy range to 0
         self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts)
-        self.subtracted_counts *= self.l1sig.inverse_energy_bin_mask
+        self.subtracted_counts *= self.l1sig.inversed_energy_bin_mask
 
         # Dead time correction needs to be included in the future
         self.subtracted_counts_err = np.sqrt(
             self.l1sig.counts + np.array([int_time * self.l1bkg.mean_pixel_rate_spectra_err ** 2 for int_time in self.l1sig.timedel])) * \
-            self.l1sig.inverse_energy_bin_mask
+            self.l1sig.inversed_energy_bin_mask
         self.bkg_subtracted_spectrogram = np.sum(self.subtracted_counts,
                                                  axis=(1, 2))
 
