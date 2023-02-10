@@ -337,7 +337,8 @@ class JSONRequest(object):
             end_utc = end_utc.isoformat()
         form = {'begin': begin_utc, 'end': end_utc}
         url = ENDPOINTS['CAVEATS']
-        return JSONRequest.post(url, form)
+        data=JSONRequest.post(url, form)
+        return data['caveats']
 
     @staticmethod
     def fetch_light_curves(begin_utc, end_utc , ltc: bool):

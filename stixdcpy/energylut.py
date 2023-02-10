@@ -8,13 +8,13 @@ import numpy as np
 from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import JSONRequest as jreq
-from stixdcpy.transmission import Transmission
+#from stixdcpy.transmission import Transmission
 
 
 class EnergyLUT(sio.IO):
     def __init__(self, data):
         self.data = data
-        self.tran = Transmission()
+        #self.tran = Transmission()
 
     @classmethod
     def request(cls, utc):
@@ -102,6 +102,8 @@ class EnergyLUT(sio.IO):
             A numpy array with a shape of 32 x12 x 32.  The three dimensions indicate detector, pixel, and transmission for 32 energy channels.
             The transmission for the last energy bin set to 0
             """
+        pass
+        """
         true_ebins = np.array(
             self.data['data']
             ['true_energy_bin_edges'])  # an 2d array: 33 x 384
@@ -121,3 +123,4 @@ class EnergyLUT(sio.IO):
         trans[:, :,
               0] = 0  # set the transmission for the first energy bin to 0
         return trans
+        """
