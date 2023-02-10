@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import matplotlib.colors as colors
 from dateutil import parser as dtparser
 from stixdcpy import io as sio
+from stixdcpy import time_util as stu
 from stixdcpy.net import JSONRequest as jreq
 from stixdcpy import instrument as inst
 from stixdcpy.logger import logger
@@ -51,33 +52,30 @@ class Spectrogram(object):
         pass
 
     @classmethod
-    def from_sdc(cls, start_utc: str, end_utc: str):
+    def from_sdc(cls, start_utc, end_utc):
         """
         fetch spectrogram data from stix data center
         Parameters:
         ---------
-        start_utc: str
+        start_utc: str or datetime.datetime
             data start time
-        end_utc: str
+        end_utc: str or datetime.datetime
             data end time
         Returns:
         --------
         spectrogram: Spectrogram
                 A class instance of Spectrogram
         """
-        if 'Z' not in start_utc:
-            start_utc+='Z'
-        if 'Z' not in end_utc:
-            end_utc+='Z'
+        start_dt=stu.utc2datetime(start_utc)
+        end_dt=stu.utc2datetime(end_utc)
 
-        json_data = jreq.fetch_spectrogram(start_utc, end_utc)
+        json_data = jreq.fetch_spectrogram(stu.to_iso_format(start_dt), stu.to_iso_format(end_dt) )
         if not json_data:
             logger.warning('Failed to download the data from STIX data center')
             return
 
         spectrograms = []
-        begin, end = dtparser.parse(start_utc).timestamp(), dtparser.parse(
-            end_utc).timestamp()
+        begin, end = start_dt.timestamp(), end_dt.timestamp()
         last_unix = 0
         timestamps = []
         time_bins = []
@@ -99,8 +97,9 @@ class Spectrogram(object):
                         continue
                     spectrograms.append(sb[2])
                     triggers.append(sb[1])
-                    utcs.append(datetime.utcfromtimestamp(unix))
+                    utcs.append(stu.unix2datetime(unix))
                     time_bins.append(sb[3])
+                    last_unix = unix
 
         if np.unique(E1).size > 1 or np.unique(E2).size > 1 or np.unique(
                 dmask).size > 1 or np.unique(pmask).size > 1:

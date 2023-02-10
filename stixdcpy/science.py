@@ -9,7 +9,7 @@ from astropy.time import Time
 from astropy.table import Table
 import warnings
 from matplotlib import pyplot as plt
-from stixdcpy import time as sdt
+from stixdcpy import time_util as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import FitsQuery as freq
