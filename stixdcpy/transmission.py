@@ -7,8 +7,11 @@ from stixdcpy import instrument as ins
 import astropy.units as u
 import numpy as np
 from astropy.table.table import Table
-from roentgen.absorption.material import Compound, MassAttenuationCoefficient, Material
-
+try:
+    from roentgen.absorption.material import Compound
+except ImportError:
+    from roentgen.absorption.material import Stack as Compound
+from roentgen.absorption.material import MassAttenuationCoefficient, Material
 
 __all__ = ['Transmission']
 
