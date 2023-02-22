@@ -5,7 +5,7 @@ import matplotlib.colors as colors
 from dateutil import parser as dtparser
 from stixdcpy import io as sio
 from stixdcpy import time_util as stu
-from stixdcpy.net import JSONRequest as jreq
+from stixdcpy.net import Request as jreq
 from stixdcpy import instrument as inst
 from stixdcpy.logger import logger
 
@@ -66,10 +66,11 @@ class Spectrogram(object):
         spectrogram: Spectrogram
                 A class instance of Spectrogram
         """
-        start_dt=stu.utc2datetime(start_utc)
-        end_dt=stu.utc2datetime(end_utc)
+        start_dt=stu.anytime(start_utc, 'datetime')
+        end_dt=stu.anytime(end_utc, 'datetime')
+        start_utc_iso, end_utc_iso = stu.anytime(start_utc, 'iso'),  stu.anytime(end_utc, 'iso')
 
-        json_data = jreq.fetch_spectrogram(stu.to_iso_format(start_dt), stu.to_iso_format(end_dt) )
+        json_data = jreq.fetch_spectrogram(start_utc_iso, end_utc_iso)
         if not json_data:
             logger.warning('Failed to download the data from STIX data center')
             return

@@ -1,74 +1,36 @@
 #!/usr/bin/python3
 
+import pandas as pd
+from astropy.time import Time
 from datetime import datetime
-from dateutil import parser as dtparser
 
 
-def format_datetime(dt):
-    if isinstance(dt, datetime):
-        return dt.isoformat(timespec='milliseconds')
-    elif isinstance(dt, (int, float)):
-        return datetime.utcfromtimestamp(dt).isoformat(timespec='milliseconds')
-    elif isinstance(dt, str):
-        try:
-            return format_datetime(float(dt))
-        except ValueError:
-            return dt
-    else:
-        return '1970-01-01T00:00:00.000Z'
+
+def anytime(dt, fm='iso'):
+    if isinstance(dt, Time):
+        dt=dt.to_datetime()
+    t=pd.to_datetime(dt,utc=True)
+    if fm=='iso':
+        return t.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    elif fm=='unix':
+        return t.timestamp()
+    elif fm=='datetime':
+        return t.to_pydatetime()
+    return t
 
 
-def now():
-    return datetime.utcnow()
 
-def to_iso_format(t):
-    dt=utc2datetime(t)
-    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-
-def get_now(dtype='unix'):
-    utc_iso = datetime.utcnow().isoformat() + 'Z'
-    if dtype == 'unix':
-        return dtparser.parse(utc_iso).timestamp()
-    return utc_iso
-
-
-def utc2unix(utc):
-    if isinstance(utc, int) or isinstance(utc, float):
-        return utc
-
-    dt = utc2datetime(utc)
-    return dt.timestamp()
+def utc2unix(dt):
+    t=pd.to_datetime(dt,utc=True)
+    return t.timestamp()
     
 
-def utc2datetime(utc):
-    if isinstance(utc, datetime):
-        return utc
+def utc2datetime(t):
+    return pd.to_datetime(t, utc=True).to_pydatetime()
 
-    if not utc.endswith('Z'):
-        utc += 'Z'
-    try:
-        return dtparser.parse(utc)
-    except:
-        return None
-
-
-
-def datetime2unix(timestamp):
-    dt = None
-    if isinstance(timestamp, float):
-        dt = datetime.utcfromtimestamp(timestamp)
-    elif isinstance(timestamp, str):
-        try:
-            ts = float(timestamp)
-            dt = datetime.utcfromtimestamp(ts)
-        except ValueError:
-            dt = dtparser.parse(timestamp)
-    elif isinstance(timestamp, datetime):
-        dt = timestamp
-    if dt:
-        return dt.timestamp()
-    return 0
+def datetime2unix(t):
+   t=pd.to_datetime(t, utc=True)
+   return t.timestamp()
 
 
 def unix2utc(ts):

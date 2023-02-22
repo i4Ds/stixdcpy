@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 from stixdcpy import io as sio
 from stixdcpy.logger import logger
-from stixdcpy.net import JSONRequest as jreq
+from stixdcpy.net import Request as jreq
 
 
 class Ephemeris(sio.IO):
