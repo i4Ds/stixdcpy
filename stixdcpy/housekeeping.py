@@ -10,7 +10,7 @@ import matplotlib.dates as mdates
 
 from stixdcpy import io as sio
 from stixdcpy import time_util as sdt
-from stixdcpy.net import JSONRequest as jreq
+from stixdcpy.net import Request as jreq
 
 
 class Housekeeping(sio.IO):

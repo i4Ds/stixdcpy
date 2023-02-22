@@ -7,7 +7,7 @@ from pprint import pprint
 import numpy as np
 from stixdcpy.logger import logger
 from stixdcpy import io as sio
-from stixdcpy.net import JSONRequest as jreq
+from stixdcpy.net import Request as jreq
 #from stixdcpy.transmission import Transmission
 
 

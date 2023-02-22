@@ -5,19 +5,20 @@
     Date: Sep. 1, 2021
 
 """
-
 import hashlib
 import simplejson
 import numpy as np
 import pandas as pd
-import pprint
+from pprint import pprint
 from pathlib import Path, PurePath
 from datetime import datetime
-from dateutil import parser as dtparser
+
+from collections import UserDict
 import requests
 from astropy.io import fits
 from tqdm import tqdm
 from stixdcpy.logger import logger
+from stixdcpy import time_util as stu 
 
 DOWNLOAD_LOCATION = Path.cwd() / 'downloads'
 
@@ -68,6 +69,13 @@ class FitsQueryResult(object):
     def __len__(self):
         return len(self.result)
 
+    def dataframe(self):
+        """
+        Convert FitsQueryResult to pandas dataframe
+        Returns:
+            pandas data frame
+        """
+        return pd.DataFrame(self.result)
     def to_pandas(self):
         """
         Convert FitsQueryResult to pandas dataframe
@@ -75,6 +83,7 @@ class FitsQueryResult(object):
             pandas data frame
         """
         return pd.DataFrame(self.result)
+
 
     def open_fits(self):
         """
@@ -202,8 +211,10 @@ class FitsQuery(object):
         """Query FITS products from STIX data center
 
         Args:
-            start_utc (str): start time
-            stop_utc (str): end time
+            start_utc (str, datetime, pd.Timestamp or astropy.time.Time):
+                start time
+            stop_utc (str, datetime, pd.Timestamp or astropy.time.Time):
+                end time
             product_type (str, optional): 
             FITS product type. Defaults to 'lc'.
 
@@ -212,6 +223,7 @@ class FitsQuery(object):
             results: FitsQueryResult
                 file result object
         """
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
         form = {
             'start_utc': begin_utc,
             'end_utc': end_utc,
@@ -221,7 +233,7 @@ class FitsQuery(object):
         }
         url = ENDPOINTS['FITS']
         res = []
-        r = JSONRequest.post(url, form)
+        r = Request.post(url, form)
         if isinstance(r, list):
             res = r
         return FitsQueryResult(res)
@@ -294,20 +306,44 @@ class FitsQuery(object):
 
     @staticmethod
     def fetch_continuous_data(start_utc, end_utc, data_type):
+
+        start_utc, end_utc=stu.anytime(start_utc), stu.anytime(end_utc)
         if data_type not in ['hkmax', 'lc', 'var', 'qlspec', 'bkg']:
             raise TypeError(f'Data type {data_type} not supported!')
         url = f'{HOST}/create/fits/{start_utc}/{end_utc}/{data_type}'
         fname = FitsQuery.wget(url, 'Downloading data', True)
         return fname
 
+class ResponseDict(dict):
+    """
+        Response from data center
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    def dataframe(self):
+        return pd.DataFrame([self])
+class ResponseList(list):
+    """
+        Response from data center
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    def dataframe(self):
+        return pd.DataFrame(self)
 
-class JSONRequest(object):
+class Request(object):
     """Request json format data from STIX data center """
     @staticmethod
-    def post(url, form):
+    def post(url, form, result_type = 'object'):
         response = requests.post(url, data=form)
         try:
             data = response.json()
+            if result_type == 'object':
+                if isinstance(data,list):
+                    return ResponseList(data)
+                elif isinstance(data,dict):
+                    return ResponseDict(data)
+
         except simplejson.errors.JSONDecodeError:
             logger.error("An error occurred on the server.")
             return None
@@ -320,9 +356,9 @@ class JSONRequest(object):
         """ Request light curve from STIX data center
 
         Parameters:
-            begin_utc:  str or datetime
+            begin_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 Observation start time
-            end_utc: str or datetime
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 Observation end time
             ltc: bool, optional
                 Light time correction enabling flag.   Do light time correction if True
@@ -331,23 +367,20 @@ class JSONRequest(object):
                 A python dictionary containing light curve data
 
         """
-        if isinstance(begin_utc, datetime):
-            begin_utc = begin_utc.isoformat()
-        if isinstance(end_utc, datetime):
-            end_utc = end_utc.isoformat()
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
         form = {'begin': begin_utc, 'end': end_utc}
         url = ENDPOINTS['CAVEATS']
-        data=JSONRequest.post(url, form)
-        return data['caveats']
+        data=Request.post(url, form, result_type='dict')
+        return ResponseList(data['caveats'])
 
     @staticmethod
     def fetch_light_curves(begin_utc, end_utc , ltc: bool):
         """ Request light curve from STIX data center
 
         Parameters:
-            begin_utc:  str or datetime
+            begin_utc:   str, datetime, pandas.Timestamp or astropy.time.Time
                 Observation start time
-            end_utc: str or datetime
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 Observation end time
             ltc: bool, optional
                 Light time correction enabling flag.   Do light time correction if True
@@ -356,40 +389,37 @@ class JSONRequest(object):
                 A python dictionary containing light curve data
 
         """
-        if isinstance(begin_utc, datetime):
-            begin_utc = begin_utc.isoformat()
-        if isinstance(end_utc, datetime):
-            end_utc = end_utc.isoformat()
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+
         form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 2}
         url = ENDPOINTS['LC']
-        return JSONRequest.post(url, form)
+        return Request.post(url, form)
 
     @staticmethod
     def fetch_housekeeping(begin_utc: str, end_utc: str):
         """Fetch housekeeping data from STIX data center
 
         Parameters:
-            begin_utc: Data start time
-            end_utc: data end time
+            begin_utc :  str, datetime, pandas.Timestamp or astropy.time.Time
+
+                Data start time
+            end_utc:   str, datetime, pandas.Timestamp or astropy.time.Time
+                data end time
 
         Returns:
             result:  dict
             housekeeping data
 
         """
-        if not begin_utc.endswith('Z'):
-            begin_utc += 'Z'
-        if not end_utc.endswith('Z'):
-            end_utc += 'Z'
-        start_unix = dtparser.parse(begin_utc).timestamp()
-        end_unix = dtparser.parse(end_utc).timestamp()
+        start_unix, end_unix=stu.anytime(begin_utc, fm='unix'), stu.anytime(end_utc, fm='unix')
+
         duration = int(end_unix) - int(start_unix)
         form = {
             'start_unix': start_unix,
             'duration': duration,
         }
         url = ENDPOINTS['HK']
-        return JSONRequest.post(url, form)
+        return Request.post(url, form)
 
     @staticmethod
     def solve_cfl(cfl_counts, cfl_counts_err, fluence, fluence_err):
@@ -416,7 +446,7 @@ class JSONRequest(object):
             'fluence_err': fluence_err
         }
         url = ENDPOINTS['CFL_SOLVER']
-        return JSONRequest.post(url, form)
+        return Request.post(url, form)
 
     @staticmethod
     def fetch_elut(utc):
@@ -428,35 +458,39 @@ class JSONRequest(object):
         """
         form = {'utc': utc}
         url = ENDPOINTS['ELUT']
-        return JSONRequest.post(url, form)
+        return Request.post(url, form)
 
     @staticmethod
-    def request_ephemeris(begin_utc: str, end_utc: str, steps=1):
-        return JSONRequest.post(ENDPOINTS['EPHEMERIS'], {
+    def request_ephemeris(begin_utc, end_utc, steps=1):
+
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+
+        return Request.post(ENDPOINTS['EPHEMERIS'], {
             'start_utc': begin_utc,
             'end_utc': end_utc,
             'steps': steps
         })
 
     @staticmethod
-    def request_pointing(utc: str):
+    def request_pointing(utc):
         """
         request STIX pointing data 
         Parameters
         ----
-        utc: str
+        utc:  str, datetime, pandas.Timestamp or astropy.time.Time
             UTC time
         Returns
         ----
         data: dict
             dictionary containing pointing information
         """
-        return JSONRequest.post(ENDPOINTS['STIX_POINTING'], {
+        utc =stu.anytime(utc)
+        return Request.post(ENDPOINTS['STIX_POINTING'], {
             'utc': utc,
         })
 
     @staticmethod
-    def request_flare_light_time_and_angle(utc: str,
+    def request_flare_light_time_and_angle(utc,
                                            flare_x: float,
                                            flare_y: float,
                                            observer='earth'):
@@ -464,7 +498,7 @@ class JSONRequest(object):
             calculate flare light times and relative angles 
         Parameters
         ----
-            utc: str
+            utc: str, datetime, pandas.Timestamp or astropy.time.Time
                 observation time
             flare_x: float
                 flare helio-projective longitude in units of arcsec as seen by the observer
@@ -492,7 +526,8 @@ class JSONRequest(object):
                  'sun_solo_lt':  SUN-SolO light time in units of seconds 
 
         """
-        return JSONRequest.post(ENDPOINTS['FLARE_AUX'], {
+        utc =stu.anytime(utc)
+        return Request.post(ENDPOINTS['FLARE_AUX'], {
             'observer': observer,
             'sunx': flare_x,
             'suny': flare_y,
@@ -500,11 +535,16 @@ class JSONRequest(object):
         })
 
     @staticmethod
-    def request_attitude(begin_utc: str,
-                         end_utc: str,
+    def request_attitude(begin_utc,
+                         end_utc,
                          steps=1,
                          instrument_frame='SOLO_SRF',
                          ref_frame='SOLO_SUN_RTN'):
+        """
+        request altitude data from stix data center
+
+        """
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
         form = {
             'start_utc': begin_utc,
             'end_utc': end_utc,
@@ -512,7 +552,7 @@ class JSONRequest(object):
             'frame1': instrument_frame,
             'frame2': ref_frame
         }
-        ret = JSONRequest.post(ENDPOINTS['ATTITUDE'], form)
+        ret = Request.post(ENDPOINTS['ATTITUDE'], form)
         return ret
 
     @staticmethod
@@ -529,19 +569,19 @@ class JSONRequest(object):
                 science data received from data center if success or None if failed
 
         """
-        return JSONRequest.post(ENDPOINTS['SCIENCE_DATA'], {
+        return Request.post(ENDPOINTS['SCIENCE_DATA'], {
             'id': _id,
         })
 
     @staticmethod
-    def fetch_flare_list(begin_utc: str, end_utc: str, sort: str = 'time'):
+    def fetch_flare_list(begin_utc, end_utc, sort: str = 'time'):
         """ query and download flare list from stix data center
 
         Parameters:
         ------
-            begin_utc: str
+            begin_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 flare start UTC
-            end_utc: str
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 flare end UTC
             sort: str
                 key to sort flares. It can be one of ['goes','time', 'LC0','LC1','LC2','LC3','LC4], LCi here means the i-th QL light curve
@@ -553,20 +593,21 @@ class JSONRequest(object):
                 flare list if success or None if failed.
 
         """
-        return JSONRequest.post(ENDPOINTS['FLARE_LIST'], {
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+        return Request.post(ENDPOINTS['FLARE_LIST'], {
             'start_utc': begin_utc,
             'end_utc': end_utc,
             'sort': sort
         })
     @staticmethod
-    def fetch_spectrogram(begin_utc: str, end_utc: str):
+    def fetch_spectrogram(begin_utc, end_utc):
         """ download spectrogram data from stix data center
 
         Parameters:
         ------
-            begin_utc: str
+            begin_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 start UTC
-            end_utc: str
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
                 end UTC
         Returns:
         -----
@@ -574,19 +615,20 @@ class JSONRequest(object):
                 A dictionary containing spectrogram data or error message
 
         """
-        return JSONRequest.post(ENDPOINTS['SPECTROGRAMS'], {
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+        return Request.post(ENDPOINTS['SPECTROGRAMS'], {
             'begin': begin_utc,
             'end': end_utc
         })
 
     @staticmethod
-    def query_science(begin_utc:str, end_utc:str, request_type="all"):
+    def query_science(begin_utc, end_utc, request_type="all"):
         """ Search for science data 
         Parameters
         ----
-            begin_utc: str
+            begin_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
               Begin time
-            end_utc: str
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
               End time
             request_type: {'xray-rpd', 'xray-cpd', 'xray-scpd', 'xray-spec', 'all'}, optional 
               science request type. If it is not given, it returns all requests with observation time intersecting  the given time range. 
@@ -595,7 +637,8 @@ class JSONRequest(object):
         -------
         dict:  A list of science request metadata 
         """
-        return JSONRequest.post(ENDPOINTS['SCIENCE'], {
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+        return Request.post(ENDPOINTS['SCIENCE'], {
             'start': begin_utc,
             'end': end_utc,
             'request_type':request_type

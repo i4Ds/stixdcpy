@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 from stixdcpy import io as sio
-from stixdcpy.net import JSONRequest as jreq
+from stixdcpy.net import Request as jreq
 import matplotlib.dates as mdates
 
 
