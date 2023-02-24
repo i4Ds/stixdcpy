@@ -11,27 +11,31 @@ class DetectorView:
         html=f'''
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <title>STIX detector view</title>
+    <head>  <title>STIX detector view</title>
         <script src="https://datacenter.stix.i4ds.net/static/js/pystix.js" type="text/javascript"></script>
-
-
+    <style>
+    .center {{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }}
+    </style>
         </head>
         <body>
+        <div class="center">
+            <button type="button" id="save" >Save as SVG</button>
+        </div>
         <div id="counts2d" style="width:500px;" >Rendering...</div>
         </body>
                 <script>
                 StixDetectorView.showGridParameterOnHover(true);
         StixDetectorView.plotDetector("#counts2d", {{
-            counts:  {self.counts},
-            vW: 1140,
+            counts:  {self.counts}, vW: 1140,
             vH: 1140,
             legend: true,
             detectorViewToolbar: false,
             reset:true
-        }});
-        $('#')
-
+        }}); $("#save").on("click",function(){{StixDetectorView.saveSVG();}});
         </script>
         </html>
         '''
