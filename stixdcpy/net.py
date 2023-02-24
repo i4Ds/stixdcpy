@@ -622,7 +622,7 @@ class Request(object):
         })
 
     @staticmethod
-    def query_science(begin_utc, end_utc, request_type="all"):
+    def query_science(begin_utc, end_utc, request_type="all", full = False):
         """ Search for science data 
         Parameters
         ----
@@ -632,6 +632,10 @@ class Request(object):
               End time
             request_type: {'xray-rpd', 'xray-cpd', 'xray-scpd', 'xray-spec', 'all'}, optional 
               science request type. If it is not given, it returns all requests with observation time intersecting  the given time range. 
+            full : boolean 
+               if True,  the server will  return as much as information as possible
+              
+              
               
         Returns:
         -------
@@ -641,6 +645,7 @@ class Request(object):
         return Request.post(ENDPOINTS['SCIENCE'], {
             'start': begin_utc,
             'end': end_utc,
+            'more': full,
             'request_type':request_type
         })
 

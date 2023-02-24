@@ -23,7 +23,7 @@ BETA = 0.94
 FPGA_TAU = 10.1e-6
 ASIC_TAU = 2.63e-6
 TRIG_TAU = FPGA_TAU + ASIC_TAU
-#STIX detector parameters
+# STIX detector parameters
 
 
 class ScienceData(sio.IO):
@@ -42,7 +42,8 @@ class ScienceData(sio.IO):
         self.hdul = fits.open(fname)
         self.energies = []
         self.corrected = None
-        #self.read_data()
+        # self.read_data()
+
     @property
     def url(self):
         req_id = self.request_id if not isinstance(
@@ -55,6 +56,10 @@ class ScienceData(sio.IO):
         return error_computation(self.hdul['data'].data['triggers_err'],
                                  self.triggers)
 
+    @property
+    def filename(self):
+        return self.fname
+
     def read_fits(self, light_time_correction=True):
         """
             Read data  L1 compression level  FITS files
@@ -65,13 +70,14 @@ class ScienceData(sio.IO):
         """
 
         self.data = self.hdul['DATA'].data
-        #self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        # self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         try:
             # L1
             self.T0_utc = self.hdul['PRIMARY'].header['DATE-BEG']
         except KeyError:
             self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         self.counts = self.data['counts']
+        #counts is a 4d array:  time_bin_index, detector, pixel, energy
 
         self.light_time_del = self.hdul['PRIMARY'].header['EAR_TDEL']
         self.light_time_corrected = light_time_correction
@@ -94,7 +100,7 @@ class ScienceData(sio.IO):
             elif self.data_type == 'Spectrogram':
                 self.counts = self.counts[1:, :]
                 self.triggers = self.triggers[1:]
-                #self.rcr = self.rcr[1:]
+                # self.rcr = self.rcr[1:]
 
         self.request_id = self.hdul['CONTROL'].data['request_id']
 
@@ -118,7 +124,7 @@ class ScienceData(sio.IO):
         self.inversed_energy_bin_mask = 1 - self.energy_bin_mask
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
-        self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements
+        self.max_ebin = np.max(ebin_nz_idx)  # indices of the non-zero elements
         self.min_ebin = np.min(ebin_nz_idx)
 
         self.ebins_mid = [
@@ -152,7 +158,6 @@ class ScienceData(sio.IO):
 
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
-
     @classmethod
     def from_sdc(cls, request_id, level='L1A'):
         '''
@@ -169,7 +174,7 @@ class ScienceData(sio.IO):
         ------
             science data class object
         '''
-        #request_id = request_id
+        # request_id = request_id
         fname = freq.fetch_bulk_science_by_request_id(request_id, level)
         return cls(fname, request_id)
 
@@ -177,7 +182,7 @@ class ScienceData(sio.IO):
     def from_fits(cls, filename):
         """
         factory class
-        Arguments
+        Arguments:
         filename: str
             FITS filename
         """
@@ -234,13 +239,10 @@ class ScienceData(sio.IO):
         elif name == 'filename':
             return self.fname
 
-    def get_data(self):
-        return self.hdul
-
 
 class ScienceL1(ScienceData):
     """
-    Tools to analyze L1 science data
+    Tools to analyze STIX pixel data
     """
 
     def __init__(self, fname, request_id, ltc=False):
@@ -254,7 +256,7 @@ class ScienceL1(ScienceData):
     def make_spectra(self, pixel_counts=None):
         if pixel_counts is None:
             pixel_counts = self.pixel_counts
-        self.spectrogram = np.sum(pixel_counts, axis=(1, 2))
+        self.spectrogram = np.sum(pixel_counts, axis=(1, 2)) #integrate detector and pixel
         self.count_rate_spectrogram = self.spectrogram / self.timedel[:, np.
                                                                       newaxis]
         self.spectrum = np.sum(pixel_counts, axis=(0, 1, 2))
@@ -263,7 +265,7 @@ class ScienceL1(ScienceData):
                                               axis=0) / self.duration
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
-        #sum over all time bins and then divide them by the duration, counts per second
+        # sum over all time bins and then divide them by the duration, counts per second
 
         self.pixel_total_counts = np.sum(self.pixel_counts, axis=(0, 3))
 
@@ -303,7 +305,7 @@ class ScienceL1(ScienceData):
 
             time_bins = time_bins[:, None]
             photons_in = triggers / (time_bins - TRIG_TAU * triggers)
-            #photon rate calculated using triggers
+            # photon rate calculated using triggers
 
             live_ratio = np.zeros((time_bins.size, 32))
             time_bins = time_bins[:, :, None, None]
@@ -362,7 +364,7 @@ class ScienceL1(ScienceData):
                 X, Y,
                 np.transpose(
                     self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin]
-                ))  #pixel summed energy spectrum
+                ))  # pixel summed energy spectrum
             ax0.set_yticks(
                 self.energies['channel'][self.min_ebin:self.max_ebin:2])
             ax0.set_yticklabels(
@@ -399,9 +401,9 @@ class ScienceL1(ScienceData):
                     self.time,
                     self.count_rate_spectrogram[:,
                                                 self.min_ebin:self.max_ebin])
-            #correct
+            # correct
             ax1.set_ylabel('counts / sec')
-            #plt.legend(self.energy_bin_names, ncol=4)
+            # plt.legend(self.energy_bin_names, ncol=4)
             ax1.set_yscale('log')
             ax1.set_xlabel(f"seconds since {self.T0_utc} ")
             plt.legend()
@@ -409,7 +411,7 @@ class ScienceL1(ScienceData):
             if not ax2:
                 _, ax2 = plt.subplots()
             ax2.plot(self.ebins_low, self.spectrum, drawstyle='steps-post')
-            #ax.set_xticks(self.data[3].data['channel'])
+            # ax.set_xticks(self.data[3].data['channel'])
             ax2.set_xscale('log')
             ax2.set_yscale('log')
             ax2.set_xlabel('Energy (keV)')
@@ -422,7 +424,7 @@ class ScienceL1(ScienceData):
             ax3.set_ylabel('Integration time (sec)')
             plt.suptitle(f'L1 request #{self.request_id}')
 
-        #plt.tight_layout()
+        # plt.tight_layout()
         return ax0, ax1, ax2, ax3
 
 
@@ -444,15 +446,19 @@ class BackgroundSubtraction(object):
             ValueError('Inconsistent energy bins')
             return
 
-        #mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inversed_energy_bin_mask
+        # mean_pixel_rate_clip = self.l1bkg.mean_pixel_rate_spectra * self.l1sig.inversed_energy_bin_mask
 
         self.pixel_bkg_counts = np.array([
             int_time * self.l1bkg.mean_pixel_rate_spectra
             for int_time in self.l1sig.timedel
         ])
+        #here we assume that the energy binining of the two requests are the same
+        #count rate
         # set counts beyond the signal energy range to 0
         self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts)
-        self.subtracted_counts *= self.l1sig.inversed_energy_bin_mask
+        self.subtracted_counts *= self.l1sig.energy_bin_mask
+        #filter bins those are not requested
+    
 
         # Dead time correction needs to be included in the future
         self.subtracted_counts_err = np.sqrt(
@@ -479,7 +485,7 @@ class BackgroundSubtraction(object):
                                         max_ebin:2])
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=axs[1, 0])
-        cbar.set_label('Counts')
+        cbar.set_label('Counts')    
         axs[1, 0].set_title('Bkg sub. counts')
         axs[1, 0].set_ylabel('Energy range(keV')
         axs[1, 0].set_xlabel(f"Seconds since {self.l1sig.T0}s ")
@@ -497,31 +503,52 @@ class BackgroundSubtraction(object):
     def get_background_subtracted_spectrum(self, start_utc=None, end_utc=None):
         """
         Get signal background subtracted spectrum
-
+        Arguments:
+        start_utc:  str, datetime, astropy.time.Time or pandas.Timestamp
+             Start time of the signal data to be selected, all counts will be selected if not specified
+        end_utc:  str, datetime, astropy.time.Time or pandas.Timestamp
+             end time of the signal data to be selected, all counts will be selected if not specified
+         Returns:
+            bkg_sub_spectra: a numpy array, background-subtracted spectra for the given time range.
+            bkg_sub_spectra_err: a numpy array, the errors in the background-subtracted spectra.
         """
-        start_unix = sdt.utc2unix(start_utc)
-        end_unix = sdt.utc2unix(end_utc)
-        start_time = start_unix - self.l1sig.T0_unix
-        end_time = end_unix - self.l1sig.T0_unix
-        start_i_tbin = np.argmax(
-            self.l1sig.time - 0.5 * self.l1sig.timedel >= start_time) if (
-                0 <= start_time <= self.l1sig.duration) else 0
+        if start_utc is None and end_utc is None:
+            
+            start_i_tbin, end_i_tbin=0, self.l1sig.pixel_counts.shape[0]-1
+            
+        else: 
+            
+            start_unix = sdt.utc2unix(
+                start_utc) if start_utc else self.l1sig.T0_unix
+            end_unix = sdt.utc2unix(
+                end_utc) if end_utc else self.l1sig.T0_unix+self.l1sig.duration
+            
+            start_time = start_unix - self.l1sig.T0_unix
+            end_time = end_unix - self.l1sig.T0_unix
+            
+            start_i_tbin = np.argmax(
+                self.l1sig.time - 0.5 * self.l1sig.timedel >= start_time) if (
+                    0 <= start_time <= self.l1sig.duration) else 0
 
-        end_i_tbin = np.argmin(
-            self.l1sig.time + 0.5 * self.l1sig.timedel <= end_time) if (
-                start_time <= end_time <= self.l1sig.duration) else len(
-                    self.l1sig.time)
+            end_i_tbin = np.argmin(
+                self.l1sig.time + 0.5 * self.l1sig.timedel <= end_time)   if (
+                    start_time <= end_time <= self.l1sig.duration) else len(
+                        self.l1sig.time)-1
+        
         time_span = self.l1sig.time[end_i_tbin] - self.l1sig.time[
-            start_i_tbin] + 0.5 * self.l1sig.timedel[
-                start_i_tbin] + 0.5 * self.l1sig.timedel[end_i_tbin]
+                start_i_tbin] + 0.5 * self.l1sig.timedel[
+                    start_i_tbin] + 0.5 * self.l1sig.timedel[end_i_tbin]
+        
 
         bkg_sub_spectra = np.sum(
-            self.subtracted_counts[start_i_tbin:end_i_tbin, :, :, :],
-            axis=(0, 1, 2)) / time_span,
+            self.subtracted_counts[start_i_tbin:end_i_tbin, :, :, :],  #t,det, pixel, energy
+            axis=(0, 1, 2)) / time_span
+        
         bkg_sub_spectra_err = np.sqrt(
             np.sum(self.subtracted_counts_err[start_i_tbin:end_i_tbin, :, :, :]
-                   **2,
+                   ** 2,
                    axis=(0, 1, 2))) / time_span
+        
         return bkg_sub_spectra, bkg_sub_spectra_err
 
 
@@ -549,7 +576,7 @@ class Spectrogram(ScienceData):
             logger.error(f'Data not loaded. ')
             return None
 
-        #((ax0, ax1), (ax2, ax3))=axs
+        # ((ax0, ax1), (ax2, ax3))=axs
         if not any([ax0, ax1, ax2, ax3]):
             _, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(8, 6))
 
@@ -557,7 +584,7 @@ class Spectrogram(ScienceData):
             X, Y = np.meshgrid(self.time,
                                self.hdul['ENERGIES'].data['channel'])
             im = ax0.pcolormesh(X, Y, np.transpose(
-                self.counts))  #pixel summed energy spectrum
+                self.counts))  # pixel summed energy spectrum
             ax0.set_yticks(self.hdul['ENERGIES'].data['channel'][::2])
             ax0.set_yticklabels(self.energy_bin_names[::2])
             fig = plt.gcf()
@@ -567,7 +594,7 @@ class Spectrogram(ScienceData):
             ax0.set_ylabel('Energy range(keV')
             ax0.set_xlabel(f"Seconds since {self.T0}s ")
         if ax1:
-            #convert to 2d
+            # convert to 2d
             ax1.plot(self.time, self.count_rates)
             ax1.set_yscale('log')
             ax1.set_ylabel('Counts / sec')
@@ -648,16 +675,16 @@ def error_computation(given_error: np.ndarray,
 
 def fits_time_corrections(primary_header, tstart, tend):
     """Calculates the correct values for the FITS header keywords that deal with times
-    
+
     Inputs:
     primary_header : astropy.io.fits.primary_HDU.header
         The header to be modified
-        
+
     tstart : format recognizable by astropy.time.Time (for example, a string)
         Start time of new FITS file
     tend : format recognizable by astropy.time.Time (for example, a string)
         End time of new FITS file
-        
+
     Returns:
     primary_header : astropy.io.fits.primary_HDU.header
             The modified header
@@ -668,7 +695,7 @@ def fits_time_corrections(primary_header, tstart, tend):
     date_end = Time(tend).isot
     date_avg = Time(Time(tstart).mjd +
                     (Time(tend).mjd - Time(tstart).mjd) / 2.,
-                    format='mjd').isot  #average the date
+                    format='mjd').isot  # average the date
     dateref = date_obs
 
     date_ear = Time(
@@ -676,11 +703,11 @@ def fits_time_corrections(primary_header, tstart, tend):
     date_sun = Time(
         Time(tstart).datetime - td(seconds=primary_header['SUN_TIME'])).isot
 
-    #OBT_BEG =
-    #OBT_END = #what are these?
+    # OBT_BEG =
+    # OBT_END = #what are these?
 
-    #OBT_BEG = '0703714990:39319'
-    #OBT_END = '0703736898:43389'
+    # OBT_BEG = '0703714990:39319'
+    # OBT_END = '0703736898:43389'
     primary_header.set('DATE', creation_date)
     primary_header.set('DATE_OBS', date_obs)
     primary_header.set('DATE_BEG', date_beg)
@@ -709,19 +736,19 @@ def open_spec_fits(filename):
 def fits_time_to_datetime(*args, factor=1):
     """Convert times as stored in FITS files into datetimes
     Inputs (either the filename or the header and data table are accepted):
-    
+
     fitsfilename : str
         The FITS file whose times to convert
-    
+
     primary_header : astropy.io.fits.primary_HDU.header
         The header to be modified
-        
+
     data_table : astropy.table.Table
         Data table containing time information
-        
+
     factor : int, default = 1
         factor by which to convert data to seconds. In some cases might need to use factor = 100 to account for units of cs being used in place of s
-        
+
     Returns:
         spectime: astropy.time.Time
     """
@@ -743,23 +770,23 @@ def fits_time_to_datetime(*args, factor=1):
 
 def time_select_indices(tstart, tend, primary_header, data_table, factor=1.):
     """Find the indices to use in order to select data between a certain start and end time
-    
+
     Inputs:
     tstart : format recognizable by astropy.time.Time (for example, a string)
         Start time of new FITS file
-        
+
     tend : format recognizable by astropy.time.Time (for example, a string)
         End time of new FITS file
-        
+
     primary_header : astropy.io.fits.primary_HDU.header
         The header to be modified
-        
+
     data_table : astropy.table.Table
         Data table containing time information
-        
+
     factor : int, default = 1
         factor by which to convert data to seconds. In some cases might need to use factor = 100 to account for units of cs being used in place of s
-            
+
     Returns:
     idx0 : int
         Start index of time interval
@@ -779,62 +806,62 @@ def time_select_indices(tstart, tend, primary_header, data_table, factor=1.):
     else:
         tend_mjd = spectime[-1]
 
-    #get indices for tstart and tend
+    # get indices for tstart and tend
     tselect = np.where(
         np.logical_and(spectime > tstart_mjd, spectime <= tend_mjd))[0]
-    idx0, idx1 = tselect[0], tselect[-1]  #first and last indices
+    idx0, idx1 = tselect[0], tselect[-1]  # first and last indices
     return idx0, idx1
 
 
 def spec_fits_crop(fitsfile, tstart, tend, outfilename=None):
     """ Crop a STIX science data product (L1A, L1, or L4) to contain only the data within a given time interval. Create a new FITS file containing this data. The new file will be of the same processing level as the input file.
-    
+
     Inputs:
     fitsfile : str
         Name of input FITS file
-        
+
     tstart : format recognizable by astropy.time.Time (for example, a string)
         Start time of new FITS file
-        
+
     tend : format recognizable by astropy.time.Time (for example, a string)
         End time of new FITS file
-        
+
     outfilename : str, default = None
         Name of output FITS file
-        
+
     Returns:
         outfilename : str
         Name of output FITS file"""
 
     primary_header, control, data, energy = open_spec_fits(fitsfile)
 
-    #get indices for tstart and tend
+    # get indices for tstart and tend
     idx0, idx1 = time_select_indices(tstart, tend, primary_header,
-                                     data.data)  #first and last indices
+                                     data.data)  # first and last indices
 
-    #crop data table
+    # crop data table
     count_names = data.data.names
     table_data = []
     for n in count_names:
         if data.data[n].ndim > 1:
             new_data = data.data[n][idx0:idx1, :]
         else:
-            if n == 'time':  #this has to be done differently since it is relative to timezero
+            if n == 'time':  # this has to be done differently since it is relative to timezero
                 timevec = fits_time_to_datetime(
                     primary_header,
-                    data.data).mjd  #- Time(primary_header['DATE_BEG']).mjd
-                timevec -= timevec[idx0]  #relative to new start time
+                    data.data).mjd  # - Time(primary_header['DATE_BEG']).mjd
+                timevec -= timevec[idx0]  # relative to new start time
                 new_data = timevec[idx0:idx1] * 86400
             else:
                 new_data = data.data[n][idx0:idx1]
         table_data.append(new_data)
-    #count_table = Table([data.data[n][idx0:idx1,:] if data.data[n].ndim >1 else data.data[n][idx0:idx1] for n in count_names], names = count_names)
+    # count_table = Table([data.data[n][idx0:idx1,:] if data.data[n].ndim >1 else data.data[n][idx0:idx1] for n in count_names], names = count_names)
     count_HDU = fits.BinTableHDU(data=Table(table_data, names=count_names))
 
-    #insert other keywords into counts header (do datasum and checksum later)
+    # insert other keywords into counts header (do datasum and checksum later)
     count_HDU.header.set('EXTNAME', 'DATA', 'extension name')
 
-    #correct keywords in primary header
+    # correct keywords in primary header
     primary_header = fits_time_corrections(primary_header, tstart, tend)
     if not outfilename:
         outfilename = f"{fitsfile[:-5]}_{Time(tstart).datetime:%H%M%S}_{Time(tend).datetime:%H%M%S}.fits"
@@ -855,23 +882,23 @@ def spec_fits_concatenate(fitsfile1,
     """ Concatenate two STIX science data product (L1A, L1, or L4) files. Option to select only the 
         data within a given time interval. Create a new FITS file containing this data. The new file will be of the same processing level as the input file. 
         In case of overlapping time ranges, keep the data from the first file within this range (in an ideal case the data will anyway be identical)
-    
+
     Inputs:
     fitsfile1 : str
         Name of first input FITS file
-        
+
     fitsfile2 : str
         Name of second input FITS file
-        
+
     tstart : optional, default = None
         Start time of new FITS file
-        
+
     tend : optional, default = None
         End time of new FITS file
-        
+
     outfilename : str, default = None
         Name of output FITS file
-        
+
     Returns:
         outfilename : str
         Name of output FITS file"""
@@ -879,14 +906,14 @@ def spec_fits_concatenate(fitsfile1,
     primary_header1, control1, data1, energy1 = open_spec_fits(fitsfile1)
     primary_header2, control2, data2, energy2 = open_spec_fits(fitsfile2)
 
-    #check that energy tables are the same. If not, there is an error
+    # check that energy tables are the same. If not, there is an error
     for n in energy1.data.names:
         if not np.allclose(energy1.data[n], energy2.data[n]):
             raise ValueError(
                 f"Values for {n} in energy table are different in {fitsfile1} and {fitsfile2}!"
             )
 
-    #check that detector, pixel, and energy masks masks are the same
+    # check that detector, pixel, and energy masks masks are the same
     for n in [
             'pixel_masks', 'detector_masks', 'pixel_mask', 'detector_mask',
             'energy_bin_mask'
@@ -897,24 +924,24 @@ def spec_fits_concatenate(fitsfile1,
                     f"Values for {n} in control table are different in {fitsfile1} and {fitsfile2}!"
                 )
 
-    #get indices for tstart and tend - assuming tstart is in first file and tend in second.
+    # get indices for tstart and tend - assuming tstart is in first file and tend in second.
     # test what happens if they are not..
-    idx0, idx2 = 0, None  #index of start time in file 1, end time in file 2
+    idx0, idx2 = 0, None  # index of start time in file 1, end time in file 2
     if tstart:
         idx0, _ = time_select_indices(tstart, tend, primary_header1,
-                                      data1.data)  #first index
+                                      data1.data)  # first index
     else:
         tstart = primary_header1['DATE_BEG']
 
     tend1 = primary_header1[
-        'DATE_END']  #end time of first file in case there is ovelap
+        'DATE_END']  # end time of first file in case there is ovelap
     if not tend:
         tend = primary_header2['DATE_END']
     idx1, idx2 = time_select_indices(
         tend1, tend, primary_header2,
         data2.data)  # start time in file 2, end time in file 2
 
-    #check that spectrograms are consecutive in time, ie that time1[-1] + timedel1[-1] == time2[0] within some tolerance
+    # check that spectrograms are consecutive in time, ie that time1[-1] + timedel1[-1] == time2[0] within some tolerance
     # no longer accurate if using 2 indices for second data table?
     spec_time_gap = fits_time_to_datetime(
         primary_header2, data2.data).datetime[0] - fits_time_to_datetime(
@@ -924,7 +951,7 @@ def spec_fits_concatenate(fitsfile1,
             f"Gap of {spec_time_gap.total_seconds() - data1.data['timedel'][-1]:.3f}s between spectrogram files {fitsfile1} and {fitsfile2}"
         )
 
-    #concatenate data tables
+    # concatenate data tables
     count_names = data1.data.names
     table_data = []
     for n in count_names:
@@ -932,11 +959,11 @@ def spec_fits_concatenate(fitsfile1,
             new_data = np.concatenate(
                 [data1.data[n][idx0:, :], data2.data[n][idx1:idx2, :]])
         else:
-            if n == 'time':  #this has to be done differently since it is relative to timezero
+            if n == 'time':  # this has to be done differently since it is relative to timezero
                 timevec1 = fits_time_to_datetime(primary_header1,
                                                  data1.data).mjd
                 new_start_time = timevec1[idx0]
-                timevec1 -= new_start_time  #relative to new start time
+                timevec1 -= new_start_time  # relative to new start time
                 timevec2 = fits_time_to_datetime(
                     primary_header2, data2.data).mjd - new_start_time
                 new_data = np.concatenate(
@@ -948,10 +975,10 @@ def spec_fits_concatenate(fitsfile1,
 
     count_HDU = fits.BinTableHDU(data=Table(table_data, names=count_names))
 
-    #insert other keywords into counts header (do datasum and checksum later)
+    # insert other keywords into counts header (do datasum and checksum later)
     count_HDU.header.set('EXTNAME', 'DATA', 'extension name')
 
-    #correct keywords in primary header
+    # correct keywords in primary header
     primary_header1 = fits_time_corrections(primary_header1, tstart, tend)
     if not outfilename:
         outfilename = f"{fitsfile1[:-5]}_{Time(tstart).datetime:%H%M%S}_{Time(tend).datetime:%H%M%S}.fits"
