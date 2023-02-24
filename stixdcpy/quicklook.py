@@ -26,19 +26,21 @@ class LightCurves(QuickLook):
         self.data = data
         self.counts = []
         self.time = []
-        self.energy_bins=[]
+        self.energy_bins = []
         self.dlt = 0
         self.rcr = []
         self.triggers = []
         if data is not None:
             if 'error' not in data and 'counts' in data:
-                self.counts=np.array(data['counts'])
-                self.time = [datetime.utcfromtimestamp(t + data['start_unix']) for t in data['delta_time']]
+                self.counts = np.array(data['counts'])
+                self.time = [datetime.utcfromtimestamp(
+                    t + data['start_unix']) for t in data['delta_time']]
                 self.triggers = np.array(data['triggers'])
                 self.rcr = np.array(data['rcr'])
                 self.dlt = data['DELTA_LIGHT_TIME']
                 self.light_time_corrected = data['IS_LIGHT_TIME_CORRECTED']
                 self.energy_bins = data['energy_bins']
+
     @classmethod
     def from_sdc(cls, start_utc, end_utc, ltc=False):
         """ fetch light curve data from STIX data center

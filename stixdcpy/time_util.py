@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 
+from datetime import datetime
 import pandas as pd
 from astropy.time import Time
-from datetime import datetime
-
-
 
 def anytime(dt, fm='iso'):
     if isinstance(dt, Time):
@@ -21,6 +19,7 @@ def anytime(dt, fm='iso'):
 
 
 def utc2unix(dt):
+    print(dt)
     t=pd.to_datetime(dt,utc=True)
     return t.timestamp()
     
