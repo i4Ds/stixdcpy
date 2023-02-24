@@ -49,3 +49,7 @@ class IO(object):
         if self.data:
             return pd.DataFrame(self.data)
         return None
+    def dataframe(self):
+        if self.data:
+            return pd.DataFrame(self.data)
+        return None
