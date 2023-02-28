@@ -27,7 +27,7 @@ class DetectorView(object):
         self.js2=f'''
         $(document).ready(function() {{
             StixDetectorView.showGridParameterOnHover(true);
-            StixDetectorView.plotDetector("#detector-view", {{
+            StixDetectorView.plotDetector("#dv", {{
             counts:  {self.counts}, vW: 1140,
             vH: 1140,
             legend: false,
@@ -57,7 +57,7 @@ class DetectorView(object):
         <div class="center">
             <button type="button" id="save" >Save as SVG</button>
         </div>
-        <div id="detector-view" style="width:500px;" >Please execute the cell again if you see this message!</div>
+        <div id="dv" style="width:500px;" >Please execute the cell again if you see this message!</div>
         '''
         if not self.is_jupyter_env:
             html=f'{head} {css}  {js1} </head><body> {container} <script>{self.js2}</script></body></html>'
