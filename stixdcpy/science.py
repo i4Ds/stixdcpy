@@ -77,7 +77,7 @@ class ScienceData(sio.IO):
         except KeyError:
             self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         self.counts = self.data['counts']
-        #counts is a 4d array:  time_bin_index, detector, pixel, energy
+        # counts is a 4d array:  time_bin_index, detector, pixel, energy
 
         self.light_time_del = self.hdul['PRIMARY'].header['EAR_TDEL']
         self.light_time_corrected = light_time_correction
@@ -150,7 +150,7 @@ class ScienceData(sio.IO):
 
             Check if time bin is shifted in L1 data
             Parameters
-                unix_time: float 
+                unix_time: float
             Returns
                 is_shifted: bool
                     True if time bin is shifted else False
@@ -256,7 +256,8 @@ class ScienceL1(ScienceData):
     def make_spectra(self, pixel_counts=None):
         if pixel_counts is None:
             pixel_counts = self.pixel_counts
-        self.spectrogram = np.sum(pixel_counts, axis=(1, 2)) #integrate detector and pixel
+        # integrate detector and pixel
+        self.spectrogram = np.sum(pixel_counts, axis=(1, 2))
         self.count_rate_spectrogram = self.spectrogram / self.timedel[:, np.
                                                                       newaxis]
         self.spectrum = np.sum(pixel_counts, axis=(0, 1, 2))
@@ -440,6 +441,7 @@ class BackgroundSubtraction(object):
                 """
         self.l1sig = l1sig
         self.l1bkg = l1bkg
+        print(self.l1sig.energy_bin_mask)
 
         dmask = self.l1bkg.energy_bin_mask - self.l1sig.energy_bin_mask
         if np.any(dmask < 0):
@@ -452,13 +454,10 @@ class BackgroundSubtraction(object):
             int_time * self.l1bkg.mean_pixel_rate_spectra
             for int_time in self.l1sig.timedel
         ])
-        #here we assume that the energy binining of the two requests are the same
-        #count rate
         # set counts beyond the signal energy range to 0
         self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts)
+        print(self.l1sig.inversed_energy_bin_mask)
         self.subtracted_counts *= self.l1sig.energy_bin_mask
-        #filter bins those are not requested
-    
 
         # Dead time correction needs to be included in the future
         self.subtracted_counts_err = np.sqrt(
@@ -485,7 +484,7 @@ class BackgroundSubtraction(object):
                                         max_ebin:2])
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=axs[1, 0])
-        cbar.set_label('Counts')    
+        cbar.set_label('Counts')
         axs[1, 0].set_title('Bkg sub. counts')
         axs[1, 0].set_ylabel('Energy range(keV')
         axs[1, 0].set_xlabel(f"Seconds since {self.l1sig.T0}s ")
@@ -500,7 +499,10 @@ class BackgroundSubtraction(object):
                        label='background')
         axs[1, 1].legend()
 
-    def get_background_subtracted_spectrum(self, start_utc=None, end_utc=None):
+    def get_background_subtracted_spectrum(self, start_utc=None, end_utc=None,
+                                           detector_slice = slice(
+                                               None, None),
+                                           pixel_slice =slice(None, None)):
         """
         Get signal background subtracted spectrum
         Arguments:
@@ -508,48 +510,48 @@ class BackgroundSubtraction(object):
              Start time of the signal data to be selected, all counts will be selected if not specified
         end_utc:  str, datetime, astropy.time.Time or pandas.Timestamp
              end time of the signal data to be selected, all counts will be selected if not specified
+        detector_slice: slice
+           slicing detectors for integrating counts. Counts of all detectors are selected by default
+        pixel_slice: slice
+           slicing pixel for integrating counts. All pixels are selected by default
          Returns:
             bkg_sub_spectra: a numpy array, background-subtracted spectra for the given time range.
             bkg_sub_spectra_err: a numpy array, the errors in the background-subtracted spectra.
         """
         if start_utc is None and end_utc is None:
-            
+
             start_i_tbin, end_i_tbin=0, self.l1sig.pixel_counts.shape[0]-1
-            
-        else: 
-            
-            start_unix = sdt.utc2unix(
+
+        else:
+
+            start_unix=sdt.utc2unix(
                 start_utc) if start_utc else self.l1sig.T0_unix
-            end_unix = sdt.utc2unix(
+            end_unix=sdt.utc2unix(
                 end_utc) if end_utc else self.l1sig.T0_unix+self.l1sig.duration
-            
-            start_time = start_unix - self.l1sig.T0_unix
-            end_time = end_unix - self.l1sig.T0_unix
-            
-            start_i_tbin = np.argmax(
+
+            start_time=start_unix - self.l1sig.T0_unix
+            end_time=end_unix - self.l1sig.T0_unix
+
+            start_i_tbin=np.argmax(
                 self.l1sig.time - 0.5 * self.l1sig.timedel >= start_time) if (
                     0 <= start_time <= self.l1sig.duration) else 0
 
-            end_i_tbin = np.argmin(
-                self.l1sig.time + 0.5 * self.l1sig.timedel <= end_time)   if (
+            end_i_tbin=np.argmin(
+                self.l1sig.time + 0.5 * self.l1sig.timedel <= end_time) if (
                     start_time <= end_time <= self.l1sig.duration) else len(
                         self.l1sig.time)-1
-        
-        time_span = self.l1sig.time[end_i_tbin] - self.l1sig.time[
+
+        time_span=self.l1sig.time[end_i_tbin] - self.l1sig.time[
                 start_i_tbin] + 0.5 * self.l1sig.timedel[
                     start_i_tbin] + 0.5 * self.l1sig.timedel[end_i_tbin]
-        
-
-        bkg_sub_spectra = np.sum(
-            self.subtracted_counts[start_i_tbin:end_i_tbin, :, :, :],  #t,det, pixel, energy
+        bkg_sub_spectra = np.sum(self.subtracted_counts[start_i_tbin: end_i_tbin,
+                                                        detector_slice, pixel_slice, : ],
             axis=(0, 1, 2)) / time_span
         
-        bkg_sub_spectra_err = np.sqrt(
-            np.sum(self.subtracted_counts_err[start_i_tbin:end_i_tbin, :, :, :]
-                   ** 2,
-                   axis=(0, 1, 2))) / time_span
+        bkg_sub_spectra_err = np.sqrt(np.sum(self.subtracted_counts_err[start_i_tbin:end_i_tbin, detector_slice, pixel_slice, :]
+                   ** 2, axis=(0, 1, 2))) / time_span
         
-        return bkg_sub_spectra, bkg_sub_spectra_err
+        return bkg_sub_spectra, bkg_sub_spectra_err                
 
 
 class Spectrogram(ScienceData):
