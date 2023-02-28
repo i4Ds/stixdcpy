@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 import tempfile
 import webbrowser
-class DetectorView:
+class DetectorView(object):
     def __init__(self):
         self.counts=[0]*384
+        self.toolbar_enabled='true'
     def _repr_html_(self):
         return self.get_html()
 
@@ -19,28 +20,48 @@ class DetectorView:
       justify-content: center;
       align-items: center;
     }}
+    #pixel-filter{{display:none;}}
+    #copy-data{{display:none;}}
     </style>
         </head>
         <body>
         <div class="center">
             <button type="button" id="save" >Save as SVG</button>
         </div>
-        <div id="counts2d" style="width:500px;" >Rendering...</div>
+        <div id="detector-view" style="width:500px;" >Rendering...</div>
         </body>
-                <script>
-                StixDetectorView.showGridParameterOnHover(true);
-        StixDetectorView.plotDetector("#counts2d", {{
+        <script>
+        $(document).ready(function() {{
+            StixDetectorView.showGridParameterOnHover(true);
+            StixDetectorView.plotDetector("#detector-view", {{
             counts:  {self.counts}, vW: 1140,
             vH: 1140,
-            legend: true,
-            detectorViewToolbar: false,
+            legend: false,
+            detectorViewToolbar: {self.toolbar_enabled},
             reset:true
-        }}); $("#save").on("click",function(){{StixDetectorView.saveSVG();}});
+        }}); 
+        $("#save").on("click",function() {{StixDetectorView.saveSVG();}});
+
+        }});
         </script>
         </html>
         '''
         return html
-    def plot(self, pixel_counts:list):
+    def plot(self, pixel_counts:list, toolbar=True):
+        """
+        Generate a detector view figure. 
+        Parameters
+        -------------
+        pixel_counts: list
+            counts of 384 pixels
+        toolbar: boolean
+            display the toolbar on the plot if True. 
+        Returns:
+            None
+        
+
+        """
+        self.toolbar_enabled='false' if not toolbar else 'true'
 
         if len(pixel_counts)!=384:
             raise ValueError('counts must be a list of length 384')
@@ -61,12 +82,16 @@ class DetectorView:
             temp_file.close()
             webbrowser.open_new_tab(temp_file.name)
 
-    def save(self, filename):
+    def save(self, filename='detector_view.html'):
+        """
+        Save the figure to the specified html file. 
+        One can open the html file using a web browser and export the figure to SVG format by clicking the button 
+        """
         if not filename.endswith('html'):
             filename+='html'
         with open(filename,'w') as f:
             f.write(self.get_html())
-            print(f'Saved to {filename}. Please open it using a web browser')
+            print(f'Saved to {filename}. One can open it with a web browser and export it to SVG format')
 
 def test():
     counts=[i for i in range(384)]
