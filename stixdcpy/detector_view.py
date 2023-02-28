@@ -1,36 +1,30 @@
 #!/usr/bin/python3
 import tempfile
+import numpy as np
 import webbrowser
+try:
+    import IPython
+    from IPython.display import display, HTML
+    from IPython.display import Javascript
+except ImportError:
+    pass
 class DetectorView(object):
     def __init__(self):
         self.counts=[0]*384
         self.toolbar_enabled='true'
-    def _repr_html_(self):
-        return self.get_html()
+        self.is_jupyter_env=False
+        self.js_url="https://datacenter.stix.i4ds.net/static/js/pystix.js" 
+        self.js2=''
+
+        try:
+            if 'ipykernel' in str(IPython.get_ipython()):
+                self.is_jupyter_env=True
+        except Exception :
+            pass
+
 
     def get_html(self):
-        html=f'''
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>  <title>STIX detector view</title>
-        <script src="https://datacenter.stix.i4ds.net/static/js/pystix.js" type="text/javascript"></script>
-    <style>
-    .center {{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }}
-    #pixel-filter{{display:none;}}
-    #copy-data{{display:none;}}
-    </style>
-        </head>
-        <body>
-        <div class="center">
-            <button type="button" id="save" >Save as SVG</button>
-        </div>
-        <div id="detector-view" style="width:500px;" >Rendering...</div>
-        </body>
-        <script>
+        self.js2=f'''
         $(document).ready(function() {{
             StixDetectorView.showGridParameterOnHover(true);
             StixDetectorView.plotDetector("#detector-view", {{
@@ -38,44 +32,67 @@ class DetectorView(object):
             vH: 1140,
             legend: false,
             detectorViewToolbar: {self.toolbar_enabled},
-            reset:true
-        }}); 
-        $("#save").on("click",function() {{StixDetectorView.saveSVG();}});
-
-        }});
-        </script>
-        </html>
+            reset:true}});
+            $("#save").on("click",function() {{StixDetectorView.saveSVG();}});
+        }}); 	
         '''
+        head='''
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <head>  <title>STIX detector view</title>
+        '''
+        js1=f'''<script src="{self.js_url}" type="text/javascript"></script>'''
+        css='''
+            <link rel="stylesheet" href="https://datacenter.stix.i4ds.net/static/css/pystix.css">
+            <style>
+        .center {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        #copy-data{display:none;}
+        </style>
+        '''
+        container='''
+        <div class="center">
+            <button type="button" id="save" >Save as SVG</button>
+        </div>
+        <div id="detector-view" style="width:500px;" >Please execute the cell again if you see this message!</div>
+        '''
+        if not self.is_jupyter_env:
+            html=f'{head} {css}  {js1} </head><body> {container} <script>{self.js2}</script></body></html>'
+        else:
+            html=f'<div>{css} {js1}{container} <script>{self.js2}</script></div>'
         return html
-    def plot(self, pixel_counts:list, toolbar=True):
+    def plot(self, pixel_counts, toolbar=True):
         """
         Generate a detector view figure. 
         Parameters
         -------------
-        pixel_counts: list
+        pixel_counts: list or numpy.array
             counts of 384 pixels
         toolbar: boolean
             display the toolbar on the plot if True. 
         Returns:
             None
-        
-
         """
+        if toolbar and self.is_jupyter_env:
+            display(HTML('''<div style="border: 1;color: #ffc107!important; " >The toolbar allows normalizing counts in an interactive way. 
+                    Unfortunately, this feature is not available in the Jupyter notebook environment. To use the feature, please run d.save("detector_view.html")
+                    to save the figure a html file, and then open the saved file with a web browser</div>'''))
+            #toolbar=False
+
         self.toolbar_enabled='false' if not toolbar else 'true'
+        if isinstance(pixel_counts, np.ndarray):
+            pixel_counts=pixel_counts.flatten().tolist()
 
         if len(pixel_counts)!=384:
             raise ValueError('counts must be a list of length 384')
         self.counts=pixel_counts
         html=self.get_html()
-        try:
-            import IPython
-            from IPython.display import display, HTML
-
-            if 'ipykernel' in str(IPython.get_ipython()):
-                display(HTML(html))
-                return 
-        except Exception:
-            pass
+        if self.is_jupyter_env:
+            display(HTML(html))
+            return
         #not in notebook
         with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as temp_file:
             temp_file.write(html.encode('utf-8'))
