@@ -31,25 +31,8 @@ pip install numpy matplotlib pandas astropy joblib
 
 #  Cite this work
 If you use the stixdcpy in your research and publications, we would definitely appreciate an appropriate acknowledgment and citation! We suggest the following BibTex:
-```latex
-@misc{https://doi.org/10.48550/arxiv.2302.00497,
-  doi = {10.48550/ARXIV.2302.00497},
-  
-  url = {https://arxiv.org/abs/2302.00497},
-  
-  author = {Xiao, Hualin and Maloney, Shane and Krucker, Säm and Dickson, Ewan and Massa, Paolo and Lastufka, Erica and Battaglia, Andrea Francesco and Etesi, Laszlo and Hochmuth, Nicky and Schuller, Frederic and Ryan, Daniel F. and Limousin, Olivier and Collier, Hannah and Warmuth, Alexander and Piana, Michele},
-  
-  keywords = {Solar and Stellar Astrophysics (astro-ph.SR), Instrumentation and Methods for Astrophysics (astro-ph.IM), FOS: Physical sciences, FOS: Physical sciences},
-  
-  title = {The data center for the X-ray spectrometer/imager STIX onboard Solar Orbiter},
-  
-  publisher = {arXiv},
-  
-  year = {2023},
-  
-  copyright = {Creative Commons Attribution 4.0 International}
-}
+* [1] STIX data center paper published on A&A: https://doi.org/10.1051/0004-6361/202346031
+* [2] Hualin Xiao, Säm Krucker, Lastufka Erica, & William Setterberg. (2022). stixdcpy – a python package that facilitates access and analysis of STIX data (v2.0). Zenodo. https://doi.org/10.5281/zenodo.7180433
 
-```
 # Reporting Issues and Contributing
 Open an issue on GitHub to report a problem. Pull requests welcome.
