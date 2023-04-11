@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from stixdcpy import io as sio
 from stixdcpy.net import Request as jreq
 import matplotlib.dates as mdates
+import pandas as pd
 
 
 class QuickLook(sio.IO):
@@ -74,6 +75,12 @@ class LightCurves(QuickLook):
 
         """
         return self.data
+
+    def to_pandas(self):
+        stix_df = pd.DataFrame(np.array(self.data["counts"]).T, 
+                               index=self.time, 
+                               columns=self.data["energy_bins"]["names"])
+        return stix_df
 
     def peek(self, ax=None, legend_loc='upper right'):
         """
