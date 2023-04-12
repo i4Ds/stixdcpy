@@ -8,6 +8,7 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 - Energy calibration data
 - Auxilary data
 - STIX solar flare list
+- STIX operations events
 
 
 
