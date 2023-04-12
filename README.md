@@ -18,10 +18,7 @@ stixdcpy is a python package that facilitates access and analysis of STIX data. 
 ```sh
 pip install git+https://github.com/i4ds/stixdcpy.git
 ```
-You may also need to install the following libraries:
-```sh
-pip install numpy matplotlib pandas astropy joblib
-```
+
 
 # Tutorial and documentation
 
