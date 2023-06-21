@@ -53,7 +53,7 @@ class ScienceData(sio.IO):
 
     @property
     def trigger_error(self):
-        return error_computation(self.hdul['data'].data['triggers_err'],
+        return error_computation(self.hdul['data'].data['triggers_comp_err'],
                                  self.triggers)
 
     @property
@@ -120,7 +120,7 @@ class ScienceData(sio.IO):
             f'{a} - {b}'
             for a, b in zip(self.energies['e_low'], self.energies['e_high'])
         ]
-        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
+        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_edge_mask"]
         self.inversed_energy_bin_mask = 1 - self.energy_bin_mask
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
@@ -564,7 +564,7 @@ class Spectrogram(ScienceData):
 
     @property
     def counts_error(self):
-        return error_computation(self.hdul['data'].data['counts_err'],
+        return error_computation(self.hdul['data'].data['counts_comp_err'],
                                  self.counts)
 
     def peek(self, ax0=None, ax1=None, ax2=None, ax3=None):
