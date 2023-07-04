@@ -20,8 +20,10 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 BETA = 0.94
-FPGA_TAU = 10.1e-6
-ASIC_TAU = 2.63e-6
+FPGA_TAU = 10.04e-6
+ASIC_TAU = 2.58e-6 # 20 ns uncertainty in FPGA
+#updated on July 4, 2023, based on measurements with the ground unit by Olivier, Hualin, Stefan and Sam
+
 TRIG_TAU = FPGA_TAU + ASIC_TAU
 # STIX detector parameters
 
@@ -70,7 +72,6 @@ class ScienceData(sio.IO):
         """
 
         self.data = self.hdul['DATA'].data
-        # self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         try:
             # L1
             self.T0_utc = self.hdul['PRIMARY'].header['DATE-BEG']
@@ -761,8 +762,13 @@ def fits_time_to_datetime(*args, factor=1):
         primary_header, data_table = args
     time_bin_center = data_table['time']
     duration = data_table['timedel']
-    start_time = dt.strptime(primary_header['DATE_BEG'],
+    try:
+        start_time = dt.strptime(primary_header['DATE_BEG'],
                              "%Y-%m-%dT%H:%M:%S.%f")
+    except KeyError:
+        start_time = dt.strptime(primary_header['DATE-BEG'],
+                             "%Y-%m-%dT%H:%M:%S.%f")
+
     spectime = Time([
         start_time + td(seconds=bc / factor - d / (2. * factor))
         for bc, d in zip(time_bin_center, duration)
