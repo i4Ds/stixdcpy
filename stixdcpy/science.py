@@ -318,7 +318,7 @@ class ScienceL1(ScienceData):
                 trig_idx = inst.detector_id_to_trigger_index(det)
                 nin = photons_in[:, trig_idx]
                 live_ratio[:, det] = np.exp(
-                    -BETA * nin * ASIC_TAU * 1e-6) / (1 + nin * TRIG_TAU)
+                    -BETA * nin * ASIC_TAU) / (1 + nin * TRIG_TAU)
             corrected_rate = count_rate / live_ratio[:, :, None, None]
             return {
                 'corrected_rates': corrected_rate,
