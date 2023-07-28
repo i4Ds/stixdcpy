@@ -35,6 +35,7 @@ ENDPOINTS = {
     'SCIENCE': f'{HOST}/api/query/science',
     'TRANSMISSION': f'{HOST}/api/request/transmission',
     'FLARE_LIST': f'{HOST}/api/request/flare-list',
+    'FLARE_IMAGES': f'{HOST}/api/request/imaging/flare',
     'STIX_POINTING': f'{HOST}/api/request/stixfov',
     'FITS': f'{HOST}/api/query/fits',
     'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
@@ -351,6 +352,23 @@ class Request(object):
             logger.error(data['error'])
             return None
         return data
+    @staticmethod 
+    def query_preview_flare_image_list(begin_utc, end_utc):
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+        form = {'start_utc': begin_utc, 'end_utc':end_utc}
+        url = ENDPOINTS['FLARE_IMAGES']
+        return Request.post(url, form, result_type='dict')
+
+    def query_preview_image_for_flare(flare_id:int):
+        form = {'flare_id': flare_id}
+        url = ENDPOINTS['FLARE_IMAGES']
+        return Request.post(url, form, result_type='dict')
+        
+
+
+
+
+
     @staticmethod
     def fetch_caveats(begin_utc, end_utc):
         """ Request light curve from STIX data center
