@@ -94,7 +94,7 @@ class ScienceData(sio.IO):
             self.timedel = self.timedel[:-1]
             self.time = self.time[1:]
             logger.info('Shifted time bins have been corrected automatically!')
-            if self.data_type == 'ScienceL1':
+            if self.data_type == 'PixelData':
                 self.counts = self.counts[1:, :, :, :]
                 self.triggers = self.triggers[1:, :]
                 self.rcr = self.rcr[1:]
@@ -135,7 +135,7 @@ class ScienceData(sio.IO):
         self.ebins_low, self.ebins_high = self.energies[
             'e_low'], self.energies['e_high']
 
-        if self.data_type == 'ScienceL1':
+        if self.data_type == 'PixelData':
             self.pixel_counts = self.counts
             self.pixel_count_rates = self.pixel_counts / self.timedel[:, None,
                                                                       None,
@@ -160,7 +160,7 @@ class ScienceData(sio.IO):
         return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
 
     @classmethod
-    def from_sdc(cls, request_id, level='L1A'):
+    def from_sdc(cls, request_id, level='L1'):
         '''
         download science data file from stix data center
         Parameters
@@ -241,14 +241,14 @@ class ScienceData(sio.IO):
             return self.fname
 
 
-class ScienceL1(ScienceData):
+class PixelData(ScienceData):
     """
     Tools to analyze STIX pixel data
     """
 
     def __init__(self, fname, request_id, ltc=False):
         super().__init__(fname, request_id)
-        self.data_type = 'ScienceL1'
+        self.data_type = 'PixelData'
         self.pixel_count_rates = None
         self.correct_pixel_count_rates = None
         self.read_fits(light_time_correction=ltc)
@@ -432,7 +432,7 @@ class ScienceL1(ScienceData):
 
 class BackgroundSubtraction(object):
 
-    def __init__(self, l1sig: ScienceL1, l1bkg: ScienceL1):
+    def __init__(self, l1sig: PixelData, l1bkg: PixelData):
         """
                    do background subtraction
                 Arguments
