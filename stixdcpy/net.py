@@ -353,13 +353,13 @@ class Request(object):
             return None
         return data
     @staticmethod 
-    def query_preview_flare_image_list(begin_utc, end_utc):
+    def query_imaging_spectroscopy_list(begin_utc, end_utc):
         begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
         form = {'start_utc': begin_utc, 'end_utc':end_utc}
         url = ENDPOINTS['FLARE_IMAGES']
         return Request.post(url, form, result_type='dict')
 
-    def query_preview_image_for_flare(flare_id:int):
+    def query_imaging_spectroscopy_for_flare(flare_id:int):
         form = {'flare_id': flare_id}
         url = ENDPOINTS['FLARE_IMAGES']
         return Request.post(url, form, result_type='dict')
@@ -409,7 +409,7 @@ class Request(object):
         """
         begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
 
-        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 2}
+        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 3}
         url = ENDPOINTS['LC']
         return Request.post(url, form)
 

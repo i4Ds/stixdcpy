@@ -38,8 +38,8 @@ class LightCurves(QuickLook):
                     t + data['start_unix']) for t in data['delta_time']]
                 self.triggers = np.array(data['triggers'])
                 self.rcr = np.array(data['rcr'])
-                self.dlt = data['DELTA_LIGHT_TIME']
-                self.light_time_corrected = data['IS_LIGHT_TIME_CORRECTED']
+                self.dlt = data['light_time_diff']
+                self.light_time_corrected = data['is_light_time_corrected']
                 self.energy_bins = data['energy_bins']
 
     @classmethod
