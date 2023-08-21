@@ -40,6 +40,7 @@ ENDPOINTS = {
     'FITS': f'{HOST}/api/query/fits',
     'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl',
+    'CQLC': f'{HOST}/api/request/cqlc',
     'CAVEATS': f'{HOST}/api/operations/caveats',
     'SPECTROGRAMS': f'{HOST}/request/bsd/spectrograms'
 }
@@ -589,6 +590,27 @@ class Request(object):
         """
         return Request.post(ENDPOINTS['SCIENCE_DATA'], {
             'id': _id,
+        })
+    @staticmethod
+    def fetch_attenuation_corrected_light_curves(begin_utc, end_utc):
+        """ fetch corrected quick-look light curves attenuation by the Attenuator 
+
+        Parameters:
+        ------
+            begin_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
+                flare start UTC
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
+                flare end UTC
+        Returns:
+        -----
+            flare_list: dict or None
+                flare list if success or None if failed.
+
+        """
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+        return Request.post(ENDPOINTS['CQLC'], {
+            'start': begin_utc,
+            'end': end_utc
         })
 
     @staticmethod
