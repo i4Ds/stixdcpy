@@ -40,6 +40,7 @@ ENDPOINTS = {
     'FITS': f'{HOST}/api/query/fits',
     'FLARE_AUX': f'{HOST}/api/request/auxiliary/flare',
     'CFL_SOLVER': f'{HOST}/api/request/solve/cfl',
+    'CQLC': f'{HOST}/api/request/cqlc',
     'CAVEATS': f'{HOST}/api/operations/caveats',
     'SPECTROGRAMS': f'{HOST}/request/bsd/spectrograms'
 }
@@ -353,13 +354,13 @@ class Request(object):
             return None
         return data
     @staticmethod 
-    def query_preview_flare_image_list(begin_utc, end_utc):
+    def query_imaging_spectroscopy_list(begin_utc, end_utc):
         begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
         form = {'start_utc': begin_utc, 'end_utc':end_utc}
         url = ENDPOINTS['FLARE_IMAGES']
         return Request.post(url, form, result_type='dict')
 
-    def query_preview_image_for_flare(flare_id:int):
+    def query_imaging_spectroscopy_for_flare(flare_id:int):
         form = {'flare_id': flare_id}
         url = ENDPOINTS['FLARE_IMAGES']
         return Request.post(url, form, result_type='dict')
@@ -409,7 +410,7 @@ class Request(object):
         """
         begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
 
-        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 2}
+        form = {'begin': begin_utc, 'ltc': ltc, 'end': end_utc, 'version': 3}
         url = ENDPOINTS['LC']
         return Request.post(url, form)
 
@@ -589,6 +590,27 @@ class Request(object):
         """
         return Request.post(ENDPOINTS['SCIENCE_DATA'], {
             'id': _id,
+        })
+    @staticmethod
+    def fetch_attenuation_corrected_light_curves(begin_utc, end_utc):
+        """ fetch corrected quick-look light curves attenuation by the Attenuator 
+
+        Parameters:
+        ------
+            begin_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
+                flare start UTC
+            end_utc:  str, datetime, pandas.Timestamp or astropy.time.Time
+                flare end UTC
+        Returns:
+        -----
+            flare_list: dict or None
+                flare list if success or None if failed.
+
+        """
+        begin_utc, end_utc=stu.anytime(begin_utc), stu.anytime(end_utc)
+        return Request.post(ENDPOINTS['CQLC'], {
+            'start': begin_utc,
+            'end': end_utc
         })
 
     @staticmethod
