@@ -121,7 +121,11 @@ class ScienceData(sio.IO):
             f'{a} - {b}'
             for a, b in zip(self.energies['e_low'], self.energies['e_high'])
         ]
-        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_edge_mask"]
+        try:
+            self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_edge_mask"]
+        except KeyError:
+            self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
+
         self.inversed_energy_bin_mask = 1 - self.energy_bin_mask
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
