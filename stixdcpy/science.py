@@ -23,7 +23,6 @@ BETA = 0.94
 FPGA_TAU = 10.04e-6
 ASIC_TAU = 2.58e-6 # 20 ns uncertainty in FPGA
 #updated on July 4, 2023, based on measurements with the ground unit by Olivier, Hualin, Stefan and Sam
-
 TRIG_TAU = FPGA_TAU + ASIC_TAU
 # STIX detector parameters
 
@@ -55,7 +54,12 @@ class ScienceData(sio.IO):
 
     @property
     def trigger_error(self):
-        return error_computation(self.hdul['data'].data['triggers_comp_err'],
+        try:
+            trig_err=self.hdul['data'].data['triggers_comp_err']
+        except KeyError:
+            trig_err=self.hdul['data'].data['triggers_err']
+
+        return error_computation(trig_err,
                                  self.triggers)
 
     @property
