@@ -44,6 +44,7 @@ class ScienceData(sio.IO):
         self.energies = []
         self.corrected = None
         # self.read_data()
+        self.skm = {}
 
     @property
     def url(self):
@@ -52,6 +53,7 @@ class ScienceData(sio.IO):
         link = f'{net.HOST}/view/list/bsd/uid/{req_id}'
         return f'<a href="{link}">{link}</a>'
 
+    
     @property
     def trigger_error(self):
         try:
@@ -65,6 +67,16 @@ class ScienceData(sio.IO):
     @property
     def filename(self):
         return self.fname
+
+
+    def init_skm(self):
+        try:
+            self.skm={'counts':self.hdul['CONTROL'].data['compression_scheme_counts_skm'],
+                    'triggers':self.hdul['CONTROL'].data['compression_scheme_triggers_skm']
+                    }
+        except (KeyError,TypeError, ValueError):
+            pass
+
 
     def read_fits(self, light_time_correction=True):
         """
@@ -261,6 +273,7 @@ class PixelData(ScienceData):
         self.correct_pixel_count_rates = None
         self.read_fits(light_time_correction=ltc)
         self.make_spectra()
+    
 
     def make_spectra(self, pixel_counts=None):
         if pixel_counts is None:
