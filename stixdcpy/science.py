@@ -69,13 +69,15 @@ class ScienceData(sio.IO):
         return self.fname
 
 
-    def init_skm(self):
-        try:
-            self.skm={'counts':self.hdul['CONTROL'].data['compression_scheme_counts_skm'],
-                    'triggers':self.hdul['CONTROL'].data['compression_scheme_triggers_skm']
-                    }
-        except (KeyError,TypeError, ValueError):
-            pass
+    #def init_skm(self):
+    #    try:
+    #        self.skm={'counts':self.hdul['CONTROL'].data['compression_scheme_counts_skm'],
+    #                'triggers':self.hdul['CONTROL'].data['compression_scheme_triggers_skm']
+    #                }
+    #    except (KeyError,TypeError, ValueError):
+    #        pass
+
+
 
 
     def read_fits(self, light_time_correction=True):
