@@ -13,17 +13,35 @@ Author: Hualin Xiao(hualin.xiao@fhnw.ch)
 """
 
 import numpy as np
+from pprint import pprint
 
 MAX_STORED_INTEGER = 1e8
 
 
 
 class Compression(object):
-    def __init__(self, k,m, with_stat_error=True):
-        self.lut=Compression.get_error_lut(k,m, with_stat_error)
+    def __init__(self,s, k,m, include_stat_error=True):
+        self.skm=(s,k,m)
+        self.lut=Compression.get_error_lut(s,k,m, include_stat_error)
+
+    def get_errors(self,counts:np.array):
+        """
+            calculate errors for counts
+        """
+        fv=np.vectorize(self.get_error, otypes=[np.float])
+        #otypes must be specified
+        return fv(counts)
+        
+
 
     def get_error(self,counts):
-        return self.lut[int(counts)]
+        if counts==0:
+            return 0
+        try:
+            return self.lut[counts]
+        except KeyError:
+            s,k,m=self.skm
+            raise Exception(f'Failed to error of {counts}! Could the compression scheme ({s=},{k=},{m=}) wrong?')
 
     @staticmethod
     def decompress(x,S, K, M):
@@ -54,7 +72,7 @@ class Compression(object):
 
         x0 = 1 << (M + 1)
         if x < x0:
-            return None, x
+            return  x,0
         mask1 = (1 << M) - 1
         mask2 = (1 << M)
         mantissa1 = x & mask1
@@ -68,12 +86,12 @@ class Compression(object):
         #error of a flat distribution
 
         if mean > MAX_STORED_INTEGER:
-            return error, float(mean)
+            return float(mean),error
 
-        return error, sign * mean
+        return  sign * mean, error
 
     @staticmethod
-    def get_error_lut(k,  m, with_stat_error=True, s=0):
+    def get_error_lut(s, k,  m, include_stat_error=True):
         """
         Creates a lookup table for error calculation based on k and m values.
 
@@ -86,14 +104,15 @@ class Compression(object):
         """
         res = {}
         for i in range(256):
-            err, val = Compression.decompress(i,s, k, m)
+            val,err = Compression.decompress(i,s, k, m)
             if err is not None:
-                res[val] = np.sqrt(err ** 2 + val) if with_stat_error else err
+                res[val] = np.sqrt(err ** 2 + np.abs(val)) if include_stat_error else err
         return res
 
-    #error_luts = {'035': make_lut(3, 5), '044': make_lut(4, 4), '053': make_lut(5, 3)}
 
-#if __name__ == '__main__':
-#    from pprint import pprint
-#    pprint(error_luts)
+if __name__ == '__main__':
+    from pprint import pprint
+    c=Compression(0,4,4)
+    error_luts=c.get_error_lut(0,4,4)
+    pprint(error_luts)
 

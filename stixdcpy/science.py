@@ -13,8 +13,11 @@ from stixdcpy import time_util as sdt
 from stixdcpy.logger import logger
 from stixdcpy import io as sio
 from stixdcpy.net import FitsQuery as freq
+from stixdcpy import integer_compression as sic
+
 from stixdcpy import net as net
 from stixdcpy import instrument as inst
+
 from pathlib import PurePath
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -44,7 +47,6 @@ class ScienceData(sio.IO):
         self.energies = []
         self.corrected = None
         # self.read_data()
-        self.skm = {}
 
     @property
     def url(self):
@@ -69,13 +71,7 @@ class ScienceData(sio.IO):
         return self.fname
 
 
-    #def init_skm(self):
-    #    try:
-    #        self.skm={'counts':self.hdul['CONTROL'].data['compression_scheme_counts_skm'],
-    #                'triggers':self.hdul['CONTROL'].data['compression_scheme_triggers_skm']
-    #                }
-    #    except (KeyError,TypeError, ValueError):
-    #        pass
+
 
 
 
@@ -108,10 +104,9 @@ class ScienceData(sio.IO):
         self.timedel = self.data['timedel']
         self.time = self.data['time']
 
-        if self.is_time_bin_shifted(self.T0_unix) and len(self.timedel) > 1:
+        if self.is_time_bin_shifted() and len(self.timedel) > 1:
             self.timedel = self.timedel[:-1]
             self.time = self.time[1:]
-            logger.info('Shifted time bins have been corrected automatically!')
             if self.data_type == 'PixelData':
                 self.counts = self.counts[1:, :, :, :]
                 self.triggers = self.triggers[1:, :]
@@ -120,6 +115,7 @@ class ScienceData(sio.IO):
                 self.counts = self.counts[1:, :]
                 self.triggers = self.triggers[1:]
                 # self.rcr = self.rcr[1:]
+            logger.info('Shifted time bins have been corrected automatically!')
 
         self.request_id = self.hdul['CONTROL'].data['request_id']
 
@@ -167,7 +163,7 @@ class ScienceData(sio.IO):
             self.count_rates = self.counts / self.timedel[:, None]
             self.trigger_rates = self.triggers / self.timedel
 
-    def is_time_bin_shifted(self, unix_time):
+    def is_time_bin_shifted(self):
         """
             Time bins are shifted in the data collected before 2021-12-09 due a bug in the flight software
 
@@ -178,8 +174,7 @@ class ScienceData(sio.IO):
                 is_shifted: bool
                     True if time bin is shifted else False
         """
-
-        return (unix_time < sdt.utc2unix('2021-12-09T14:00:00'))
+        return (self.T0_unix< sdt.utc2unix('2021-12-09T14:00:00'))
 
     @classmethod
     def from_sdc(cls, request_id, level='L1'):
@@ -274,6 +269,7 @@ class PixelData(ScienceData):
         self.pixel_count_rates = None
         self.correct_pixel_count_rates = None
         self.read_fits(light_time_correction=ltc)
+        self.pixel_counts_comp_stat_err= None
         self.make_spectra()
     
 
@@ -294,14 +290,45 @@ class PixelData(ScienceData):
 
         self.pixel_total_counts = np.sum(self.pixel_counts, axis=(0, 3))
 
+    def compute_errors_from_counts(self, skm=None):
+        """
+            compute errors using counts
+        Args
+            include_stat_error: include statistical errors in the final results
+
+        """
+        
+        if skm is None:
+            try:
+                skm=self.hdul['CONTROL'].data['compression_scheme_counts_skm']
+                s,k,m=skm.flatten()
+            except (KeyError,TypeError, ValueError):
+                raise Exception("Couldn't find SKM found in the FITS file!")
+        else:
+            s,k,m=skm
+        comp = sic.Compression(s,k,m, include_stat_error=True)
+        self.pixel_counts_comp_stat_err=comp.get_errors(self.counts)
+
+
     @property
     def pixel_counts_error(self):
-        try:
-            counts_err=self.hdul['data'].data['counts_err']
-        except KeyError:
-            counts_err=self.hdul['data'].data['counts_comp_err']
-        return error_computation(counts_err,
+        """
+            compute or read counts errors from FITS file
+        """
+
+        if self.pixel_counts_comp_stat_err is not None:
+            #if already computed
+            return self.pixel_counts_comp_stat_err
+        else:
+            try:
+                counts_err=self.hdul['data'].data['counts_err']
+            except KeyError:
+                counts_err=self.hdul['data'].data['counts_comp_err']
+                #in some FITS files compression errors are zeros
+            return error_computation(counts_err,
                                  self.pixel_counts)
+
+
 
     
 
@@ -351,7 +378,6 @@ class PixelData(ScienceData):
 
             count_rate = counts_arr / time_bins
             count_rate_err = counts_err_arr / time_bins
-            # print(counts_arr.shape)
             for det in range(32):
                 trig_idx = inst.detector_id_to_trigger_index(det)
                 nin = photons_in[:, trig_idx]
@@ -362,13 +388,16 @@ class PixelData(ScienceData):
 
             #live_ratio=np.zeros_like(live_ratio)+1
             #disable live time correction
+            live_ratio=live_ratio[:, :, None, None]
 
-            corrected_rate = count_rate / live_ratio[:, :, None, None]
+            corrected_rate = count_rate / live_ratio
 
-            corrected_rate_err = count_rate_err / live_ratio[:, :, None, None]
+            corrected_rate_err =count_rate_err/ live_ratio
 
             corrected_counts = corrected_rate * time_bins
             corrected_counts_err = corrected_rate_err * time_bins
+            #errors of live ratio not taken into account yet
+            
 
             return {
                 'corrected_rates': corrected_rate,
@@ -465,8 +494,7 @@ class PixelData(ScienceData):
                 + sum_counts['bottom_err']**2 )
 
         sum_counts['total'] = sum_counts['top']+sum_counts['bottom']+sum_counts['small']
-        sum_counts['total_err'] = np.sqrt(sum_counts['top_err']**2 
-                + sum_counts['bottom_err']**2 + sum_counts['small_err']**2)
+        sum_counts['total_err'] = np.sqrt(sum_counts['big_err']**2  + sum_counts['small_err']**2)
 
         return sum_counts
 
@@ -617,7 +645,6 @@ class BackgroundSubtraction(object):
         ])
         # set counts beyond the signal energy range to 0
         self.subtracted_counts = (self.l1sig.counts - self.pixel_bkg_counts)
-        #print(self.l1sig.inversed_energy_bin_mask)
         self.subtracted_counts *= self.l1sig.energy_bin_mask
 
         # Dead time correction needs to be included in the future
@@ -789,7 +816,6 @@ class Spectrogram(ScienceData):
         def correct(triggers, counts_arr, time_bins, num_detectors):
             ''' correct dead time using triggers '''
             tau_conv_const = 1e-6
-
             photons_in = triggers / (time_bins * num_detectors -
                                      TRIG_TAU * triggers)
             # photon rate approximated using triggers
@@ -880,7 +906,8 @@ def fits_time_corrections(primary_header, tstart, tend):
     primary_header.set('DATE_EAR', date_ear)
     primary_header.set('DATE_SUN', date_sun)
     primary_header.set('MJDREF', Time(tstart).mjd)
-    # Note that MJDREF in these files is NOT 1979-01-01 but rather the observation start time! Affects time calculation later, but further processing of the file corrects this
+    # Note that MJDREF in these files is NOT 1979-01-01 but rather the 
+    # observation start time! Affects time calculation later, but further processing of the file corrects this
 
     return primary_header
 
@@ -982,7 +1009,8 @@ def time_select_indices(tstart, tend, primary_header, data_table, factor=1.):
 
 
 def spec_fits_crop(fitsfile, tstart, tend, outfilename=None):
-    """ Crop a STIX science data product (L1A, L1, or L4) to contain only the data within a given time interval. Create a new FITS file containing this data. The new file will be of the same processing level as the input file.
+    """ Crop a STIX science data product (L1A, L1, or L4) to contain only the data within a given time interval. 
+        Create a new FITS file containing this data. The new file will be of the same processing level as the input file.
 
     Inputs:
     fitsfile : str
