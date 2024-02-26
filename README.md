@@ -1,7 +1,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7180433.svg)](https://doi.org/10.5281/zenodo.7180433)
 
-stixdcpy is a Python package designed to simplify the retrieval and analysis of STIX data. It offers convenient APIs for querying and downloading data from the STIX data center (https://datacenter.stix.i4ds.net/), as well as a collection of tools for visualizing data and conducting typical analysis tasks. stixdcpy empowers users to effortlessly retrieve and download various types of data from the STIX data center, including:
+stixdcpy is a Python library for STIX data users to retrieve and analyze STIX data.  It provides user-friendly APIs for querying and fetching data from the STIX data center (https://datacenter.stix.i4ds.net/), along with a suite of utilities for visualizing data and conducting common analysis tasks. With stixdcpy, users can effortlessly access and manipulate various data types from the STIX data center, including:
 
 * Quick-look light curves
 * Housekeeping data
@@ -11,7 +11,6 @@ stixdcpy is a Python package designed to simplify the retrieval and analysis of 
 * STIX solar flare list
 * STIX operations events
 * Ephemeris data
-
 # Installation
 
 
