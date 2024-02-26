@@ -500,6 +500,10 @@ def get_detector_absorption(energies=None):
     absorption = material.absorption(energies_keV)
     return energies, absorption
 
+def get_component_absorption(name, energies):
+    t=Transmission()
+    trans=t.get_transmission_of_component(name, energies)
+    return trans
 
 #def get_transmission(energies):
 #    return trans.get_transmission(energies)
