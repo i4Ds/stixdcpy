@@ -28,7 +28,7 @@ pip install git+https://github.com/i4ds/stixdcpy.git
 
 #  Cite this work
 If you use the stixdcpy in your research and publications, we would definitely appreciate an appropriate acknowledgment and citation! We suggest the following BibTex:
-* [1] H. Xiao, et al. (2023). The data center for the Spectrometer and Telescope for Imaging X-rays (STIX) on board Solar Orbiter. Astronomy & Astrophysics, 673, A142. https://doi.org/10.1051/0004-6361/202346031
+* [1] H. Xiao, et al.  The data center for the Spectrometer and Telescope for Imaging X-rays (STIX) on board Solar Orbiter. Astronomy & Astrophysics, 673, A142. https://doi.org/10.1051/0004-6361/202346031
 * [2] Hualin Xiao, Säm Krucker, Lastufka Erica, & William Setterberg. (2022). stixdcpy – a python package that facilitates access and analysis of STIX data (v2.0). Zenodo. https://doi.org/10.5281/zenodo.7180433
 
 # Reporting Issues and Contributing
