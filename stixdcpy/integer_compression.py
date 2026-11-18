@@ -24,14 +24,21 @@ class Compression(object):
         self.skm=(s,k,m)
         self.lut=Compression.get_error_lut(s,k,m, include_stat_error)
 
-    def get_errors(self,counts:np.array):
+    def get_errors(self, counts: np.ndarray) -> np.ndarray:
         """
-            calculate errors for counts
+        Calculates the errors for a given set of counts.
+
+        Parameters:
+            counts (np.ndarray): The counts to calculate the errors for.
+
+        Returns:
+            np.ndarray: The calculated errors.
         """
-        fv=np.vectorize(self.get_error, otypes=[np.float])
-        #otypes must be specified
-        return fv(counts)
-        
+        # create a vectorized function that calculates the errors for a single count
+        vectorized_function = np.vectorize(self.get_error, otypes=[np.float])
+
+        # call the vectorized function on the input counts and return the result
+        return vectorized_function(counts)
 
 
     def get_error(self,counts):

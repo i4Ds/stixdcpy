@@ -35,8 +35,8 @@ COMPONENTS = OrderedDict([
     ('calibration_foil', [('al', 4 * 1000 * u.angstrom),
                           ('kapton', 4 * 2 * MIL_SI)]),
     ('dead_layer', [('te_o2', 392 * u.nm)]),
-    ('single_grid', [('tungsten', 0.4 * u.mm)]),
-    ('double_grid', [('tungsten', 0.8 * u.mm)]),
+    ('single_grid', [('tungsten', 0.40 * u.mm)]),
+    ('double_grid', [('tungsten', 0.80 * u.mm)]),
     ('caliste', [('cdte', 1 * u.mm)]),
 ])  #old materials, not valid anymore
 
@@ -50,7 +50,7 @@ MATERIALS = OrderedDict([
     }, 5.85 * u.g / u.cm**3)),
     ('tungsten', ({
         'W': 1.0
-    }, 19.28 * u.g / u.cm**3)),
+    }, 19.3 * u.g / u.cm**3)),
     (
         'alum7075-max',
         (
@@ -485,15 +485,61 @@ class Transmission:
         material.mass_attenuation_coefficient.func = material_func
         return material
 
+def get_transmission(composition: dict, thickness: float, density: float, energies: np.array):
+    """
+    Calculates the transmission of a material for given energies based on its composition, thickness, and density.
+
+    Parameters:
+    - composition (dict): A dictionary representing the composition of the material, where keys are chemical symbols
+                          and values are the fractional masses of the corresponding elements.
+    - thickness (float): The thickness of the material in millimeters (mm).
+    - density (float): The density of the material in grams per cubic centimeter (g/cm^3).
+    - energies (np.array): An array containing the energies in kiloelectronvolts (keV) for which transmission is to be calculated.
+
+    Returns:
+    energies, transmission
+
+    Note:
+    The function internally uses the 'Transmission' class to create a material and calculate its transmission.
+    Example usage:
+    composition = {'Te': 0.531644, 'Cd': 0.4683554}
+    thickness = 2.5  # mm
+    density = 8.9  # g/cm^3
+    energies = np.array([30, 50, 100])  # keV
+    get_transmission(composition, thickness, density, energies)
+    """
+    density = density * u.g / u.cm ** 3
+    thickness = thickness * u.mm
+    energies_keV = energies * u.keV
+    material = Material(composition,thickness,density=density)
+    trans = material.transmission(energies_keV)
+    return energies,  trans
 
 def get_detector_absorption(energies=None):
+    """
+    Calculates the absorption of a detector material for given energies.
+
+    Parameters:
+    - energies (array-like, optional): An array containing the energies in kiloelectronvolts (keV) for which absorption
+                                       is to be calculated. If not provided, energies will be generated from 2 to 150 keV
+                                       with 1001 points.
+
+    Returns:
+    Tuple: A tuple containing two arrays:
+        - energies (array): An array containing the energies in keV.
+        - absorption (array): An array containing the corresponding absorption values.
+
+    Note:
+    The function internally uses the 'Transmission' class to create a material and calculate its absorption.
+    Example usage:
+    get_detector_absorption()
+    get_detector_absorption(energies=np.linspace(2, 200, 500))
+    """
     mass_fraction = {'Te': 0.531644, 'Cd': 0.4683554}
     density = 6.2 * u.g / u.cm**3
     thickness = 1 * u.mm
-    material = Transmission.create_material(name='cdte',
-                                            fractional_masses=mass_fraction,
-                                            thickness=thickness,
-                                            density=density)
+    material = Material(mass_fraction,thickness,density=density)
+
     if energies is None:
         energies = np.linspace(2, 150, 1001)
     energies_keV = energies * u.keV
@@ -501,6 +547,22 @@ def get_detector_absorption(energies=None):
     return energies, absorption
 
 def get_component_absorption(name, energies):
+    """
+    Calculates the absorption of a specific component material for given energies.
+
+    Parameters:
+    - name (str): The name of the component material.
+    - energies (array-like): An array containing the energies in kiloelectronvolts (keV) for which absorption
+                             is to be calculated.
+
+    Returns:
+    array: An array containing the absorption values corresponding to the given energies.
+
+    Note:
+    The function internally uses the 'Transmission' class to calculate the transmission of the component material.
+    Example usage:
+    get_component_absorption(name='my_material', energies=np.linspace(2, 150, 1001))
+    """
     t=Transmission()
     trans=t.get_transmission_of_component(name, energies)
     return trans

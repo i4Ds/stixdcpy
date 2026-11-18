@@ -50,6 +50,11 @@ class IO(object):
             return pd.DataFrame(self.data)
         return None
     def dataframe(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """        
         if self.data:
             return pd.DataFrame(self.data)
         return None

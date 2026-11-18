@@ -338,6 +338,7 @@ class Request(object):
     @staticmethod
     def post(url, form, result_type = 'object'):
         response = requests.post(url, data=form)
+
         try:
             data = response.json()
             if result_type == 'object':

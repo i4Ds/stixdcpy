@@ -46,10 +46,26 @@ class IO(object):
         # pass
 
     def to_pandas(self):
+        """
+        Returns a pandas dataframe representation of the data.
+
+        Returns:
+            pandas.DataFrame: A pandas dataframe representation of the data.
+        """
         if self.data:
             return pd.DataFrame(self.data)
         return None
     def dataframe(self):
+        if self.data:
+            return pd.DataFrame(self.data)
+        return None
+    def dataframe(self):
+        """
+        Returns a pandas dataframe representation of the data.
+
+        Returns:
+            pandas.DataFrame: A pandas dataframe representation of the data.
+        """
         if self.data:
             return pd.DataFrame(self.data)
         return None

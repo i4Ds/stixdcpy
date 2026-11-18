@@ -69,13 +69,19 @@ class ImgSpecArchive(sio.IO):
         """
         Downloads flare meta data from the STIX data center.
 
-        Parameters:
-            flare_id (int): Flare unique id.
-            start_utc (str): Start UTC to search for flares.
-            end_utc (str): End UTC to search for flares.
+        Parameters
+        ----------
+        flare_id : int
+            Flare unique id.
+        start_utc : str
+            Start UTC to search for flares.
+        end_utc : str
+            End UTC to search for flares.
 
-        Returns:
-            ImgSpecArchive object: The queried image archive.
+        Returns
+        -------
+        ImgSpecArchive
+            The queried image archive.
         """
         flare_id = None
         start_utc = None
@@ -118,7 +124,7 @@ class ImgSpecArchive(sio.IO):
 
         # The implementation of this method goes here (omitted for brevity).
     def animate(self, image_type='CLEAN'):
-        pass
+       pass 
 
     def peek(self, image_type='CLEAN'):
         """
@@ -133,7 +139,9 @@ class ImgSpecArchive(sio.IO):
         ishown = 0
         for data in self.imgspec_results:
             display(HTML(f'<h3>Image ID # {data["_id"]}</h3>'))
-            uid = data.get('unique_id', None)
+            uid = data['unique_id']
+            start_utc = data['utc_range'][0]
+            work_dir=data['work_dir']
             try:
                 peak= data['peak_utc']
                 display(
@@ -152,7 +160,7 @@ class ImgSpecArchive(sio.IO):
             for key, val in report.items():
                 if image_type not in val['title']:
                     continue
-                url = f'{net.HOST}/image-archive/{uid}/{val["filename"]}'
+                url = f'{net.HOST}/image-archive/{work_dir}/{val["filename"]}'
                 display(HTML(f'<b>{val.get("title","")}</b>'))
                 display(Image(url=url, width=400, height=300))
             ishown += 1

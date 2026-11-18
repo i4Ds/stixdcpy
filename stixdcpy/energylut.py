@@ -44,10 +44,6 @@ class EnergyLUT(sio.IO):
     def info(self):
         try:
             pprint(self.data['info'])
-            # pprint('Pixel 0 true energy bin  edges: ')
-            # pprint(self.get_pixel_true_ebins(0))
-            # pprint('...')
-
         except KeyError as e:
             logger.error(e)
 
@@ -72,6 +68,16 @@ class EnergyLUT(sio.IO):
             return None
 
     def get_onboard_elut(self):
+        """
+        Retrieve the onboard energy lookup table (ELUT) data.
+
+        Returns:
+            onboard_elut (dict): The onboard ELUT data, or None if not available.
+
+        Raises:
+            KeyError: If the onboard ELUT data is not present in the STI-1 data.
+            TypeError: If the STI-1 data does not contain a 'data' key.
+        """
         try:
             return self.data['data']['onboard']
         except (KeyError, TypeError):

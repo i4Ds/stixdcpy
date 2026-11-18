@@ -10,6 +10,11 @@ from stixdcpy.net import Request as jreq
 
 
 class Ephemeris(sio.IO):
+    """_summary_
+
+    Args:
+        sio (_type_): _description_
+    """    
     def __init__(self, start_utc, end_utc, data):
         self.start_utc = start_utc
         self.end_utc = end_utc
@@ -83,6 +88,15 @@ class Ephemeris(sio.IO):
         return self.data
 
     def peek(self, ax=None):
+        """_summary_
+
+        Args:
+            ax (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
+
         if not self.data:
             logger.error(f'Data not loaded. ')
             return None
@@ -135,6 +149,14 @@ class Pointing(Ephemeris):
         return cls(utc, data)
 
     def peek(self, ax=None):
+        """
+        Plot the solar ephemeris data 
+
+        Args:
+            ax (_type_, optional): _description_. Defaults to None.
+        Returns:
+        ax:  matplotlib axes
+            """
         if not self.data:
             logger.error(f'Data not loaded. ')
             return None

@@ -1,4 +1,13 @@
 def fetch_spectrogram(start_utc, end_utc):
+    """ 
+    Fetch spectrogram from the STIX data center 
+     Args:
+        start_utc (_type_): _description_
+        end_utc (_type_): _description_
+
+    Returns:
+    a diect containing the spectrogram
+    """    
     url='https://datacenter.stix.i4ds.net/request/bsd/spectrograms'
     res=requests.post(url, data={'begin':start_utc, 'end':end_utc})
     data=res.json()

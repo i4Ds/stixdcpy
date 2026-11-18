@@ -1,6 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
 import math
 import numpy as np
-
 
 nominal_grid_parameters = {
     "1": {
@@ -1518,19 +1520,66 @@ def get_trigger_acc_detector_ids():
 
 
 def get_sci_ebins(a, b):
+    """
+    Returns the indices of the energy bins that correspond to the specified energy range.
+
+    Parameters
+    ----------
+    a : float
+        Lower energy bound (inclusive).
+    b : float
+        Upper energy bound (exclusive).
+
+    Returns
+    -------
+    tuple
+        A tuple containing the indices of the energy bins that correspond to the specified energy range.
+
+    Raises
+    ------
+    ValueError
+        If the specified energy range is outside the range of valid energy bins.
+
+    """
     low = np.where(ebin_low_edges == a)[0][0]
     up = np.where(ebin_low_edges == b)[0][0] - 1
 
+    if up >= len(ebin_low_edges) or low < 0:
+        raise ValueError(
+            "Invalid energy range specified. Energy range must be within the range of valid energy bins."
+        )
+
     return (low, up)
 
-def get_spectrogram_energy_bins(elow, ehigh, eunit):
+def get_spectrogram_energy_bins(elow: float, ehigh: float, eunit: int):
     """
     get spectrogram energy bands of science bins
+
+    Parameters
+    ----------
+    elow : float
+        Lower energy bound (inclusive).
+    ehigh : float
+        Upper energy bound (exclusive).
+    eunit : int
+        Energy unit.
+
+    Returns
+    -------
+    List[Tuple[float, float]]
+        A list of tuples containing the lower and upper energy bounds of the energy bins.
+
+    Raises
+    ------
+    ValueError
+        If the specified energy range is outside the range of valid energy bins.
+
     """
     eunit += 1
-    nbins=int((ehigh-elow+1)/eunit)
- 
-    ebins=[  (ebin_low_edges[int(elow+i*eunit)], ebin_low_edges[int(elow+(i+1)*eunit)])  for i in range(nbins)]
+    nbins = int((ehigh - elow + 1) / eunit)
+
+    ebins = [(ebin_low_edges[int(elow + i * eunit)], ebin_low_edges[int(elow + (i + 1) * eunit)])
+             for i in range(nbins)]
 
     return ebins
 
